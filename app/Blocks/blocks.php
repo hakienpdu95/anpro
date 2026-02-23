@@ -3,7 +3,7 @@
 use Carbon_Fields\Block;
 use Carbon_Fields\Field;
 
-// ==================== IMAGE LINK CARD ====================
+// ==================== IMAGE LINK CARD (Carbon Fields) ====================
 Block::make('image_link_card', 'Card Ảnh & Link')
     ->set_category('common', 'Common', 'flag')
     ->set_icon('format-image')
@@ -16,7 +16,7 @@ Block::make('image_link_card', 'Card Ảnh & Link')
              ->set_default_value('Tiêu đề card'),
 
         Field::make('text', 'link', 'Link')
-             ->set_attribute('type', 'url') 
+             ->set_attribute('type', 'url')   // ← fix lỗi url
              ->set_required(true),
 
         Field::make('text', 'button_text', 'Text nút')

@@ -155,11 +155,10 @@ add_action('widgets_init', function () {
     ] + $config);
 });
 
-// Boot Carbon Fields
 add_action('after_setup_theme', function () {
-    require_once get_theme_file_path('/vendor/autoload.php'); // Quan trọng!
+    require_once get_theme_file_path('vendor/autoload.php'); // Quan trọng!
     Carbon_Fields::boot();
 
-    // Load tất cả blocks
+    // Load file register blocks
     require_once get_theme_file_path('app/Blocks/blocks.php');
 }, 20);
