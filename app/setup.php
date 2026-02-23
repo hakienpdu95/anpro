@@ -323,3 +323,9 @@ function cmeta($key, $post_id = null) {
 }
 
 require_once get_theme_file_path('app/Helpers/QueryHelper.php');
+
+/**
+ * WATERMARK TỰ ĐỘNG KHI UPLOAD ẢNH (10/10)
+ */
+require_once get_theme_file_path('app/Watermark/WatermarkHandler.php');
+(new \App\Watermark\WatermarkHandler())->register();
