@@ -12,3 +12,6 @@
 
 **Advanced hybrid WordPress starter theme with Laravel Blade and Tailwind CSS**
 ## Xóa cache transient (nếu cần): wp transient delete --all
+## Chỉ chạy lệnh này khi muốn trở về git gần nhất trước đó, bỏ qua các thay đổi đang làm hiện tại
+git restore .
+git clean -fd
