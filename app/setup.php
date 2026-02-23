@@ -156,7 +156,6 @@ add_action('widgets_init', function () {
 
 /**
  * === FORCE CLASSIC EDITOR + DISABLE GUTENBERG HOÀN TOÀN (ĐÃ FIX) ===
- * Dán vào CUỐI file app/setup.php
  */
 
 // 1. Buộc dùng Classic Editor cho tất cả post type (post, page, CPT...)
@@ -202,3 +201,53 @@ add_action('enqueue_block_editor_assets', function () {
 add_action('admin_init', function () {
     remove_action('try_gutenberg_panel', 'wp_try_gutenberg_panel');
 }, 999);
+
+/**
+ * ===============================================
+ * === AUTO REGISTER CPT + METABOX (FIXED 100%)
+ * ===============================================
+ */
+
+// 1. REQUIRE COMPOSER AUTOLOADER SIÊU SỚM (bắt buộc)
+if (file_exists(get_theme_file_path('vendor/autoload.php'))) {
+    require_once get_theme_file_path('vendor/autoload.php');
+} else {
+    // Báo lỗi rõ ràng nếu package chưa install
+    add_action('admin_notices', function () {
+        echo '<div class="error"><p><strong>Lỗi Composer:</strong> Chạy lệnh <code>composer install</code> trong thư mục theme /anpro</p></div>';
+    });
+}
+
+/**
+ * Boot Carbon Fields (chỉ trong admin)
+ */
+add_action('after_setup_theme', function () {
+    if (class_exists('\\Carbon_Fields\\Carbon_Fields')) {
+        \Carbon_Fields\Carbon_Fields::boot();
+    }
+}, 9);
+
+/**
+ * AUTO REGISTER TẤT CẢ CPT từ folder app/PostTypes/
+ */
+add_action('init', function () {
+    $path = get_theme_file_path('app/PostTypes');
+
+    if (!is_dir($path)) {
+        return;
+    }
+
+    foreach (glob($path . '/*.php') as $file) {
+        if (basename($file) === 'BasePostType.php') {
+            continue;
+        }
+
+        require_once $file;
+
+        $className = '\\App\\PostTypes\\' . basename($file, '.php');
+
+        if (class_exists($className) && is_subclass_of($className, '\\App\\PostTypes\\BasePostType')) {
+            (new $className())->register();
+        }
+    }
+}, 5); // Priority thấp để load sớm
