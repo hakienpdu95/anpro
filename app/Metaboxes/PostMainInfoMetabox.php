@@ -5,7 +5,7 @@ namespace App\Metaboxes;
 class PostMainInfoMetabox extends BaseMetabox
 {
     protected string $title = 'Thông tin bài viết';
-    protected array $post_types = ['post'];   // CHỈ áp dụng cho 'post'
+    protected array $post_types = ['post'];
 
     protected function getFields(): array
     {
@@ -31,24 +31,28 @@ class PostMainInfoMetabox extends BaseMetabox
                     'breaking' => '🚨 Khẩn cấp',
                 ],
             ],
+            // Repeater đã tối ưu hoàn toàn để tránh warning "clone"
             [
-                'name'        => 'Thư viện ảnh (Repeater)',
-                'id'          => 'gallery',
-                'type'        => 'group',
-                'clone'       => true,
-                'sort_clone'  => true,
-                'collapsible' => true,
-                'group_title' => 'Ảnh {#} - {caption}',
-                'fields'      => [
+                'name'         => 'Thư viện ảnh (Repeater)',
+                'id'           => 'gallery',
+                'type'         => 'group',
+                'clone'        => true,
+                'sort_clone'   => true,
+                'collapsible'  => true,
+                'group_title'  => 'Ảnh {#} - {caption}',
+                'add_button'   => '+ Thêm ảnh',
+                'fields'       => [
                     [
                         'name' => 'Ảnh',
                         'id'   => 'image',
-                        'type' => 'image',           // Dùng 'image' thay image_advanced để tránh warning
+                        'type' => 'image',           // Dùng 'image' thay image_advanced
+                        'clone' => false,            // Fix warning
                     ],
                     [
                         'name' => 'Chú thích ảnh',
                         'id'   => 'caption',
                         'type' => 'text',
+                        'clone' => false,            // Fix warning
                     ],
                 ],
             ],
