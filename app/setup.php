@@ -7,7 +7,6 @@
 namespace App;
 
 use Illuminate\Support\Facades\Vite;
-use Carbon_Fields\Carbon_Fields;
 
 /**
  * Inject styles into the block editor.
@@ -155,10 +154,51 @@ add_action('widgets_init', function () {
     ] + $config);
 });
 
-add_action('after_setup_theme', function () {
-    require_once get_theme_file_path('vendor/autoload.php'); // Quan trọng!
-    Carbon_Fields::boot();
+/**
+ * === FORCE CLASSIC EDITOR + DISABLE GUTENBERG HOÀN TOÀN (ĐÃ FIX) ===
+ * Dán vào CUỐI file app/setup.php
+ */
 
-    // Load file register blocks
-    require_once get_theme_file_path('app/Blocks/blocks.php');
-}, 20);
+// 1. Buộc dùng Classic Editor cho tất cả post type (post, page, CPT...)
+add_filter('use_block_editor_for_post', '__return_false', 9999);
+add_filter('use_block_editor_for_post_type', '__return_false', 9999, 2);
+
+// 2. Tắt Block Editor cho Widgets
+add_filter('gutenberg_use_widgets_block_editor', '__return_false', 9999);
+add_filter('use_widgets_block_editor', '__return_false', 9999);
+
+// 3. Tắt Full Site Editing (FSE) và Block Templates
+remove_theme_support('block-templates');
+remove_theme_support('block-template-parts');
+add_filter('should_load_block_editor_scripts_and_styles', '__return_false', 9999);
+
+// 4. Xóa toàn bộ CSS/JS Gutenberg (dùng closure để tránh lỗi "function not found")
+add_action('wp_enqueue_scripts', function () {
+    wp_dequeue_style('wp-block-library');
+    wp_dequeue_style('wp-block-library-theme');
+    wp_dequeue_style('global-styles');
+    wp_dequeue_style('classic-theme-styles');
+    wp_dequeue_style('wp-edit-blocks');
+    wp_dequeue_style('wp-block-editor');
+    wp_dequeue_style('wc-block-style'); // nếu có Woo
+}, 100);
+
+add_action('admin_enqueue_scripts', function () {
+    wp_dequeue_style('wp-block-library');
+    wp_dequeue_style('wp-block-library-theme');
+    wp_dequeue_style('global-styles');
+    wp_dequeue_style('classic-theme-styles');
+    wp_dequeue_style('wp-edit-blocks');
+    wp_dequeue_style('wp-block-editor');
+    wp_dequeue_style('wc-block-style');
+}, 100);
+
+add_action('enqueue_block_editor_assets', function () {
+    wp_dequeue_style('wp-block-library');
+    wp_dequeue_style('wp-edit-blocks');
+}, 100);
+
+// 5. Ẩn notice "Try Gutenberg"
+add_action('admin_init', function () {
+    remove_action('try_gutenberg_panel', 'wp_try_gutenberg_panel');
+}, 999);
