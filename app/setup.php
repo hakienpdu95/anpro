@@ -272,6 +272,48 @@ add_action('admin_init', function () {
 }, 20);
 
 /**
+ * ADMIN COLUMNS TỐI ƯU CHO CPT 'tin-tuc' (500k posts)
+ */
+add_filter('manage_tin-tuc_posts_columns', function ($columns) {
+    $new_columns = [];
+    foreach ($columns as $key => $title) {
+        $new_columns[$key] = $title;
+        if ($key === 'title') {
+            $new_columns['thumbnail']     = 'Ảnh';
+            $new_columns['reading_time']  = 'Thời gian đọc';
+            $new_columns['source']        = 'Nguồn';
+            $new_columns['flags']         = 'Đánh dấu';
+            $new_columns['the-loai']      = 'Thể loại';
+        }
+    }
+    return $new_columns;
+});
+
+add_action('manage_tin-tuc_posts_custom_column', function ($column, $post_id) {
+    switch ($column) {
+        case 'thumbnail':
+            echo get_the_post_thumbnail($post_id, [60, 60]);
+            break;
+        case 'reading_time':
+            echo (int) get_post_meta($post_id, 'reading_time', true) . ' phút';
+            break;
+        case 'source':
+            echo esc_html(get_post_meta($post_id, 'source', true));
+            break;
+        case 'flags':
+            $flags = get_post_meta($post_id, 'flags', true);
+            if (is_array($flags) || is_string($flags)) {
+                echo str_replace(['hot','featured','breaking'], ['🔥 Nóng','⭐ Nổi bật','🚨 Khẩn'], implode(', ', (array)$flags));
+            }
+            break;
+        case 'the-loai':
+            $terms = get_the_terms($post_id, 'the-loai');
+            echo $terms ? implode(', ', wp_list_pluck($terms, 'name')) : '—';
+            break;
+    }
+}, 10, 2);
+
+/**
  * Helper lấy meta siêu dễ trong Blade
  * Ví dụ: {{ cmeta('subtitle') }}
  */
@@ -279,3 +321,5 @@ function cmeta($key, $post_id = null) {
     $post_id = $post_id ?? get_the_ID();
     return get_post_meta($post_id, $key, true);
 }
+
+require_once get_theme_file_path('app/Helpers/QueryHelper.php');
