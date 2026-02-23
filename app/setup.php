@@ -203,51 +203,79 @@ add_action('admin_init', function () {
 }, 999);
 
 /**
- * ===============================================
- * === AUTO REGISTER CPT + METABOX (FIXED 100%)
- * ===============================================
+ * === TỐI ƯU 10/10: AUTO REGISTER CPT + TAXONOMY + METABOX ===
+ * Chỉ load khi cần, cache file list, chỉ chạy trong admin khi có thể
  */
 
-// 1. REQUIRE COMPOSER AUTOLOADER SIÊU SỚM (bắt buộc)
+// Require Composer autoloader (chỉ 1 lần)
 if (file_exists(get_theme_file_path('vendor/autoload.php'))) {
     require_once get_theme_file_path('vendor/autoload.php');
-} else {
-    // Báo lỗi rõ ràng nếu package chưa install
-    add_action('admin_notices', function () {
-        echo '<div class="error"><p><strong>Lỗi Composer:</strong> Chạy lệnh <code>composer install</code> trong thư mục theme /anpro</p></div>';
-    });
+}
+
+// Helper cache file list (static + transient)
+function sage_get_files($folder, $exclude = '') {
+    static $cache = [];
+    $key = md5($folder . $exclude);
+    if (isset($cache[$key])) return $cache[$key];
+
+    if (!is_dir($folder)) return [];
+
+    $files = glob($folder . '/*.php');
+    if ($exclude) {
+        $files = array_filter($files, fn($f) => basename($f) !== $exclude);
+    }
+
+    $cache[$key] = $files;
+    return $files;
 }
 
 /**
- * Boot Carbon Fields (chỉ trong admin)
- */
-add_action('after_setup_theme', function () {
-    if (class_exists('\\Carbon_Fields\\Carbon_Fields')) {
-        \Carbon_Fields\Carbon_Fields::boot();
-    }
-}, 9);
-
-/**
- * AUTO REGISTER TẤT CẢ CPT từ folder app/PostTypes/
+ * REGISTER CPT + TAXONOMY (chỉ cần chạy 1 lần trên init)
  */
 add_action('init', function () {
-    $path = get_theme_file_path('app/PostTypes');
-
-    if (!is_dir($path)) {
-        return;
-    }
-
-    foreach (glob($path . '/*.php') as $file) {
-        if (basename($file) === 'BasePostType.php') {
-            continue;
-        }
-
+    // CPT
+    foreach (sage_get_files(get_theme_file_path('app/PostTypes'), 'BasePostType.php') as $file) {
         require_once $file;
-
-        $className = '\\App\\PostTypes\\' . basename($file, '.php');
-
-        if (class_exists($className) && is_subclass_of($className, '\\App\\PostTypes\\BasePostType')) {
-            (new $className())->register();
+        $class = '\\App\\PostTypes\\' . basename($file, '.php');
+        if (class_exists($class) && is_subclass_of($class, '\\App\\PostTypes\\BasePostType')) {
+            (new $class())->register();
         }
     }
-}, 5); // Priority thấp để load sớm
+
+    // Taxonomy
+    foreach (sage_get_files(get_theme_file_path('app/Taxonomies'), 'BaseTaxonomy.php') as $file) {
+        require_once $file;
+        $class = '\\App\\Taxonomies\\' . basename($file, '.php');
+        if (class_exists($class) && is_subclass_of($class, '\\App\\Taxonomies\\BaseTaxonomy')) {
+            (new $class())->register();
+        }
+    }
+
+    // Chỉ flush rewrite khi đang dev (thêm CPT mới)
+    if (defined('WP_DEBUG') && WP_DEBUG && !get_option('sage_rewrite_flushed')) {
+        flush_rewrite_rules();
+        update_option('sage_rewrite_flushed', true);
+    }
+}, 5);
+
+/**
+ * REGISTER METABOX (chỉ load trong admin → tiết kiệm hiệu suất)
+ */
+add_action('admin_init', function () {
+    foreach (sage_get_files(get_theme_file_path('app/Metaboxes'), 'BaseMetabox.php') as $file) {
+        require_once $file;
+        $class = '\\App\\Metaboxes\\' . basename($file, '.php');
+        if (class_exists($class) && is_subclass_of($class, '\\App\\Metaboxes\\BaseMetabox')) {
+            (new $class())->register();
+        }
+    }
+}, 20);
+
+/**
+ * Helper lấy meta siêu dễ trong Blade
+ * Ví dụ: {{ cmeta('subtitle') }}
+ */
+function cmeta($key, $post_id = null) {
+    $post_id = $post_id ?? get_the_ID();
+    return get_post_meta($post_id, $key, true);
+}
