@@ -15,3 +15,11 @@
 ## Chỉ chạy lệnh này khi muốn trở về git gần nhất trước đó, bỏ qua các thay đổi đang làm hiện tại
 git restore .
 git clean -fd
+
+## Cách dùng repeater trong Blade:
+@php $gallery = cmeta('gallery'); @endphp
+@if ($gallery)
+    @foreach ($gallery as $item)
+        <img src="{{ wp_get_attachment_url($item['image']) }}" alt="{{ $item['caption'] ?? '' }}" loading="lazy">
+    @endforeach
+@endif

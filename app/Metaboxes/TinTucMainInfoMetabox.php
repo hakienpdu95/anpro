@@ -2,27 +2,26 @@
 
 namespace App\Metaboxes;
 
-class PostMainInfoMetabox extends BaseMetabox
+class TinTucMainInfoMetabox extends BaseMetabox
 {
-    protected string $title = 'Thông tin bài viết';
-    protected array $post_types = ['post'];   // CHỈ áp dụng cho 'post'
+    protected string $title = 'Thông tin bài viết - Tin tức';
+    protected array $post_types = ['tin-tuc'];   // CHỈ áp dụng cho 'tin-tuc'
 
     protected function getFields(): array
     {
         return [
             [
-                'name' => 'Tiêu đề phụ',
+                'name' => 'Tiêu đề phụ (Tin tức)',
                 'id'   => 'subtitle',
                 'type' => 'text',
             ],
             [
-                'name' => 'Thời gian đọc (phút)',
+                'name' => 'Thời gian đọc',
                 'id'   => 'reading_time',
                 'type' => 'number',
-                'min'  => 0,
             ],
             [
-                'name'    => 'Đánh dấu đặc biệt',
+                'name'    => 'Đánh dấu',
                 'id'      => 'flags',
                 'type'    => 'checkbox_list',
                 'options' => [
@@ -32,21 +31,21 @@ class PostMainInfoMetabox extends BaseMetabox
                 ],
             ],
             [
-                'name'        => 'Thư viện ảnh (Repeater)',
+                'name'        => 'Gallery ảnh (Repeater)',
                 'id'          => 'gallery',
                 'type'        => 'group',
                 'clone'       => true,
                 'sort_clone'  => true,
                 'collapsible' => true,
-                'group_title' => 'Ảnh {#} - {caption}',
+                'group_title' => 'Ảnh {#}',
                 'fields'      => [
                     [
                         'name' => 'Ảnh',
                         'id'   => 'image',
-                        'type' => 'image',           // Dùng 'image' thay image_advanced để tránh warning
+                        'type' => 'image',
                     ],
                     [
-                        'name' => 'Chú thích ảnh',
+                        'name' => 'Chú thích',
                         'id'   => 'caption',
                         'type' => 'text',
                     ],

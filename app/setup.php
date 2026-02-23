@@ -259,17 +259,45 @@ add_action('init', function () {
 }, 5);
 
 /**
- * REGISTER METABOX (chỉ load trong admin → tiết kiệm hiệu suất)
+ * === META BOX - BOOT + REGISTER (FULL FIX - ĐÃ TEST) ===
  */
-add_action('admin_init', function () {
-    foreach (sage_get_files(get_theme_file_path('app/Metaboxes'), 'BaseMetabox.php') as $file) {
+
+// Boot Meta Box sớm nhất
+add_action('after_setup_theme', function () {
+    if (file_exists(get_theme_file_path('vendor/wpmetabox/meta-box/meta-box.php'))) {
+        require_once get_theme_file_path('vendor/wpmetabox/meta-box/meta-box.php');
+    }
+}, 5);
+
+// Auto register tất cả metabox
+add_filter('rwmb_meta_boxes', function (array $meta_boxes): array {
+    $path = get_theme_file_path('app/Metaboxes');
+    if (!is_dir($path)) return $meta_boxes;
+
+    foreach (glob($path . '/*.php') as $file) {
+        if (basename($file) === 'BaseMetabox.php') continue;
+
         require_once $file;
+
         $class = '\\App\\Metaboxes\\' . basename($file, '.php');
+
         if (class_exists($class) && is_subclass_of($class, '\\App\\Metaboxes\\BaseMetabox')) {
-            (new $class())->register();
+            $meta_boxes = $class::addMetabox($meta_boxes);
         }
     }
+    return $meta_boxes;
 }, 20);
+
+/**
+ * BUỘC HIỂN THỊ TẤT CẢ METABOX TỰ ĐỘNG (KHÔNG HARD CODE)
+ */
+add_filter('default_hidden_meta_boxes', function ($hidden, $screen) {
+    if (isset($screen->post_type)) {
+        $metabox_ids = \App\Metaboxes\BaseMetabox::getRegisteredIds($screen->post_type);
+        $hidden = array_diff($hidden, $metabox_ids);
+    }
+    return $hidden;
+}, 10, 2);
 
 /**
  * ADMIN COLUMNS TỐI ƯU CHO CPT 'tin-tuc' (500k posts)
@@ -317,9 +345,10 @@ add_action('manage_tin-tuc_posts_custom_column', function ($column, $post_id) {
  * Helper lấy meta siêu dễ trong Blade
  * Ví dụ: {{ cmeta('subtitle') }}
  */
-function cmeta($key, $post_id = null) {
+function cmeta($key, $post_id = null, $args = [])
+{
     $post_id = $post_id ?? get_the_ID();
-    return get_post_meta($post_id, $key, true);
+    return rwmb_meta($key, $args, $post_id);
 }
 
 require_once get_theme_file_path('app/Helpers/QueryHelper.php');

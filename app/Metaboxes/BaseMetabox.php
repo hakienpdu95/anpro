@@ -2,69 +2,55 @@
 
 namespace App\Metaboxes;
 
-use WP_Post;
-
 abstract class BaseMetabox
 {
-    protected string $title;
+    protected string $id;
+    protected string $title = 'Thông tin bổ sung';
     protected array $post_types = ['post'];
-    protected string $context = 'normal';  // normal | advanced | side
-    protected string $priority = 'high';   // high | core | default | low
+    protected string $context = 'normal';
+    protected string $priority = 'high';
+
+    // Registry tự động để quản lý tất cả metabox IDs theo post type
+    protected static array $registry = [];
 
     public function __construct()
     {
-        $this->title = $this->getTitle();
+        $this->id = $this->getId();
     }
-
-    abstract protected function getTitle(): string;
-    abstract protected function getPostTypes(): array;
-
-    public function register()
-    {
-        add_action('add_meta_boxes', [$this, 'addMetabox']);
-        add_action('save_post', [$this, 'saveMetabox'], 10, 2);
-    }
-
-    public function addMetabox()
-    {
-        foreach ($this->getPostTypes() as $post_type) {
-            add_meta_box(
-                $this->getId(),
-                $this->title,
-                [$this, 'render'],
-                $post_type,
-                $this->context,
-                $this->priority
-            );
-        }
-    }
-
-    abstract public function render(WP_Post $post);
-
-    public function saveMetabox($post_id, $post)
-    {
-        if (!$this->canSave($post_id)) {
-            return;
-        }
-        $this->saveFields($post_id);
-    }
-
-    protected function canSave($post_id): bool
-    {
-        if (defined('DOING_AUTOSAVE') && DOING_AUTOSAVE) return false;
-        if (!current_user_can('edit_post', $post_id)) return false;
-
-        $nonce = $this->getId() . '_nonce';
-        if (!isset($_POST[$nonce]) || !wp_verify_nonce($_POST[$nonce], $this->getId())) {
-            return false;
-        }
-        return true;
-    }
-
-    abstract protected function saveFields($post_id): void;
 
     protected function getId(): string
     {
-        return 'mb_' . sanitize_key(str_replace(['App\\Metaboxes\\', 'Metabox'], '', static::class));
+        $class = (new \ReflectionClass($this))->getShortName();
+        return strtolower(preg_replace('/(?<!^)[A-Z]/', '-$0', $class));
     }
+
+    public static function addMetabox(array $meta_boxes): array
+    {
+        $instance = new static();
+
+        $meta_boxes[] = [
+            'id'         => $instance->id,
+            'title'      => $instance->title,
+            'post_types' => $instance->post_types,
+            'context'    => $instance->context,
+            'priority'   => $instance->priority,
+            'autosave'   => true,
+            'fields'     => $instance->getFields(),
+        ];
+
+        // Tự động đăng ký ID vào registry (không cần hardcode nữa)
+        foreach ($instance->post_types as $pt) {
+            self::$registry[$pt][] = $instance->id;
+        }
+
+        return $meta_boxes;
+    }
+
+    // Lấy danh sách metabox IDs theo post type
+    public static function getRegisteredIds(string $post_type): array
+    {
+        return self::$registry[$post_type] ?? [];
+    }
+
+    abstract protected function getFields(): array;
 }
