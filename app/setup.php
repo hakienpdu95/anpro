@@ -7,6 +7,7 @@
 namespace App;
 
 use Illuminate\Support\Facades\Vite;
+use Carbon_Fields\Carbon_Fields;
 
 /**
  * Inject styles into the block editor.
@@ -153,3 +154,12 @@ add_action('widgets_init', function () {
         'id' => 'sidebar-footer',
     ] + $config);
 });
+
+// Boot Carbon Fields
+add_action('after_setup_theme', function () {
+    require_once get_theme_file_path('/vendor/autoload.php'); // Quan trọng!
+    Carbon_Fields::boot();
+
+    // Load tất cả blocks
+    require_once get_theme_file_path('app/Blocks/blocks.php');
+}, 20);
