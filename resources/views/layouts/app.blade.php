@@ -18,6 +18,7 @@
       </a>
 
       @include('sections.header')
+      @include('partials.header')
 
       <main id="main" class="main">
         @yield('content')
@@ -34,5 +35,6 @@
 
     @php(do_action('get_footer'))
     @php(wp_footer())
+    @yield('scripts')
   </body>
 </html>
