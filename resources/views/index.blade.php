@@ -34,36 +34,8 @@
     @include('partials.block-slide-dynamic', [
         'title'          => '🚨 Tin khẩn cấp (flags = breaking)',
         'post_type'      => 'event',
-        'meta_query'     => [
-            [
-                'key'     => 'flags',
-                'value'   => 'breaking',     // string đơn giản
-                'compare' => '=',            // Dùng '=' vì lưu string
-            ]
-        ],
-        'posts_per_page' => 8,
         'perPage'        => 3,
-        'debug'          => true,        // Bật debug
-    ])
-
-    {{-- 2. Tin theo danh mục "event_cat" --}}
-    @include('partials.block-slide-dynamic', [
-        'title' => '📈 Kinh tế',
-        'tax_query' => [
-            ['taxonomy' => 'event_cat', 'field' => 'slug', 'terms' => 'kinh-te']
-        ],
-        'perPage' => 2,
-    ])
-
-    {{-- 3. Bài dài (reading_time >= 10) --}}
-    @include('partials.block-slide-dynamic', [
-        'title' => '📖 Bài đọc dài hay nhất',
-        'meta_query' => [
-            ['key' => 'reading_time', 'value' => 10, 'compare' => '>=', 'type' => 'NUMERIC']
-        ],
-        'orderby' => 'meta_value_num',
-        'meta_key' => 'reading_time',
-        'perPage' => 3,
+        'debug'          => true,
     ])
 
   @while(have_posts()) @php(the_post())

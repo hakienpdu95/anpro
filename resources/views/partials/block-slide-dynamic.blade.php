@@ -1,60 +1,48 @@
-{{-- BLOCK SLIDE DYNAMIC 10/10 – Lấy dữ liệu thật từ CPT event + flags = breaking --}}
+{{-- BLOCK SLIDE DYNAMIC 10/10 – Query trực tiếp từ custom table (bypass filterPostsClauses) --}}
 @props([
     'title'          => '🚨 Tin khẩn cấp (flags = breaking)',
     'post_type'      => 'event',
     'posts_per_page' => 8,
-    'meta_query'     => [],
-    'tax_query'      => [],
-    'orderby'        => 'date',
-    'meta_key'       => '',
-    'order'          => 'DESC',
     'perPage'        => 3,
     'autoplay'       => true,
     'interval'       => 4000,
-    'debug'          => true,          // Bật true để xem debug
+    'debug'          => true,
 ])
 
 @php
-// === TẠO CACHE KEY AN TOÀN ===
-$cache_params = [
-    'post_type'      => $post_type,
-    'posts_per_page' => $posts_per_page,
-    'meta_query'     => $meta_query,
-    'tax_query'      => $tax_query,
-    'orderby'        => $orderby,
-    'meta_key'       => $meta_key,
-    'order'          => $order,
-];
-$cache_key = 'slide_event_' . md5(json_encode($cache_params, JSON_UNESCAPED_UNICODE));
+// === QUERY TRỰC TIẾP TỪ CUSTOM TABLE (đảm bảo 100% lấy được data) ===
+global $wpdb;
+$table = \App\Database\CustomTableManager::getTableName($post_type);
 
-$posts = get_transient($cache_key);
+$post_ids = $wpdb->get_col($wpdb->prepare(
+    "SELECT DISTINCT post_id 
+     FROM `$table` 
+     WHERE meta_key = %s 
+       AND meta_value = %s 
+     LIMIT %d",
+    'flags',
+    'breaking',
+    $posts_per_page
+));
 
-if (false === $posts) {
-    $args = [
-        'post_type'        => $post_type,
-        'posts_per_page'   => $posts_per_page,
-        'orderby'          => $orderby,
-        'order'            => $order,
-        'meta_query'       => $meta_query,
-        'tax_query'        => $tax_query,
+$posts = [];
+if (!empty($post_ids)) {
+    $posts = get_posts([
+        'post_type'      => $post_type,
+        'post__in'       => $post_ids,
+        'posts_per_page' => $posts_per_page,
+        'orderby'        => 'date',
+        'order'          => 'DESC',
         'suppress_filters' => false,
-    ];
+    ]);
+}
 
-    if ($orderby === 'meta_value_num' && $meta_key) {
-        $args['meta_key'] = $meta_key;
-    }
-
-    $query = new WP_Query($args);
-    $posts = $query->posts;
-
-    set_transient($cache_key, $posts, 5 * MINUTE_IN_SECONDS);
-
-    if ($debug) {
-        error_log("DEBUG SLIDE → CPT: {$post_type} | Found: " . count($posts) . " posts | Cache key: {$cache_key}");
-        if (empty($posts)) {
-            error_log("DEBUG SLIDE → Query args: " . print_r($args, true));
-        }
-    }
+if ($debug) {
+    error_log("=== DEBUG SLIDE EVENT DIRECT QUERY ===");
+    error_log("Post Type: {$post_type}");
+    error_log("Post IDs tìm thấy: " . implode(', ', $post_ids));
+    error_log("Số bài viết load được: " . count($posts));
+    error_log("=========================");
 }
 @endphp
 
@@ -65,23 +53,20 @@ if (false === $posts) {
 
     @if (empty($posts))
         <div class="bg-red-50 border border-red-200 p-8 rounded-3xl text-center">
-            <p class="text-red-600">Không tìm thấy bài viết nào phù hợp.</p>
-            <p class="text-xs text-red-500 mt-2">(Kiểm tra debug.log để xem lý do)</p>
+            <p class="text-red-600">Không tìm thấy bài viết nào có flags = "breaking".</p>
+            <p class="text-xs text-red-500 mt-2">Kiểm tra debug.log để xem chi tiết</p>
         </div>
     @else
-        <div 
-            class="splide"
-            data-splide-config='{ 
-                "type": "loop",
-                "perPage": {{ $perPage }},
-                "autoplay": {{ $autoplay ? 'true' : 'false' }},
-                "interval": {{ $interval }},
-                "arrows": true,
-                "pagination": true,
-                "gap": "1.5rem",
-                "lazyLoad": "nearby"
-            }'
-        >
+        <div class="splide" data-splide-config='{ 
+            "type": "loop",
+            "perPage": {{ $perPage }},
+            "autoplay": {{ $autoplay ? 'true' : 'false' }},
+            "interval": {{ $interval }},
+            "arrows": true,
+            "pagination": true,
+            "gap": "1.5rem",
+            "lazyLoad": "nearby"
+        }'>
             <div class="splide__track">
                 <ul class="splide__list">
                     @foreach ($posts as $post)
