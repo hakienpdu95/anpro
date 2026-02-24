@@ -154,89 +154,47 @@ add_action('widgets_init', function () {
     ] + $config);
 });
 
-/**
- * WATERMARK TỰ ĐỘNG KHI UPLOAD ẢNH (10/10)
- */
+/** === WATERMARK TỰ ĐỘNG === */
 require_once get_theme_file_path('app/Watermark/WatermarkHandler.php');
 (new \App\Watermark\WatermarkHandler())->register();
 
-/**
- * === FORCE CLASSIC EDITOR + DISABLE GUTENBERG HOÀN TOÀN (FIX MẤT EDITOR) ===
- */
-
-// 1. Buộc dùng Classic Editor cho mọi post type
+/** === FORCE CLASSIC EDITOR + DISABLE GUTENBERG === */
 add_filter('use_block_editor_for_post', '__return_false', 9999);
 add_filter('use_block_editor_for_post_type', '__return_false', 9999, 2);
-
-// 2. Buộc bật lại 'editor' support cho tất cả post type (fix mất form trên 'post')
-add_action('init', function () {
-    add_post_type_support('post', 'editor');
-    // Nếu có CPT khác bị mất editor thì thêm vào đây
-}, 5);
-
-// 3. Tắt Block Editor cho Widgets + FSE
+add_action('init', fn() => add_post_type_support('post', 'editor'), 5);
 add_filter('gutenberg_use_widgets_block_editor', '__return_false', 9999);
 add_filter('use_widgets_block_editor', '__return_false', 9999);
 remove_theme_support('block-templates');
 remove_theme_support('block-template-parts');
 add_filter('should_load_block_editor_scripts_and_styles', '__return_false', 9999);
+add_action('wp_enqueue_scripts', fn() => wp_dequeue_style(['wp-block-library', 'wp-block-library-theme', 'global-styles', 'classic-theme-styles', 'wp-edit-blocks', 'wp-block-editor', 'wc-block-style']), 100);
+add_action('admin_enqueue_scripts', fn() => wp_dequeue_style(['wp-block-library', 'wp-block-library-theme', 'global-styles', 'classic-theme-styles', 'wp-edit-blocks', 'wp-block-editor', 'wc-block-style']), 100);
 
-// 4. Xóa CSS/JS Gutenberg (giữ nguyên)
-add_action('wp_enqueue_scripts', function () {
-    wp_dequeue_style('wp-block-library');
-    wp_dequeue_style('wp-block-library-theme');
-    wp_dequeue_style('global-styles');
-    wp_dequeue_style('classic-theme-styles');
-    wp_dequeue_style('wp-edit-blocks');
-    wp_dequeue_style('wp-block-editor');
-    wp_dequeue_style('wc-block-style');
-}, 100);
-
-add_action('admin_enqueue_scripts', function () {
-    wp_dequeue_style('wp-block-library');
-    wp_dequeue_style('wp-block-library-theme');
-    wp_dequeue_style('global-styles');
-    wp_dequeue_style('classic-theme-styles');
-    wp_dequeue_style('wp-edit-blocks');
-    wp_dequeue_style('wp-block-editor');
-    wp_dequeue_style('wc-block-style');
-}, 100);
-
-/**
- * === TỐI ƯU 10/10: AUTO REGISTER CPT + TAXONOMY + METABOX ===
- * Chỉ load khi cần, cache file list, chỉ chạy trong admin khi có thể
- */
-
-// Require Composer autoloader (chỉ 1 lần)
+/** ===============================================
+ * MODULAR 10/10 – LOAD SAU AUTOLOADER
+ * =============================================== */
+// Composer autoloader
 if (file_exists(get_theme_file_path('vendor/autoload.php'))) {
     require_once get_theme_file_path('vendor/autoload.php');
 }
 
-// === GLOBAL HELPERS (cmeta, ...) – LOAD SIÊU SỚM ===
+// Global helpers (cmeta, sage_get_files, ...)
 require_once get_theme_file_path('app/helpers.php');
 
-// Helper cache file list (static + transient)
-function sage_get_files($folder, $exclude = '') {
-    static $cache = [];
-    $key = md5($folder . $exclude);
-    if (isset($cache[$key])) return $cache[$key];
+// === CUSTOM TABLE EAV 10/10 ===
+require_once get_theme_file_path('app/Database/CustomTableManager.php');
+\App\Database\CustomTableManager::init();
 
-    if (!is_dir($folder)) return [];
+// === ARCHIVE FILTERS – MODULAR ===
+require_once get_theme_file_path('app/Archives/TinTucArchive.php');
+\App\Archives\TinTucArchive::init();
 
-    $files = glob($folder . '/*.php');
-    if ($exclude) {
-        $files = array_filter($files, fn($f) => basename($f) !== $exclude);
-    }
+// === ADMIN COLUMNS – MODULAR 10/10 ===
+require_once get_theme_file_path('app/Admin/TinTucColumns.php');
+\App\Admin\TinTucColumns::init();
 
-    $cache[$key] = $files;
-    return $files;
-}
-
-/**
- * REGISTER CPT + TAXONOMY (chỉ cần chạy 1 lần trên init)
- */
+// === AUTO REGISTER CPT + TAXONOMY (sử dụng sage_get_files từ helpers) ===
 add_action('init', function () {
-    // CPT
     foreach (sage_get_files(get_theme_file_path('app/PostTypes'), 'BasePostType.php') as $file) {
         require_once $file;
         $class = '\\App\\PostTypes\\' . basename($file, '.php');
@@ -244,8 +202,6 @@ add_action('init', function () {
             (new $class())->register();
         }
     }
-
-    // Taxonomy
     foreach (sage_get_files(get_theme_file_path('app/Taxonomies'), 'BaseTaxonomy.php') as $file) {
         require_once $file;
         $class = '\\App\\Taxonomies\\' . basename($file, '.php');
@@ -253,37 +209,26 @@ add_action('init', function () {
             (new $class())->register();
         }
     }
-
-    // Chỉ flush rewrite khi đang dev (thêm CPT mới)
     if (defined('WP_DEBUG') && WP_DEBUG && !get_option('sage_rewrite_flushed')) {
         flush_rewrite_rules();
         update_option('sage_rewrite_flushed', true);
     }
 }, 5);
 
-/**
- * === META BOX - BOOT + REGISTER (FULL FIX - ĐÃ TEST) ===
- */
-
-// Boot Meta Box sớm nhất
+/** === META BOX – BOOT + AUTO REGISTER === */
 add_action('after_setup_theme', function () {
     if (file_exists(get_theme_file_path('vendor/wpmetabox/meta-box/meta-box.php'))) {
         require_once get_theme_file_path('vendor/wpmetabox/meta-box/meta-box.php');
     }
 }, 5);
 
-// Auto register tất cả metabox
 add_filter('rwmb_meta_boxes', function (array $meta_boxes): array {
     $path = get_theme_file_path('app/Metaboxes');
     if (!is_dir($path)) return $meta_boxes;
-
     foreach (glob($path . '/*.php') as $file) {
         if (basename($file) === 'BaseMetabox.php') continue;
-
         require_once $file;
-
         $class = '\\App\\Metaboxes\\' . basename($file, '.php');
-
         if (class_exists($class) && is_subclass_of($class, '\\App\\Metaboxes\\BaseMetabox')) {
             $meta_boxes = $class::addMetabox($meta_boxes);
         }
@@ -291,10 +236,6 @@ add_filter('rwmb_meta_boxes', function (array $meta_boxes): array {
     return $meta_boxes;
 }, 20);
 
-
-/**
- * BUỘC HIỂN THỊ TẤT CẢ METABOX TỰ ĐỘNG (KHÔNG HARD CODE)
- */
 add_filter('default_hidden_meta_boxes', function ($hidden, $screen) {
     if (isset($screen->post_type)) {
         $metabox_ids = \App\Metaboxes\BaseMetabox::getRegisteredIds($screen->post_type);
@@ -303,67 +244,5 @@ add_filter('default_hidden_meta_boxes', function ($hidden, $screen) {
     return $hidden;
 }, 10, 2);
 
-/**
- * ADMIN COLUMNS TỐI ƯU CHO CPT 'tin-tuc' (500k posts)
- */
-add_filter('manage_tin-tuc_posts_columns', function ($columns) {
-    $new_columns = [];
-    foreach ($columns as $key => $title) {
-        $new_columns[$key] = $title;
-        if ($key === 'title') {
-            $new_columns['thumbnail']     = 'Ảnh';
-            $new_columns['reading_time']  = 'Thời gian đọc';
-            $new_columns['source']        = 'Nguồn';
-            $new_columns['flags']         = 'Đánh dấu';
-            $new_columns['the-loai']      = 'Thể loại';
-        }
-    }
-    return $new_columns;
-});
-
-add_action('manage_tin-tuc_posts_custom_column', function ($column, $post_id) {
-    switch ($column) {
-        case 'thumbnail':
-            echo get_the_post_thumbnail($post_id, [60, 60]);
-            break;
-        case 'reading_time':
-            echo (int) get_post_meta($post_id, 'reading_time', true) . ' phút';
-            break;
-        case 'source':
-            echo esc_html(get_post_meta($post_id, 'source', true));
-            break;
-        case 'flags':
-            $flags = get_post_meta($post_id, 'flags', true);
-            if (is_array($flags) || is_string($flags)) {
-                echo str_replace(['hot','featured','breaking'], ['🔥 Nóng','⭐ Nổi bật','🚨 Khẩn'], implode(', ', (array)$flags));
-            }
-            break;
-        case 'the-loai':
-            $terms = get_the_terms($post_id, 'the-loai');
-            echo $terms ? implode(', ', wp_list_pluck($terms, 'name')) : '—';
-            break;
-    }
-}, 10, 2);
-
-/**
- * Helper lấy meta siêu dễ trong Blade
- * Ví dụ: {{ cmeta('subtitle') }}
- */
-function cmeta($key, $post_id = null, $args = [])
-{
-    $post_id = $post_id ?? get_the_ID();
-    return rwmb_meta($key, $args, $post_id);
-}
-
-// === CUSTOM TABLE EAV 10/10 ===
-require_once get_theme_file_path('app/Database/CustomTableManager.php');
-\App\Database\CustomTableManager::init();
-
+/** === QUERY HELPER (nếu cần) === */
 require_once get_theme_file_path('app/Helpers/QueryHelper.php');
-
-/** 
- * === ARCHIVE FILTERS – MODULAR 10/10 (cho site lớn) ===
- * Mỗi CPT có folder riêng, dễ scale
- */
-require_once get_theme_file_path('app/Archives/TinTucArchive.php');
-\App\Archives\TinTucArchive::init();

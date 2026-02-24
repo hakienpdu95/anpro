@@ -8,7 +8,7 @@ class CustomTableManager {
     public static array $registered = [];
     private static array $table_exists = [];
     private static array $meta_cache = [];
-    private static string $cache_group = 'custom_post_meta';
+    private static string $cache_group = 'custom_post_meta_v2';
 
     public static function register(string $post_type): void {
         $post_type = sanitize_key($post_type);
@@ -20,36 +20,35 @@ class CustomTableManager {
     public static function getTableName(string $post_type): string {
         global $wpdb;
         $slug = sanitize_key($post_type);
-        return ($slug === 'post') ? $wpdb->prefix . 'post_custom_meta' : $wpdb->prefix . $slug . '_meta';
+        return ($slug === 'post') 
+            ? $wpdb->prefix . 'post_custom_meta' 
+            : $wpdb->prefix . $slug . '_meta';
     }
 
     public static function init(): void {
         add_action('admin_init', [self::class, 'createMissingTables'], 5);
 
-        // Intercept meta functions (giữ nguyên chức năng cũ)
+        // Meta CRUD + Cache
         add_filter('get_post_metadata', [self::class, 'filterGetPostMetadata'], 999, 4);
         add_filter('add_post_metadata', [self::class, 'filterUpdatePostMetadata'], 999, 5);
         add_filter('update_post_metadata', [self::class, 'filterUpdatePostMetadata'], 999, 5);
         add_filter('delete_post_metadata', [self::class, 'filterDeletePostMetadata'], 999, 5);
 
-        // META_QUERY 10/10 + ORDERBY meta
+        // META_QUERY + ORDERBY siêu nhanh
         add_filter('posts_clauses', [self::class, 'filterPostsClauses'], 999, 2);
         add_filter('posts_orderby', [self::class, 'filterOrderByMeta'], 999, 2);
 
-        // Cache & Cleanup
+        // Cleanup + Cache flush
         add_action('delete_post', [self::class, 'deletePostMeta'], 10, 2);
         add_action('save_post', [self::class, 'flushPostCache'], 999, 2);
         add_action('rwmb_after_save_post', [self::class, 'flushPostCache'], 999, 1);
 
-        // Preload admin edit
+        // Preload tối ưu
         add_action('load-post.php', [self::class, 'preloadCurrentPostMeta']);
         add_action('load-post-new.php', [self::class, 'preloadCurrentPostMeta']);
-
-        // Preload tất cả posts trong loop (frontend + admin list)
         add_filter('the_posts', [self::class, 'preloadThePostsMeta'], 10, 2);
     }
 
-    // ==================== CACHE LAYER (giữ nguyên & tối ưu) ====================
     private static function shouldHandle(int $post_id): bool {
         if ($post_id <= 0) return false;
         return in_array(get_post_type($post_id), self::$registered);
@@ -65,9 +64,9 @@ class CustomTableManager {
         return self::$table_exists[$table] ? $table : null;
     }
 
+    // ==================== CACHE 3 TẦNG + PRELOAD ====================
     private static function loadAllMeta(int $post_id): array {
         if (isset(self::$meta_cache[$post_id])) return self::$meta_cache[$post_id];
-
         $cached = wp_cache_get($post_id, self::$cache_group);
         if ($cached !== false) return self::$meta_cache[$post_id] = $cached;
 
@@ -75,7 +74,9 @@ class CustomTableManager {
         if (!$table) return self::$meta_cache[$post_id] = [];
 
         global $wpdb;
-        $results = $wpdb->get_results($wpdb->prepare("SELECT meta_key, meta_value FROM `$table` WHERE post_id = %d", $post_id), ARRAY_A);
+        $results = $wpdb->get_results($wpdb->prepare(
+            "SELECT meta_key, meta_value FROM `$table` WHERE post_id = %d", $post_id
+        ), ARRAY_A);
 
         $meta = [];
         foreach ($results as $row) {
@@ -84,7 +85,7 @@ class CustomTableManager {
         }
 
         self::$meta_cache[$post_id] = $meta;
-        wp_cache_set($post_id, $meta, self::$cache_group, 3600);
+        wp_cache_set($post_id, $meta, self::$cache_group, 3600); // Redis sẽ tự động hit
         return $meta;
     }
 
@@ -93,6 +94,16 @@ class CustomTableManager {
             if (self::shouldHandle($post->ID)) self::loadAllMeta($post->ID);
         }
         return $posts;
+    }
+
+    public static function getMeta(int $post_id, string $key = '', bool $single = true) {
+        if ($post_id <= 0 || !self::shouldHandle($post_id)) {
+            return $single ? '' : [];
+        }
+        $all = self::loadAllMeta($post_id);
+        if ($key === '') return $all;
+        $result = $all[$key] ?? null;
+        return $single ? $result : ($result !== null ? [$result] : []);
     }
 
     public static function flushPostCache($post_id, $post = null): void {
@@ -247,19 +258,5 @@ class CustomTableManager {
             $args['suppress_filters'] = false;
         }
         return new WP_Query($args);
-    }
-
-    // ==================== HELPER getMeta() CHO CMETA() ====================
-    /**
-     * Lấy meta siêu nhanh từ Custom Table (cache 3 tầng)
-     * Dùng trong Blade: cmeta('subtitle'), cmeta('flags'), cmeta('reading_time')
-     */
-    public static function getMeta(int $post_id, string $key = '', bool $single = true) {
-        if ($post_id <= 0 || !self::shouldHandle($post_id)) {
-            return $single ? '' : [];
-        }
-
-        // Gọi trực tiếp filterGetPostMetadata (đã tối ưu cache)
-        return self::filterGetPostMetadata(null, $post_id, $key, $single);
     }    
 }
