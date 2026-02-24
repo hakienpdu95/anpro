@@ -30,30 +30,6 @@ class EventInfoMetabox extends BaseMetabox
                     'breaking' => '🚨 Khẩn cấp',
                 ],
             ],
-            [
-                'name'         => 'Thư viện ảnh (Repeater)',
-                'id'           => 'gallery',
-                'type'         => 'group',
-                'clone'        => true,
-                'sort_clone'   => true,
-                'collapsible'  => true,
-                'group_title'  => 'Ảnh {#}',
-                'add_button'   => '+ Thêm ảnh',
-                'fields'       => [
-                    [
-                        'name' => 'Ảnh',
-                        'id'   => 'image',
-                        'type' => 'image',
-                        'clone' => false,
-                    ],
-                    [
-                        'name' => 'Chú thích',
-                        'id'   => 'caption',
-                        'type' => 'text',
-                        'clone' => false,
-                    ],
-                ],
-            ],
         ];
     }
 }

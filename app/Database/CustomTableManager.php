@@ -8,6 +8,14 @@ class CustomTableManager {
     public static array $registered = [];
     private static array $table_exists = [];
     private static array $meta_cache = [];
+    /**
+     * MULTIPLE SIMPLE VALUES (lưu nhiều rows - checkbox_list)
+     */
+    private static array $multipleSimpleKeys = [
+        'flags',
+        // thêm sau: 'status', 'categories_check', ...
+    ];
+
     private static string $cache_group = 'custom_post_meta_v2';
 
     public static function register(string $post_type): void {
@@ -66,26 +74,54 @@ class CustomTableManager {
 
     // ==================== CACHE 3 TẦNG + PRELOAD ====================
     private static function loadAllMeta(int $post_id): array {
-        if (isset(self::$meta_cache[$post_id])) return self::$meta_cache[$post_id];
+        if (isset(self::$meta_cache[$post_id])) {
+            return self::$meta_cache[$post_id];
+        }
+
         $cached = wp_cache_get($post_id, self::$cache_group);
-        if ($cached !== false) return self::$meta_cache[$post_id] = $cached;
+        if ($cached !== false) {
+            return self::$meta_cache[$post_id] = $cached;
+        }
 
         $table = self::getTable($post_id);
-        if (!$table) return self::$meta_cache[$post_id] = [];
+        if (!$table) {
+            return self::$meta_cache[$post_id] = [];
+        }
 
         global $wpdb;
         $results = $wpdb->get_results($wpdb->prepare(
-            "SELECT meta_key, meta_value FROM `$table` WHERE post_id = %d", $post_id
+            "SELECT meta_key, meta_value FROM `$table` WHERE post_id = %d",
+            $post_id
         ), ARRAY_A);
 
         $meta = [];
         foreach ($results as $row) {
-            $val = json_decode($row['meta_value'], true) ?? maybe_unserialize($row['meta_value']);
-            $meta[$row['meta_key']] = $val;
+            $key = $row['meta_key'];
+            $val = json_decode($row['meta_value'], true) 
+                   ?? maybe_unserialize($row['meta_value']) 
+                   ?? $row['meta_value'];
+
+            if (isset($meta[$key])) {
+                // Có nhiều row → chuyển thành array
+                if (!is_array($meta[$key])) {
+                    $meta[$key] = [$meta[$key]];
+                }
+                $meta[$key][] = $val;
+            } else {
+                $meta[$key] = $val;
+            }
+        }
+
+        // Loại bỏ trùng lặp (an toàn cho checkbox_list)
+        foreach ($meta as $k => $v) {
+            if (is_array($v)) {
+                $meta[$k] = array_values(array_unique($v));
+            }
         }
 
         self::$meta_cache[$post_id] = $meta;
-        wp_cache_set($post_id, $meta, self::$cache_group, 3600); // Redis sẽ tự động hit
+        wp_cache_set($post_id, $meta, self::$cache_group, 3600);
+
         return $meta;
     }
 
@@ -102,20 +138,24 @@ class CustomTableManager {
         }
 
         $all = self::loadAllMeta($post_id);
-        if ($key === '') return $all;
+
+        if ($key === '') {
+            return $all;
+        }
 
         $result = $all[$key] ?? null;
 
-        if ($key === 'flags') {
-            if (is_string($result)) {
-                $decoded = json_decode($result, true);
-                $result = (is_array($decoded)) ? $decoded : [$result];
-            } elseif (!is_array($result)) {
+        // Xử lý riêng flags (checkbox_list)
+        if ($key === 'flags' || str_contains($key, 'checkbox')) {
+            if (!is_array($result)) {
                 $result = $result ? [$result] : [];
             }
+            $result = array_values(array_unique($result));
         }
 
-        return $single ? $result : ($result !== null ? [$result] : []);
+        return $single 
+            ? (is_array($result) ? ($result[0] ?? '') : $result)
+            : (array) $result;
     }
 
     public static function flushPostCache($post_id, $post = null): void {
@@ -133,35 +173,78 @@ class CustomTableManager {
 
     // ==================== META CRUD (giữ nguyên) ====================
     public static function filterGetPostMetadata($value, $object_id, $meta_key, $single) {
-        if (!self::shouldHandle($object_id)) return $value;
+        if (!self::shouldHandle($object_id)) {
+            return $value;
+        }
+
         $all = self::loadAllMeta($object_id);
-        if ($meta_key === '') return $all;
+
+        if ($meta_key === '') {
+            return $all; // trả toàn bộ meta
+        }
+
         $result = $all[$meta_key] ?? null;
-        return $single ? $result : ($result !== null ? [$result] : []);
+
+        // Luôn trả array khi single = false (checkbox_list, repeater, file multiple...)
+        if ($single) {
+            return is_array($result) ? ($result[0] ?? '') : $result;
+        }
+
+        return is_array($result) ? $result : ($result !== null ? [$result] : []);
     }
 
     public static function filterUpdatePostMetadata($check, $object_id, $meta_key, $meta_value, $prev_value) {
         $table = self::getTable($object_id);
-        if (!$table || empty($meta_key)) return $check;
+        if (!$table || empty($meta_key)) {
+            return $check;
+        }
+
+        // Bỏ qua meta WP nội bộ
+        $excluded = [
+            '_edit_lock', '_edit_last', '_wp_old_slug', '_wp_trash_meta_status',
+            '_wp_trash_meta_time', '_wp_page_template', '_thumbnail_id',
+            '_wp_attached_file', '_wp_attachment_metadata'
+        ];
+        if (in_array($meta_key, $excluded, true)) {
+            return $check;
+        }
 
         global $wpdb;
 
-        $wpdb->delete($table, [
-            'post_id'  => $object_id,
-            'meta_key' => $meta_key
-        ]);
+        $isMultipleSimple = in_array($meta_key, self::$multipleSimpleKeys, true);
 
-        if (is_array($meta_value) || is_object($meta_value)) {
-            $save_value = wp_json_encode($meta_value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-        } else {
-            $save_value = $meta_value;
+        // Xóa cũ (trừ flags)
+        if (!$isMultipleSimple) {
+            $wpdb->delete($table, [
+                'post_id'  => $object_id,
+                'meta_key' => $meta_key,
+            ]);
         }
 
-        $wpdb->insert($table, [
-            'post_id'    => $object_id,
-            'meta_key'   => $meta_key,
-            'meta_value' => $save_value,
-        ]);
+        if ($isMultipleSimple) {
+            // flags
+            foreach ((array) $meta_value as $value) {
+                if ($value === '' || $value === null || $value === false) continue;
+                $wpdb->insert($table, [
+                    'post_id'    => $object_id,
+                    'meta_key'   => $meta_key,
+                    'meta_value' => $value,
+                ]);
+            }
+        } else {
+            // single fields (subtitle, reading_time...)
+            if ($meta_value !== '' && $meta_value !== null) {
+                $save_value = (is_array($meta_value) || is_object($meta_value))
+                    ? wp_json_encode($meta_value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
+                    : $meta_value;
+
+                $wpdb->insert($table, [
+                    'post_id'    => $object_id,
+                    'meta_key'   => $meta_key,
+                    'meta_value' => $save_value,
+                ]);
+            }
+        }
 
         self::flushPostCache($object_id);
         return true;
@@ -172,13 +255,17 @@ class CustomTableManager {
         if (!$table) return $check;
 
         global $wpdb;
-        if ($delete_all || empty($meta_key)) {
+
+        if ($delete_all || $meta_key === '') {
             $wpdb->delete($table, ['post_id' => $object_id]);
         } else {
             $where = ['post_id' => $object_id, 'meta_key' => $meta_key];
-            if ($meta_value !== '') $where['meta_value'] = $meta_value;
+            if ($meta_value !== '') {
+                $where['meta_value'] = $meta_value;
+            }
             $wpdb->delete($table, $where);
         }
+
         self::flushPostCache($object_id);
         return true;
     }
