@@ -1,4 +1,3 @@
-{{-- BLOCK TABS 10/10 – Alpine.js + Tailwind – Reusable --}}
 <div class="my-16" x-data="{ activeTab: 1 }">
     <div class="flex flex-wrap border-b border-gray-200 mb-10">
         <button 

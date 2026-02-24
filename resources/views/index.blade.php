@@ -16,9 +16,28 @@
     {{-- BLOCK TABS --}}
     @include('partials.block-tabs')
 
-    {{-- BLOCK SLIDE --}}
-    @include('partials.block-slide')
-    
+    {{-- Demo Slider 3 item --}}
+    @include('partials.block-slide', [
+        'title' => '🔥 Tin nóng nổi bật hôm nay',
+        'perPage' => 3,
+    ])
+
+    {{-- Demo Slider 1 item (full width) --}}
+    @include('partials.block-slide', [
+        'title' => 'Banner chính',
+        'perPage' => 1,
+        'arrows' => false,
+        'pagination' => true,
+        'interval' => 5000,
+    ])
+
+    {{-- Demo Slider 2 item --}}
+    @include('partials.block-slide', [
+        'title' => 'Tin tức công nghệ',
+        'perPage' => 2,
+        'autoplay' => false,
+    ])
+
   @while(have_posts()) @php(the_post())
     @includeFirst(['partials.content-' . get_post_type(), 'partials.content'])
   @endwhile
