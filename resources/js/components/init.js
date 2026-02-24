@@ -52,5 +52,4 @@ function mountSplide(slider) {
     splideInstance.mount();
 
     slider.classList.add('is-initialized');
-    console.log('✅ Splide mounted successfully on element');
 }

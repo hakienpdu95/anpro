@@ -2,6 +2,8 @@
 
 namespace App\Helpers;
 
+use App\Database\CustomTableManager;
+
 class QueryHelper
 {
     /**
@@ -71,6 +73,94 @@ class QueryHelper
             ] : [],
             'posts_per_page' => $limit,
             'orderby'        => 'rand', // hoặc date
+        ]);
+    }
+
+    /**
+     * LẤY BÀI VIẾT CÓ TẤT CẢ FLAGS CHỈ ĐỊNH (AND condition) - TỐI ƯU
+     * Ví dụ: ['breaking', 'hot'] → chỉ lấy bài có cả 2 flag
+     */
+    public static function getPostsWithAllFlags(
+        string $post_type,
+        array $requiredFlags,
+        int $posts_per_page = 8,
+        string $orderby = 'post_id DESC'
+    ): array {
+        if (empty($requiredFlags)) {
+            return [];
+        }
+
+        global $wpdb;
+        $table = CustomTableManager::getTableName($post_type);
+
+        $flag_count = count($requiredFlags);
+        $placeholders = str_repeat('%s,', $flag_count - 1) . '%s';
+
+        $sql = $wpdb->prepare(
+            "SELECT post_id 
+             FROM `$table`
+             WHERE meta_key = 'flags' 
+               AND meta_value IN ($placeholders)
+             GROUP BY post_id 
+             HAVING COUNT(DISTINCT meta_value) = %d 
+             ORDER BY {$orderby}
+             LIMIT %d",
+            array_merge($requiredFlags, [$flag_count, $posts_per_page])
+        );
+
+        $post_ids = $wpdb->get_col($sql);
+
+        if (empty($post_ids)) {
+            return [];
+        }
+
+        return get_posts([
+            'post_type'      => $post_type,
+            'post__in'       => $post_ids,
+            'posts_per_page' => $posts_per_page,
+            'orderby'        => 'post__in',
+            'suppress_filters' => false,
+        ]);
+    }
+
+    /**
+     * LẤY BÀI VIẾT CÓ ÍT NHẤT 1 FLAG TRONG DANH SÁCH (OR condition)
+     * Ví dụ: ['breaking', 'hot'] → bài nào có breaking HOẶC hot đều được
+     */
+    public static function getPostsWithAnyFlags(
+        string $post_type,
+        array $flags,
+        int $posts_per_page = 8
+    ): array {
+        if (empty($flags)) {
+            return [];
+        }
+
+        global $wpdb;
+        $table = CustomTableManager::getTableName($post_type);
+
+        $placeholders = str_repeat('%s,', count($flags) - 1) . '%s';
+
+        $post_ids = $wpdb->get_col($wpdb->prepare(
+            "SELECT DISTINCT post_id 
+             FROM `$table`
+             WHERE meta_key = 'flags' 
+               AND meta_value IN ($placeholders)
+             ORDER BY post_id DESC
+             LIMIT %d",
+            array_merge($flags, [$posts_per_page])
+        ));
+
+        if (empty($post_ids)) {
+            return [];
+        }
+
+        return get_posts([
+            'post_type'      => $post_type,
+            'post__in'       => $post_ids,
+            'posts_per_page' => $posts_per_page,
+            'orderby'        => 'post__in',
+            'suppress_filters' => false,
         ]);
     }
 }

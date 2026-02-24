@@ -1,48 +1,25 @@
-{{-- BLOCK SLIDE DYNAMIC 10/10 – Query trực tiếp từ custom table (bypass filterPostsClauses) --}}
+{{-- BLOCK SLIDE: Tin có CẢ breaking VÀ hot --}}
 @props([
-    'title'          => '🚨 Tin khẩn cấp (flags = breaking)',
-    'post_type'      => 'event',
+    'title' => '🚨 Tin nóng & Khẩn cấp',
+    'post_type' => 'event',
     'posts_per_page' => 8,
-    'perPage'        => 3,
-    'autoplay'       => true,
-    'interval'       => 4000,
-    'debug'          => true,
+    'perPage' => 3,
+    'autoplay' => true,
+    'interval' => 4000,
+    'debug' => true,
 ])
 
 @php
-// === QUERY TRỰC TIẾP TỪ CUSTOM TABLE (đảm bảo 100% lấy được data) ===
-global $wpdb;
-$table = \App\Database\CustomTableManager::getTableName($post_type);
-
-$post_ids = $wpdb->get_col($wpdb->prepare(
-    "SELECT DISTINCT post_id 
-     FROM `$table` 
-     WHERE meta_key = %s 
-       AND meta_value = %s 
-     LIMIT %d",
-    'flags',
-    'breaking',
+$posts = \App\Helpers\QueryHelper::getPostsWithAllFlags(
+    $post_type, 
+    ['breaking', 'hot'],   // ← thay đổi flags ở đây
     $posts_per_page
-));
-
-$posts = [];
-if (!empty($post_ids)) {
-    $posts = get_posts([
-        'post_type'      => $post_type,
-        'post__in'       => $post_ids,
-        'posts_per_page' => $posts_per_page,
-        'orderby'        => 'date',
-        'order'          => 'DESC',
-        'suppress_filters' => false,
-    ]);
-}
+);
 
 if ($debug) {
-    error_log("=== DEBUG SLIDE EVENT DIRECT QUERY ===");
-    error_log("Post Type: {$post_type}");
-    error_log("Post IDs tìm thấy: " . implode(', ', $post_ids));
-    error_log("Số bài viết load được: " . count($posts));
-    error_log("=========================");
+    error_log("=== DEBUG SLIDE FLAGS AND ===");
+    error_log("Flags yêu cầu: " . implode(' + ', ['breaking', 'hot']));
+    error_log("Số bài load được: " . count($posts));
 }
 @endphp
 
@@ -53,25 +30,16 @@ if ($debug) {
 
     @if (empty($posts))
         <div class="bg-red-50 border border-red-200 p-8 rounded-3xl text-center">
-            <p class="text-red-600">Không tìm thấy bài viết nào có flags = "breaking".</p>
-            <p class="text-xs text-red-500 mt-2">Kiểm tra debug.log để xem chi tiết</p>
+            <p class="text-red-600">Không tìm thấy bài viết nào có cả breaking & hot.</p>
         </div>
     @else
-        <div class="splide" data-splide-config='{ 
-            "type": "loop",
-            "perPage": {{ $perPage }},
-            "autoplay": {{ $autoplay ? 'true' : 'false' }},
-            "interval": {{ $interval }},
-            "arrows": true,
-            "pagination": true,
-            "gap": "1.5rem",
-            "lazyLoad": "nearby"
-        }'>
+        <div class="splide" data-splide-config='{ "type": "loop", "perPage": {{ $perPage }}, "autoplay": {{ $autoplay ? 'true' : 'false' }}, "interval": {{ $interval }}, "arrows": true, "pagination": true, "gap": "1.5rem", "lazyLoad": "nearby" }'>
             <div class="splide__track">
                 <ul class="splide__list">
                     @foreach ($posts as $post)
                         @php setup_postdata($post); @endphp
                         <li class="splide__slide">
+                            <!-- Phần HTML render slide của bạn giữ nguyên từ đây -->
                             <div class="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all group">
                                 @if (has_post_thumbnail($post->ID))
                                     <a href="{{ get_permalink($post) }}">
