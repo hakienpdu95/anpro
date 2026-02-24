@@ -26,3 +26,9 @@ npm run build
         <img src="{{ wp_get_attachment_url($item['image']) }}" alt="{{ $item['caption'] ?? '' }}" loading="lazy">
     @endforeach
 @endif
+
+## Xóa cache Vite + build lại (bắt buộc) file vite
+rm -rf node_modules/.vite
+rm -rf public/build
+npm install
+npm run build
