@@ -154,6 +154,14 @@ add_action('widgets_init', function () {
     ] + $config);
 });
 
+/** === CUSTOM PERMALINKS 10/10 (thêm -postID) === */
+require_once get_theme_file_path('app/Permalinks/PermalinkManager.php');
+\App\Permalinks\PermalinkManager::init();
+
+// === THÊM CPT MỚI VÀO HỆ THỐNG PERMALINK (rất dễ quản lý) ===
+// \App\Permalinks\PermalinkManager::addPostType('project');
+// \App\Permalinks\PermalinkManager::addPostType('product');
+
 /** === WATERMARK TỰ ĐỘNG === */
 require_once get_theme_file_path('app/Watermark/WatermarkHandler.php');
 (new \App\Watermark\WatermarkHandler())->register();
