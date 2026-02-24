@@ -1,49 +1,54 @@
 @extends('layouts.app')
 
 @section('content')
-<article @php post_class('single-news') @endphp>
-    <header class="mb-8">
-        <h1 class="text-4xl font-bold">{{ get_the_title() }}</h1>
-        <div class="meta text-gray-500 mt-3">
-            {{ get_the_date('d/m/Y H:i') }} • 
-            @php $time = cmeta('reading_time'); @endphp
-            @if($time) {{ $time }} phút đọc @endif
-        </div>
-    </header>
+<article class="single-post max-w-4xl mx-auto px-6 py-12">
 
-    @if (has_post_thumbnail())
-        <img src="{{ get_the_post_thumbnail_url(null, 'large') }}" 
-             loading="lazy" 
-             class="w-full rounded-xl mb-8" 
-             alt="{{ get_the_title() }}">
+    <h1 class="text-4xl font-bold mb-6">{{ get_the_title() }}</h1>
+
+    @php
+        $subtitle      = rwmb_meta('subtitle');
+        $reading_time  = rwmb_meta('reading_time');
+        $flags         = rwmb_meta('flags');
+        $gallery       = rwmb_meta('gallery');   // repeater
+    @endphp
+
+    @if ($subtitle)
+        <p class="text-xl text-gray-600 mb-8">{{ $subtitle }}</p>
     @endif
 
-    <div class="prose max-w-none">
-        {!! get_the_content() !!}
-    </div>
+    @if ($reading_time)
+        <p class="text-sm text-gray-500 mb-6">⏱ Thời gian đọc: {{ $reading_time }} phút</p>
+    @endif
 
-    {{-- Gallery từ metabox --}}
-    @php $gallery = get_post_meta(get_the_ID(), 'gallery', true); @endphp
-    @if ($gallery)
-        <div class="gallery grid grid-cols-3 gap-4 my-12">
-            @foreach ($gallery as $item)
-                <img src="{{ wp_get_attachment_image_url($item['image'], 'medium') }}" 
-                     loading="lazy" alt="">
+    @if ($flags && is_array($flags))
+        <div class="flex gap-2 mb-8">
+            @foreach ($flags as $flag)
+                <span class="px-4 py-1 bg-red-100 text-red-700 rounded-full text-sm">
+                    @if ($flag === 'hot') 🔥 Tin nóng
+                    @elseif ($flag === 'featured') ⭐ Nổi bật
+                    @elseif ($flag === 'breaking') 🚨 Khẩn cấp
+                    @endif
+                </span>
             @endforeach
         </div>
     @endif
 
-    {{-- Bài liên quan --}}
-    @php $related = \App\Helpers\QueryHelper::get_related_posts(get_the_ID(), 6); @endphp
-    @if ($related->have_posts())
-        <h3 class="text-2xl font-semibold mt-16 mb-6">Bài viết liên quan</h3>
-        <div class="grid grid-cols-2 md:grid-cols-3 gap-6">
-            @while ($related->have_posts()) @php $related->the_post(); @endphp
-                <a href="{{ get_permalink() }}" class="block">
-                    {{ get_the_title() }}
-                </a>
-            @endwhile
+    <div class="prose max-w-none mb-12">
+        {!! get_the_content() !!}
+    </div>
+
+    {{-- Gallery Repeater --}}
+    @if ($gallery && is_array($gallery))
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-6 my-12">
+            @foreach ($gallery as $item)
+                @if (!empty($item['image']))
+                    <img src="{{ wp_get_attachment_url($item['image']) }}" 
+                         alt="{{ $item['caption'] ?? '' }}" 
+                         class="rounded-lg shadow" loading="lazy">
+                @endif
+            @endforeach
         </div>
     @endif
+
 </article>
 @endsection

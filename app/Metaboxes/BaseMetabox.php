@@ -29,14 +29,21 @@ abstract class BaseMetabox
     {
         $instance = new static();
 
+        $table_name = CustomTableManager::getTableName($instance->post_types[0]);
+
         $meta_boxes[] = [
-            'id'         => $instance->id,
-            'title'      => $instance->title,
-            'post_types' => $instance->post_types,
-            'context'    => $instance->context,
-            'priority'   => $instance->priority,
-            'autosave'   => true,
-            'fields'     => $instance->getFields(),
+            'id'            => $instance->id,
+            'title'         => $instance->title,
+            'post_types'    => $instance->post_types,
+            'context'       => $instance->context,
+            'priority'      => $instance->priority,
+            'autosave'      => true,
+
+            // LƯU TRỰC TIẾP VÀO BẢNG CUSTOM - KHÔNG LƯU VÀO wp_postmeta
+            // 'storage_type'  => 'custom_table',
+            // 'table'         => $table_name,
+
+            'fields'        => $instance->getFields(),
         ];
 
         // Lưu registry để force hiển thị metabox
@@ -44,9 +51,9 @@ abstract class BaseMetabox
             self::$registry[$pt][] = $instance->id;
         }
 
-        // Đăng ký Custom Table (tự động)
-        foreach ($instance->post_types as $post_type) {
-            CustomTableManager::register($post_type);
+        // Đăng ký để tạo bảng
+        foreach ($instance->post_types as $pt) {
+            CustomTableManager::register($pt);
         }
 
         return $meta_boxes;
