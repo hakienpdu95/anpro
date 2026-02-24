@@ -155,6 +155,12 @@ add_action('widgets_init', function () {
 });
 
 /**
+ * WATERMARK TỰ ĐỘNG KHI UPLOAD ẢNH (10/10)
+ */
+require_once get_theme_file_path('app/Watermark/WatermarkHandler.php');
+(new \App\Watermark\WatermarkHandler())->register();
+
+/**
  * === FORCE CLASSIC EDITOR + DISABLE GUTENBERG HOÀN TOÀN (FIX MẤT EDITOR) ===
  */
 
@@ -205,6 +211,9 @@ add_action('admin_enqueue_scripts', function () {
 if (file_exists(get_theme_file_path('vendor/autoload.php'))) {
     require_once get_theme_file_path('vendor/autoload.php');
 }
+
+// === GLOBAL HELPERS (cmeta, ...) – LOAD SIÊU SỚM ===
+require_once get_theme_file_path('app/helpers.php');
 
 // Helper cache file list (static + transient)
 function sage_get_files($folder, $exclude = '') {
@@ -282,6 +291,7 @@ add_filter('rwmb_meta_boxes', function (array $meta_boxes): array {
     return $meta_boxes;
 }, 20);
 
+
 /**
  * BUỘC HIỂN THỊ TẤT CẢ METABOX TỰ ĐỘNG (KHÔNG HARD CODE)
  */
@@ -349,11 +359,11 @@ function cmeta($key, $post_id = null, $args = [])
 require_once get_theme_file_path('app/Database/CustomTableManager.php');
 \App\Database\CustomTableManager::init();
 
-require_once get_theme_file_path('app/Helpers/MetaHelper.php');
 require_once get_theme_file_path('app/Helpers/QueryHelper.php');
 
-/**
- * WATERMARK TỰ ĐỘNG KHI UPLOAD ẢNH (10/10)
+/** 
+ * === ARCHIVE FILTERS – MODULAR 10/10 (cho site lớn) ===
+ * Mỗi CPT có folder riêng, dễ scale
  */
-require_once get_theme_file_path('app/Watermark/WatermarkHandler.php');
-(new \App\Watermark\WatermarkHandler())->register();
+require_once get_theme_file_path('app/Archives/TinTucArchive.php');
+\App\Archives\TinTucArchive::init();
