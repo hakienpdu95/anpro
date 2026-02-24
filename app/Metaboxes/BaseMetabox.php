@@ -2,6 +2,8 @@
 
 namespace App\Metaboxes;
 
+use App\Database\CustomTableManager;
+
 abstract class BaseMetabox
 {
     protected string $id;
@@ -10,7 +12,6 @@ abstract class BaseMetabox
     protected string $context = 'normal';
     protected string $priority = 'high';
 
-    // Registry tự động để quản lý tất cả metabox IDs theo post type
     protected static array $registry = [];
 
     public function __construct()
@@ -38,15 +39,19 @@ abstract class BaseMetabox
             'fields'     => $instance->getFields(),
         ];
 
-        // Tự động đăng ký ID vào registry (không cần hardcode nữa)
+        // Lưu registry để force hiển thị metabox
         foreach ($instance->post_types as $pt) {
             self::$registry[$pt][] = $instance->id;
+        }
+
+        // Đăng ký Custom Table (tự động)
+        foreach ($instance->post_types as $post_type) {
+            CustomTableManager::register($post_type);
         }
 
         return $meta_boxes;
     }
 
-    // Lấy danh sách metabox IDs theo post type
     public static function getRegisteredIds(string $post_type): array
     {
         return self::$registry[$post_type] ?? [];

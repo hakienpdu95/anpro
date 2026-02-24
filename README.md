@@ -16,6 +16,9 @@
 git restore .
 git clean -fd
 
+composer dump-autoload -o
+npm run build
+
 ## Cách dùng repeater trong Blade:
 @php $gallery = cmeta('gallery'); @endphp
 @if ($gallery)
