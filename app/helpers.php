@@ -36,3 +36,16 @@ if (!function_exists('cpost')) {
         return get_post($post_id ?? get_the_ID());
     }
 }
+
+if (!function_exists('cterm_meta')) {
+    /**
+     * Lấy Term Meta (Taxonomy Meta) siêu dễ – dùng với Meta Box
+     * Ví dụ: cterm_meta('thumbnail_id'), cterm_meta('icon')
+     */
+    function cterm_meta(string $key, $term_id = null, array $args = []) {
+        $term_id = $term_id ?? get_queried_object_id();
+        if (!$term_id) return null;
+
+        return rwmb_meta($key, ['object_type' => 'term'] + $args, $term_id);
+    }
+}
