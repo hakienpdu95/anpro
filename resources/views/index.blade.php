@@ -31,14 +31,19 @@
         'interval' => 5000,
     ])
 
-    {{-- 1. Tin nóng (flags = breaking) --}}
     @include('partials.block-slide-dynamic', [
-        'title' => '🔥 Tin nóng hôm nay',
-        'meta_query' => [
-            ['key' => 'flags', 'value' => 'breaking', 'compare' => 'LIKE']
+        'title'          => '🚨 Tin khẩn cấp (flags = breaking)',
+        'post_type'      => 'event',
+        'meta_query'     => [
+            [
+                'key'     => 'flags',
+                'value'   => 'breaking',     // string đơn giản
+                'compare' => '=',            // Dùng '=' vì lưu string
+            ]
         ],
-        'posts_per_page' => 6,
-        'perPage' => 3,
+        'posts_per_page' => 8,
+        'perPage'        => 3,
+        'debug'          => true,        // Bật debug
     ])
 
     {{-- 2. Tin theo danh mục "event_cat" --}}
