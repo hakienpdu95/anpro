@@ -1,11 +1,14 @@
 @extends('layouts.app')
 
 @section('content')
-    @if (is_singular('tin-tuc'))
-        @include('single.single-tin-tuc')
-    @elseif (is_singular('post'))
-        @include('single.single-post')
-    @else
-        @include('single.single-default')
-    @endif
+<div class="max-w-4xl mx-auto px-4 py-12">
+    @include('partials.entry-header')
+    
+    <div class="prose prose-lg max-w-none">
+        @include('partials.entry-meta')
+        @include('partials.entry-content')
+    </div>
+
+    @include('partials.related-posts')
+</div>
 @endsection
