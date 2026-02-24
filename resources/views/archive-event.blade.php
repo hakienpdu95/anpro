@@ -82,10 +82,15 @@
                     @endif
                     <div class="p-6">
                         <div class="flex gap-2 mb-3">
-                            @foreach (cmeta('flags') ?? [] as $flag)
-                                <span class="text-xs px-3 py-1 bg-orange-100 text-orange-700 rounded-full">
-                                    @if ($flag === 'hot') 🔥 Nóng @elseif ($flag === 'featured') ⭐ Nổi bật @else 🚨 Khẩn @endif
-                                </span>
+                            @php $flags = (array) cmeta('flags'); @endphp
+                            @foreach ($flags as $flag)
+                                @if ($flag === 'hot') 
+                                    <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">🔥 Nóng</span>
+                                @elseif ($flag === 'featured') 
+                                    <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full">⭐ Nổi bật</span>
+                                @elseif ($flag === 'breaking') 
+                                    <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full">🚨 Khẩn cấp</span>
+                                @endif
                             @endforeach
                         </div>
                         <h2 class="text-xl font-semibold leading-tight mb-2">

@@ -21,12 +21,15 @@
         {{-- Flags --}}
         @if (cmeta('flags'))
             <div class="flex flex-wrap gap-3 my-8">
-                @foreach (cmeta('flags') as $flag)
-                    <span class="inline-flex items-center px-4 py-2 bg-orange-100 text-orange-700 rounded-2xl text-sm font-medium">
-                        @if ($flag === 'hot') 🔥 Nóng
-                        @elseif ($flag === 'featured') ⭐ Nổi bật
-                        @else 🚨 Khẩn cấp @endif
-                    </span>
+                @php $flags = (array) cmeta('flags'); @endphp
+                @foreach ($flags as $flag)
+                    @if ($flag === 'hot') 
+                        <span class="px-3 py-1 bg-orange-100 text-orange-700 rounded-full">🔥 Nóng</span>
+                    @elseif ($flag === 'featured') 
+                        <span class="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full">⭐ Nổi bật</span>
+                    @elseif ($flag === 'breaking') 
+                        <span class="px-3 py-1 bg-red-100 text-red-700 rounded-full">🚨 Khẩn cấp</span>
+                    @endif
                 @endforeach
             </div>
         @endif

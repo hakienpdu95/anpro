@@ -7,10 +7,29 @@
 if (!function_exists('cmeta')) {
     function cmeta(string $key = '', $post_id = null, array $args = []) {
         $post_id = $post_id ?? get_the_ID();
+        $value = null;
+
         if (class_exists(\App\Database\CustomTableManager::class)) {
-            return \App\Database\CustomTableManager::getMeta((int)$post_id, $key);
+            $value = \App\Database\CustomTableManager::getMeta((int)$post_id, $key);
+        } elseif (function_exists('rwmb_meta')) {
+            $value = rwmb_meta($key, $args, $post_id);
         }
-        return function_exists('rwmb_meta') ? rwmb_meta($key, $args, $post_id) : '';
+
+        // === FIX FLAGS: Luôn trả về array cho checkbox_list ===
+        if ($key === 'flags' || str_contains($key, 'flag')) {
+            if (is_string($value)) {
+                $decoded = json_decode($value, true);
+                if (is_array($decoded)) {
+                    return $decoded;
+                }
+                return [$value]; // 'breaking' → ['breaking']
+            }
+            if (!is_array($value)) {
+                return $value ? [$value] : [];
+            }
+        }
+
+        return $value;
     }
 }
 

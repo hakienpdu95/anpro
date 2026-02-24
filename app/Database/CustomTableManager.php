@@ -100,9 +100,21 @@ class CustomTableManager {
         if ($post_id <= 0 || !self::shouldHandle($post_id)) {
             return $single ? '' : [];
         }
+
         $all = self::loadAllMeta($post_id);
         if ($key === '') return $all;
+
         $result = $all[$key] ?? null;
+
+        if ($key === 'flags') {
+            if (is_string($result)) {
+                $decoded = json_decode($result, true);
+                $result = (is_array($decoded)) ? $decoded : [$result];
+            } elseif (!is_array($result)) {
+                $result = $result ? [$result] : [];
+            }
+        }
+
         return $single ? $result : ($result !== null ? [$result] : []);
     }
 
@@ -133,11 +145,17 @@ class CustomTableManager {
         if (!$table || empty($meta_key)) return $check;
 
         global $wpdb;
-        $wpdb->delete($table, ['post_id' => $object_id, 'meta_key' => $meta_key]);
 
-        $save_value = (is_array($meta_value) || is_object($meta_value))
-            ? wp_json_encode($meta_value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)
-            : $meta_value;
+        $wpdb->delete($table, [
+            'post_id'  => $object_id,
+            'meta_key' => $meta_key
+        ]);
+
+        if (is_array($meta_value) || is_object($meta_value)) {
+            $save_value = wp_json_encode($meta_value, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        } else {
+            $save_value = $meta_value;
+        }
 
         $wpdb->insert($table, [
             'post_id'    => $object_id,
