@@ -10,7 +10,7 @@ class QueryHelper
     public static function cquery($args = [])
     {
         $default = [
-            'post_type'      => 'tin-tuc',
+            'post_type'      => 'event',
             'posts_per_page' => 10,
             'no_found_rows'  => true,           // tiết kiệm query count
             'update_post_meta_cache' => false,
@@ -58,13 +58,13 @@ class QueryHelper
     // Bài liên quan (dùng taxonomy + exclude current)
     public static function get_related_posts($post_id, $limit = 6)
     {
-        $terms = wp_get_post_terms($post_id, 'the-loai', ['fields' => 'ids']);
+        $terms = wp_get_post_terms($post_id, 'event-categories', ['fields' => 'ids']);
 
         return self::cquery([
             'post__not_in'   => [$post_id],
             'tax_query'      => $terms ? [
                 [
-                    'taxonomy' => 'the-loai',
+                    'taxonomy' => 'event-categories',
                     'field'    => 'term_id',
                     'terms'    => $terms,
                 ]

@@ -2,10 +2,10 @@
 
 namespace App\Metaboxes;
 
-class TinTucMainInfoMetabox extends BaseMetabox
+class EventInfoMetabox extends BaseMetabox
 {
-    protected string $title = 'Thông tin bài viết - Tin tức';
-    protected array $post_types = ['tin-tuc'];
+    protected string $title = 'Thông tin sự kiện';
+    protected array $post_types = ['event'];
 
     protected function getFields(): array
     {

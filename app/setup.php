@@ -186,12 +186,12 @@ require_once get_theme_file_path('app/Database/CustomTableManager.php');
 \App\Database\CustomTableManager::init();
 
 // === ARCHIVE FILTERS – MODULAR ===
-require_once get_theme_file_path('app/Archives/TinTucArchive.php');
-\App\Archives\TinTucArchive::init();
+require_once get_theme_file_path('app/Archives/EventArchive.php');
+\App\Archives\EventArchive::init();
 
 // === ADMIN COLUMNS – MODULAR 10/10 ===
-require_once get_theme_file_path('app/Admin/TinTucColumns.php');
-\App\Admin\TinTucColumns::init();
+require_once get_theme_file_path('app/Admin/EventColumns.php');
+\App\Admin\EventColumns::init();
 
 // === AUTO REGISTER CPT + TAXONOMY (sử dụng sage_get_files từ helpers) ===
 add_action('init', function () {

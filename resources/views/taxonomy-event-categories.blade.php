@@ -3,7 +3,7 @@
 @section('content')
 <div class="max-w-7xl mx-auto px-4 py-12">
 
-    {{-- Form lọc nâng cao (có thể tái sử dụng từ archive-tin-tuc) --}}
+    {{-- Form lọc nâng cao (có thể tái sử dụng từ archive-event) --}}
     @include('partials/taxonomy-filters')   {{-- mình cung cấp bên dưới --}}
 
     @if (have_posts())

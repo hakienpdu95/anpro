@@ -1,13 +1,13 @@
 <?php
 namespace App\Admin;
 
-use App\Database\CustomTableManager; // để tương lai
+use App\Database\CustomTableManager;
 
-class TinTucColumns {
+class EventColumns {
 
     public static function init(): void {
-        add_filter('manage_tin-tuc_posts_columns', [self::class, 'addColumns']);
-        add_action('manage_tin-tuc_posts_custom_column', [self::class, 'renderColumn'], 10, 2);
+        add_filter('manage_event_posts_columns', [self::class, 'addColumns']);
+        add_action('manage_event_posts_custom_column', [self::class, 'renderColumn'], 10, 2);
     }
 
     public static function addColumns(array $columns): array {
@@ -19,7 +19,7 @@ class TinTucColumns {
                 $new_columns['reading_time']  = 'Thời gian đọc';
                 $new_columns['source']        = 'Nguồn';
                 $new_columns['flags']         = 'Đánh dấu';
-                $new_columns['the-loai']      = 'Thể loại';
+                $new_columns['event_cat']      = 'Thể loại';
             }
         }
         return $new_columns;
@@ -50,8 +50,8 @@ class TinTucColumns {
                 }
                 break;
 
-            case 'the-loai':
-                $terms = get_the_terms($post_id, 'the-loai');
+            case 'event_cat':
+                $terms = get_the_terms($post_id, 'event-categories');
                 echo $terms ? implode(', ', wp_list_pluck($terms, 'name')) : '—';
                 break;
         }

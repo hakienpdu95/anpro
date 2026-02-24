@@ -2,11 +2,11 @@
 
 namespace App\PostTypes;
 
-class NewsPostType extends BasePostType
+class EventPostType extends BasePostType
 {
-    protected function getPostTypeKey(): string { return 'tin-tuc'; }   // hoặc 'portfolio'
-    protected function getSingular(): string    { return 'Tin tức'; }
-    protected function getPlural(): string      { return 'Tin tức'; }
+    protected function getPostTypeKey(): string { return 'event'; }   // hoặc 'portfolio'
+    protected function getSingular(): string    { return 'Sự kiện'; }
+    protected function getPlural(): string      { return 'Sự kiện'; }
 
     protected function getArgs(): array
     {

@@ -4,18 +4,18 @@ namespace App\Archives;
 use WP_Query;
 
 /**
- * TinTucArchive – Quản lý toàn bộ archive + filter cho CPT 'tin-tuc'
+ * EventArchive – Quản lý toàn bộ archive + filter cho CPT 'event'
  * Modular 10/10 – Dễ scale khi site có 20+ CPT
  */
-class TinTucArchive {
+class EventArchive {
 
     public static function init(): void {
         add_action('pre_get_posts', [self::class, 'applyFilters'], 20);
     }
 
     public static function applyFilters(WP_Query $query): void {
-        // Chỉ áp dụng cho archive chính của tin-tuc (không ảnh hưởng admin hoặc query khác)
-        if (is_admin() || !$query->is_main_query() || $query->get('post_type') !== 'tin-tuc') {
+        // Chỉ áp dụng cho archive chính của event (không ảnh hưởng admin hoặc query khác)
+        if (is_admin() || !$query->is_main_query() || $query->get('post_type') !== 'event') {
             return;
         }
 
@@ -25,12 +25,12 @@ class TinTucArchive {
         }
 
         // === TAXONOMY FILTER ===
-        if (!empty($_GET['the-loai'])) {
+        if (!empty($_GET['event_cat'])) {
             $query->set('tax_query', [
                 [
-                    'taxonomy' => 'the-loai',
+                    'taxonomy' => 'event-categories',
                     'field'    => 'slug',
-                    'terms'    => sanitize_text_field($_GET['the-loai']),
+                    'terms'    => sanitize_text_field($_GET['event_cat']),
                 ],
             ]);
         }

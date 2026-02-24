@@ -17,10 +17,10 @@
         {{-- Danh mục --}}
         <div>
             <label class="block text-sm font-medium mb-2">Danh mục</label>
-            <select name="the-loai" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
+            <select name="event_cat" class="w-full border border-gray-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-blue-500">
                 <option value="">Tất cả danh mục</option>
-                @foreach (get_terms(['taxonomy' => 'the-loai', 'hide_empty' => true]) as $term)
-                    <option value="{{ $term->slug }}" {{ request('the-loai') === $term->slug ? 'selected' : '' }}>
+                @foreach (get_terms(['taxonomy' => 'event-categories', 'hide_empty' => true]) as $term)
+                    <option value="{{ $term->slug }}" {{ request('event_cat') === $term->slug ? 'selected' : '' }}>
                         {{ $term->name }}
                     </option>
                 @endforeach
@@ -65,7 +65,7 @@
             <button type="submit" class="bg-blue-600 text-white px-8 py-3 rounded-xl font-medium hover:bg-blue-700 transition">
                 Lọc ngay
             </button>
-            <a href="{{ get_post_type_archive_link('tin-tuc') }}" class="text-sm text-gray-500 underline">Xóa lọc</a>
+            <a href="{{ get_post_type_archive_link('event') }}" class="text-sm text-gray-500 underline">Xóa lọc</a>
         </div>
     </form>
 

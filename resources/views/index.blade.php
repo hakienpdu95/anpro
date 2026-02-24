@@ -31,11 +31,34 @@
         'interval' => 5000,
     ])
 
-    {{-- Demo Slider 2 item --}}
-    @include('partials.block-slide', [
-        'title' => 'Tin tức công nghệ',
+    {{-- 1. Tin nóng (flags = breaking) --}}
+    @include('partials.block-slide-dynamic', [
+        'title' => '🔥 Tin nóng hôm nay',
+        'meta_query' => [
+            ['key' => 'flags', 'value' => 'breaking', 'compare' => 'LIKE']
+        ],
+        'posts_per_page' => 6,
+        'perPage' => 3,
+    ])
+
+    {{-- 2. Tin theo danh mục "event_cat" --}}
+    @include('partials.block-slide-dynamic', [
+        'title' => '📈 Kinh tế',
+        'tax_query' => [
+            ['taxonomy' => 'event_cat', 'field' => 'slug', 'terms' => 'kinh-te']
+        ],
         'perPage' => 2,
-        'autoplay' => false,
+    ])
+
+    {{-- 3. Bài dài (reading_time >= 10) --}}
+    @include('partials.block-slide-dynamic', [
+        'title' => '📖 Bài đọc dài hay nhất',
+        'meta_query' => [
+            ['key' => 'reading_time', 'value' => 10, 'compare' => '>=', 'type' => 'NUMERIC']
+        ],
+        'orderby' => 'meta_value_num',
+        'meta_key' => 'reading_time',
+        'perPage' => 3,
     ])
 
   @while(have_posts()) @php(the_post())
