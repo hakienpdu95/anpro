@@ -11,6 +11,14 @@
     {!! get_search_form(false) !!}
   @endif
 
+  <h1 class="text-5xl font-bold text-center mb-16">Trang Chủ Demo – Sage 10/10</h1>
+
+    {{-- BLOCK TABS --}}
+    @include('partials.block-tabs')
+
+    {{-- BLOCK SLIDE --}}
+    @include('partials.block-slide')
+    
   @while(have_posts()) @php(the_post())
     @includeFirst(['partials.content-' . get_post_type(), 'partials.content'])
   @endwhile
