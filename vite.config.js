@@ -10,8 +10,8 @@ export default defineConfig({
     tailwindcss(),
     laravel({
       input: [
-        'resources/css/app.css',     
-        'resources/css/main.scss',   
+        'resources/css/app.css',      // Tailwind core
+        'resources/css/main.scss',    // Custom SCSS của bạn → main.{hash}.css
         'resources/js/app.js',
         'resources/css/editor.css',
         'resources/js/editor.js',
@@ -39,6 +39,11 @@ export default defineConfig({
   build: {
     rollupOptions: {
       output: {
+        manualChunks(id) {
+          if (id.includes('alpinejs')) return 'vendor-alpine';
+          if (id.includes('@splidejs/splide')) return 'vendor-splide';
+          if (id.includes('node_modules')) return 'vendor';
+        },
         assetFileNames: (assetInfo) => {
           if (assetInfo.name?.endsWith('.css') && assetInfo.originalName?.includes('main.scss')) {
             return 'assets/main.[hash].[ext]';

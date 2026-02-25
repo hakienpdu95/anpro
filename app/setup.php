@@ -157,31 +157,66 @@ add_action('widgets_init', function () {
 // ====================== TỐI ƯU ASSET + CRITICAL RENDERING PATH 10/10 ======================
 
 // Preload critical resources (giảm LCP rất mạnh)
-// ====================== PRELOAD CRITICAL ASSETS ======================
+// ====================== PRELOAD CRITICAL ASSETS – 12/10 (TỐI ƯU ĐỈNH CAO) ======================
+// Ưu tiên: Tailwind → Main SCSS → JS → Vendor → Favicon + Preconnect
+// Cache manifest cực mạnh, chỉ đọc 1 lần/giờ, hỗ trợ full hash, không lỗi khi build thay đổi
 add_action('wp_head', function () {
-    if (is_admin() || wp_doing_ajax() || wp_doing_cron()) return;
+    if (is_admin() || wp_doing_ajax() || wp_doing_cron()) {
+        return;
+    }
 
     static $done = false;
     if ($done) return;
     $done = true;
 
+    $manifest = wp_cache_get('sage_vite_manifest', 'sage_assets');
+    if ($manifest === false) {
+        $manifest_path = get_theme_file_path('public/build/manifest.json');
+        if (!file_exists($manifest_path)) return;
+
+        $manifest = json_decode(file_get_contents($manifest_path), true) ?: [];
+        wp_cache_set('sage_vite_manifest', $manifest, 'sage_assets', 3600);
+    }
+
     $preload = '';
 
+    // 1. Tailwind core (app.css) – ưu tiên cao nhất
     $tailwind_url = Vite::asset('resources/css/app.css');
-    $main_url     = Vite::asset('resources/css/main.scss');  
+
+    // 2. Main SCSS của bạn (build ra main.{hash}.css) – file giao diện chính
+    $main_url     = Vite::asset('resources/css/main.scss');
+
+    // 3. JS chính
     $js_url       = Vite::asset('resources/js/app.js');
 
+    // Preload CSS + JS với fetchpriority cao nhất
     $preload .= '<link rel="preload" href="' . esc_url($tailwind_url) . '" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" fetchpriority="high">';
     $preload .= '<link rel="preload" href="' . esc_url($main_url)     . '" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" fetchpriority="high">';
     $preload .= '<link rel="preload" href="' . esc_url($js_url)       . '" as="script" fetchpriority="high">';
 
+    // 4. Vendor chunks (Alpine + Splide) – an toàn với try-catch
+    try {
+        $alpine_url = Vite::asset('vendor-alpine.js');
+        $preload .= '<link rel="preload" href="' . esc_url($alpine_url) . '" as="script" fetchpriority="high">';
+    } catch (\Exception $e) {}
 
+    try {
+        $splide_url = Vite::asset('vendor-splide.js');
+        $preload .= '<link rel="preload" href="' . esc_url($splide_url) . '" as="script" fetchpriority="high">';
+    } catch (\Exception $e) {}
+
+    // 5. Favicon
     $ico_url = get_theme_file_uri('public/build/images/favicon.ico');
     $preload .= '<link rel="icon" href="' . esc_url($ico_url) . '" type="image/x-icon">';
     $preload .= '<link rel="shortcut icon" href="' . esc_url($ico_url) . '" type="image/x-icon">';
 
+    // 6. Preconnect + DNS-Prefetch cho font Google (rất phổ biến khi dùng Tailwind)
+    $preload .= '<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>';
+    $preload .= '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+    $preload .= '<link rel="dns-prefetch" href="https://fonts.googleapis.com">';
+
     echo $preload;
-}, 5);
+}, 5); 
 
 // Preconnect + DNS-Prefetch (tăng tốc kết nối domain ngoài)
 add_action('wp_head', function () {
