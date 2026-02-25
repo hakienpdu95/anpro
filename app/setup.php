@@ -268,5 +268,9 @@ require_once get_theme_file_path('app/Helpers/QueryHelper.php');
 require_once get_theme_file_path('app/Helpers/CacheHelper.php');
 \App\Helpers\CacheHelper::init();
 
+/** === QUERY CACHE TỰ ĐỘNG 110% === */
+require_once get_theme_file_path('app/Helpers/QueryCache.php');
+\App\Helpers\QueryCache::init();
+
 require_once get_theme_file_path('app/ViewCache/ViewCache.php');
 \App\ViewCache\ViewCache::init();

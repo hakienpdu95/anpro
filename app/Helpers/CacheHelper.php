@@ -9,8 +9,8 @@ use Illuminate\Filesystem\Filesystem;
 class CacheHelper
 {
     private static ?Repository $cache = null;
-    private static array $memory = [];           // Layer siêu nhanh trong cùng request
-    private static string $version = 'v1';       // Tăng version này khi muốn xóa hết cache
+    private static array $memory = [];        // In-memory siêu nhanh
+    private static string $version = 'v1';
     private static bool $debug = false;
 
     public static function init(): void
@@ -25,57 +25,47 @@ class CacheHelper
             self::$cache = new Repository(new FileStore(new Filesystem(), $path));
         }
 
-        // Tự động flush khi save/xóa bài
         add_action('save_post', [self::class, 'flushOnPostSave'], 20, 2);
         add_action('deleted_post', [self::class, 'flushOnPostSave']);
 
         if (self::$debug) {
-            $driver = wp_using_ext_object_cache() ? 'Redis Object Cache' : 'File Cache';
+            $driver = wp_using_ext_object_cache() ? 'Redis' : 'File';
             error_log("🚀 [CacheHelper 110%] Initialized - Driver: {$driver}");
         }
     }
 
-    /**
-     * Cache siêu nhanh + log chi tiết
-     */
     public static function remember(string $key, int $seconds, callable $callback)
     {
         $fullKey = 'sage_' . self::$version . ':' . $key;
-        $start   = microtime(true);
+        $start = microtime(true);
 
-        // 1. In-memory layer (nhanh nhất)
+        // In-memory layer
         if (isset(self::$memory[$fullKey])) {
             $time = round((microtime(true) - $start) * 1000, 2);
             if (self::$debug) error_log("⚡ MEMORY HIT → {$key} | {$time}ms");
             return self::$memory[$fullKey];
         }
 
-        // 2. Redis / File cache
         $result = self::$cache->remember($fullKey, $seconds, $callback);
-
-        self::$memory[$fullKey] = $result;   // Lưu vào memory cho request này
+        self::$memory[$fullKey] = $result;
 
         $time = round((microtime(true) - $start) * 1000, 2);
-        if (self::$debug) {
-            error_log("📦 CACHE HIT → {$key} | {$time}ms | TTL {$seconds}s");
-        }
+        if (self::$debug) error_log("📦 CACHE HIT → {$key} | {$time}ms | TTL {$seconds}s");
 
         return $result;
     }
 
     public static function flushOnPostSave(int $post_id, $post = null): void
     {
-        // Tăng version → tất cả cache cũ tự động invalid
         self::$version = 'v' . time();
         self::$memory = [];
 
         if (self::$debug) {
             $type = get_post_type($post_id) ?: 'unknown';
-            error_log("🗑️  FLUSH CACHE → Post #{$post_id} ({$type}) saved → New version: " . self::$version);
+            error_log("🗑️ FLUSH → Post #{$post_id} ({$type}) → New version: " . self::$version);
         }
     }
 
-    // Helper tiện ích
     public static function flushAll(): void
     {
         self::$version = 'v' . time();

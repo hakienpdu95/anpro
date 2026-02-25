@@ -24,12 +24,11 @@ class ViewCache
             return view($view, $data)->render();
         }
 
-        $key  = self::makeKey($view, $data);
-        $tags = ['global', get_post_type() ?: 'global'];
+        $key = self::makeKey($view, $data);
 
         return CacheHelper::remember($key, $ttl, function () use ($view, $data) {
             return view($view, $data)->render();
-        }, $tags);
+        });
     }
 
     private static function makeKey(string $view, array $data): string
