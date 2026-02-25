@@ -25,9 +25,9 @@ class ViewCache
         }
 
         $key = self::makeStableKey($view, $data);
-
         return CacheHelper::remember('html_' . $key, $ttl, function () use ($view, $data) {
-            return view($view, $data)->render();
+            $html = view($view, $data)->render();
+            return \App\Helpers\HtmlMinifier::minify($html); 
         });
     }
 

@@ -283,3 +283,20 @@ require_once get_theme_file_path('app/Helpers/QueryCache.php');
 
 require_once get_theme_file_path('app/ViewCache/ViewCache.php');
 \App\ViewCache\ViewCache::init();
+
+// === HTML MINIFIER – Tăng tốc độ load 20-40% ===
+require_once get_theme_file_path('app/Helpers/HtmlMinifier.php');
+\App\Helpers\HtmlMinifier::init();
+
+// === OUTPUT BUFFERING – Minify toàn bộ HTML output ===
+add_action('template_redirect', function () {
+    // Không chạy trong admin, ajax, feed, cron, robots...
+    if (is_admin() || wp_doing_ajax() || wp_doing_cron() || is_feed() || is_robots()) {
+        return;
+    }
+
+    // Chỉ minify các trang bạn muốn (có thể thêm is_category(), is_tag()...)
+    if (is_front_page() || is_home() || is_single() || is_page() || is_archive() || is_search()) {
+        ob_start([\App\Helpers\HtmlMinifier::class, 'minify']);
+    }
+}, 1);
