@@ -261,5 +261,12 @@ add_filter('default_hidden_meta_boxes', function ($hidden, $screen) {
     return $hidden;
 }, 10, 2);
 
-/** === QUERY HELPER (nếu cần) === */
+/** === QUERY HELPER === */
 require_once get_theme_file_path('app/Helpers/QueryHelper.php');
+
+/** === CACHE SYSTEM 10/10 (Redis + View Cache) === */
+require_once get_theme_file_path('app/Helpers/CacheHelper.php');
+\App\Helpers\CacheHelper::init();
+
+require_once get_theme_file_path('app/ViewCache/ViewCache.php');
+\App\ViewCache\ViewCache::init();

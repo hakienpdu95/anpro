@@ -10,16 +10,21 @@
 ])
 
 @php
-$posts = \App\Helpers\QueryHelper::getPostsWithAllFlags(
-    $post_type, 
-    ['breaking', 'hot'],   // ← thay đổi flags ở đây
-    $posts_per_page
+
+$posts = \App\Helpers\CacheHelper::remember(
+    "slide_dynamic_{$post_type}_breaking_hot", 
+    300, 
+    function () use ($post_type, $posts_per_page) {
+        return \App\Helpers\QueryHelper::getPostsWithAllFlags(
+            $post_type, 
+            ['breaking', 'hot'], 
+            $posts_per_page
+        );
+    }
 );
 
 if ($debug) {
-    error_log("=== DEBUG SLIDE FLAGS AND ===");
-    error_log("Flags yêu cầu: " . implode(' + ', ['breaking', 'hot']));
-    error_log("Số bài load được: " . count($posts));
+    error_log("=== CACHE DEBUG SLIDE DYNAMIC === Key: slide_dynamic_{$post_type}_breaking_hot | Posts: " . count($posts));
 }
 @endphp
 

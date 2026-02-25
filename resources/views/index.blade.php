@@ -14,7 +14,7 @@
   <h1 class="text-5xl font-bold text-center mb-16">Trang Chủ Demo – Sage 10/10</h1>
 
     {{-- BLOCK TABS --}}
-    @include('partials.block-tabs')
+    @includeCached('partials.block-tabs', [], 3600, true)
 
     {{-- Demo Slider 3 item --}}
     @include('partials.block-slide', [
@@ -31,12 +31,11 @@
         'interval' => 5000,
     ])
 
-    @include('partials.block-slide-dynamic', [
-        'title'          => '🚨 Tin khẩn cấp (flags = breaking)',
-        'post_type'      => 'event',
-        'perPage'        => 3,
-        'debug'          => true,
-    ])
+    @includeCached('partials.block-slide-dynamic', [
+        'title' => '🚨 Tin khẩn cấp',
+        'post_type' => 'event',
+        'perPage' => 3,
+    ], 300)
 
   @while(have_posts()) @php(the_post())
     @includeFirst(['partials.content-' . get_post_type(), 'partials.content'])

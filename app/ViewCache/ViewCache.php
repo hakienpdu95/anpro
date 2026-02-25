@@ -1,0 +1,40 @@
+<?php
+
+namespace App\ViewCache;
+
+use App\Helpers\CacheHelper;
+use Illuminate\Support\Facades\Blade;
+
+class ViewCache
+{
+    public static function init(): void
+    {
+        Blade::directive('includeCached', function ($expression) {
+            return "<?php echo \App\ViewCache\ViewCache::renderCached({$expression}); ?>";
+        });
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('🚀 [ViewCache 110%] @includeCached directive registered');
+        }
+    }
+
+    public static function renderCached(string $view, array $data = [], int $ttl = 300, bool $bypass = false): string
+    {
+        if ($bypass || (defined('WP_DEBUG') && WP_DEBUG && isset($_GET['nocache']))) {
+            return view($view, $data)->render();
+        }
+
+        $key  = self::makeKey($view, $data);
+        $tags = ['global', get_post_type() ?: 'global'];
+
+        return CacheHelper::remember($key, $ttl, function () use ($view, $data) {
+            return view($view, $data)->render();
+        }, $tags);
+    }
+
+    private static function makeKey(string $view, array $data): string
+    {
+        $context = get_queried_object_id() . '|' . get_query_var('paged', 1);
+        return 'view_' . str_replace(['/', '.'], '_', trim($view, '/')) . '_' . md5(serialize($data) . $context);
+    }
+}
