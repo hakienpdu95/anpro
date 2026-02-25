@@ -3,6 +3,7 @@ namespace App\Database;
 
 use WP_Meta_Query;
 use WP_Query;
+use App\Helpers\CacheHelper;
 
 class CustomTableManager {
     public static array $registered = [];
@@ -247,6 +248,14 @@ class CustomTableManager {
         }
 
         self::flushPostCache($object_id);
+        
+        // === TỰ ĐỘNG INVALIDATE CACHE ===
+        $post_type = get_post_type($object_id);
+        if ($post_type && in_array($post_type, self::$registered)) {
+            if (in_array($meta_key, self::$multipleSimpleKeys, true) || $meta_key === 'flags' || empty($meta_key)) {
+                CacheHelper::bumpDataVersion($post_type);
+            }
+        }
         return true;
     }
 
@@ -267,6 +276,13 @@ class CustomTableManager {
         }
 
         self::flushPostCache($object_id);
+        // === TỰ ĐỘNG INVALIDATE CACHE ===
+        $post_type = get_post_type($object_id);
+        if ($post_type && in_array($post_type, self::$registered)) {
+            if ($delete_all || empty($meta_key) || in_array($meta_key, self::$multipleSimpleKeys, true)) {
+                CacheHelper::bumpDataVersion($post_type);
+            }
+        }
         return true;
     }
 
@@ -275,6 +291,11 @@ class CustomTableManager {
         if ($table) {
             global $wpdb;
             $wpdb->delete($table, ['post_id' => $post_id]);
+        }
+        // === TỰ ĐỘNG INVALIDATE CACHE  ===
+        $post_type = get_post_type($post_id);
+        if ($post_type && in_array($post_type, self::$registered)) {
+            CacheHelper::bumpDataVersion($post_type);
         }
         self::flushPostCache($post_id);
     }

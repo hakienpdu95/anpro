@@ -53,12 +53,44 @@ class CacheHelper
         return $result;
     }
 
+    /**
+     * DATA VERSIONING PER POST TYPE - TỰ ĐỘNG HOÀN TOÀN (10/10 scalable)
+     */
+    public static function getDataVersion(string $post_type): int
+    {
+        if (empty($post_type)) return 1;
+        $key = 'sage:data_version:' . sanitize_key($post_type);
+        return (int) self::$cache->get($key, 1);
+    }
+
+    public static function bumpDataVersion(string $post_type): void
+    {
+        if (empty($post_type)) return;
+
+        $key = 'sage:data_version:' . sanitize_key($post_type);
+        $current = self::getDataVersion($post_type);
+        $newVersion = $current + 1;
+
+        self::$cache->forever($key, $newVersion);   // forever = không expire
+        self::$memory = [];                         // xóa memory layer
+
+        if (self::$debug) {
+            error_log("🔄 [CACHE VERSION] BUMP → {$post_type} | v{$newVersion}");
+        }
+    }
+
     public static function flushOnPostSave(int $post_id, $post = null): void
     {
         self::$memory = [];
+        
+        $post_type = is_object($post) ? $post->post_type : get_post_type($post_id);
+        
+        if ($post_type && in_array($post_type, \App\Database\CustomTableManager::$registered ?? [])) {
+            self::bumpDataVersion($post_type);
+        }
+
         if (self::$debug) {
-            $type = get_post_type($post_id) ?: 'unknown';
-            error_log("🗑️ FLUSH → Post #{$post_id} ({$type})");
+            error_log("🗑️ [CacheHelper] FLUSH → Post #{$post_id} ({$post_type})");
         }
     }
 }

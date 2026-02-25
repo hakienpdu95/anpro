@@ -41,13 +41,13 @@
         );
     @endphp
 
-    @include('partials.block-slide-dynamic', [
-        'title'    => '🚨 Tin khẩn cấp (breaking & hot)',
-        'posts'    => $posts,           
-        'perPage'  => 3,
+    @includeCached('partials.block-slide-dynamic', [
+        'title' => '🚨 Tin khẩn cấp (breaking & hot)',
+        'posts' => $posts,
+        'perPage' => 3,
         'autoplay' => true,
         'interval' => 4000,
-    ])
+    ], 300)
 
   @while(have_posts()) @php(the_post())
     @includeFirst(['partials.content-' . get_post_type(), 'partials.content'])
