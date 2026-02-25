@@ -157,8 +157,7 @@ add_action('widgets_init', function () {
 // ====================== TỐI ƯU ASSET + CRITICAL RENDERING PATH 10/10 ======================
 
 // Preload critical resources (giảm LCP rất mạnh)
-// ====================== PRELOAD CRITICAL ASSETS – FIX HASH 100% ======================
-// ====================== PRELOAD CRITICAL ASSETS 10/10 – TỐI ƯU HIỆU SUẤT CAO NHẤT ======================
+// ====================== PRELOAD CRITICAL ASSETS – ULTIMATE 10/10 (TỐI ƯU HẾT CỠ) ======================
 add_action('wp_head', function () {
     if (is_admin() || wp_doing_ajax() || wp_doing_cron()) {
         return;
@@ -168,65 +167,56 @@ add_action('wp_head', function () {
     if ($done) return;
     $done = true;
 
-    // Cache manifest để tránh đọc file mỗi request (tăng tốc rất mạnh)
-    $cache_key = 'sage_vite_manifest';
-    $manifest  = wp_cache_get($cache_key, 'sage_assets');
-
+    // Cache manifest cực mạnh (chỉ đọc file 1 lần/giờ)
+    $manifest = wp_cache_get('sage_vite_manifest', 'sage_assets');
     if ($manifest === false) {
         $manifest_path = get_theme_file_path('public/build/manifest.json');
-        if (!file_exists($manifest_path)) {
-            return;
-        }
+        if (!file_exists($manifest_path)) return;
 
-        $manifest = json_decode(file_get_contents($manifest_path), true);
-
-        if (is_array($manifest)) {
-            wp_cache_set($cache_key, $manifest, 'sage_assets', 3600); // cache 1 giờ
-        } else {
-            return;
-        }
+        $manifest = json_decode(file_get_contents($manifest_path), true) ?: [];
+        wp_cache_set('sage_vite_manifest', $manifest, 'sage_assets', 3600);
     }
 
     $base = get_theme_file_uri('public/build/');
 
-    // Lấy đúng file hashed (hỗ trợ tất cả key phổ biến của Vite + Sage)
+    // Lấy đúng file hashed (hỗ trợ tất cả cách Vite sinh file)
     $css_file = $manifest['app.css']['file'] ?? $manifest['assets/app.css']['file'] ?? $manifest['resources/css/app.css']['file'] ?? '';
     $js_file  = $manifest['app.js']['file']  ?? $manifest['assets/app.js']['file']  ?? $manifest['resources/js/app.js']['file']  ?? '';
 
-    // Preload thêm 2 file vendor quan trọng (Alpine + Splide – rất lớn)
-    $vendor_alpine = $manifest['vendor-alpine.js']['file'] ?? '';
-    $vendor_splide = $manifest['vendor-splide.js']['file'] ?? '';
+    // Preload vendor lớn nhất (Alpine + Splide)
+    $vendor_alpine = $manifest['vendor-alpine.js']['file'] ?? $manifest['assets/vendor-alpine.js']['file'] ?? '';
+    $vendor_splide = $manifest['vendor-splide.js']['file'] ?? $manifest['assets/vendor-splide.js']['file'] ?? '';
 
     $css_url = $base . $css_file;
     $js_url  = $base . $js_file;
     $ico_url = $base . 'images/favicon.ico';
 
-    // Output preload chỉ 1 lần – cực nhanh
-    $output = '';
-    if ($css_file) {
-        $output .= '<link rel="preload" href="' . esc_url($css_url) . '" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" fetchpriority="high">';
-    }
-    if ($js_file) {
-        $output .= '<link rel="preload" href="' . esc_url($js_url) . '" as="script" fetchpriority="high">';
-    }
-    if ($vendor_alpine) {
-        $output .= '<link rel="preload" href="' . esc_url($base . $vendor_alpine) . '" as="script" fetchpriority="high">';
-    }
-    if ($vendor_splide) {
-        $output .= '<link rel="preload" href="' . esc_url($base . $vendor_splide) . '" as="script" fetchpriority="high">';
-    }
+    // Output preload tối ưu (1 lần echo duy nhất)
+    $preload = '';
 
-    $output .= '<link rel="icon" href="' . esc_url($ico_url) . '" type="image/x-icon">';
-    $output .= '<link rel="shortcut icon" href="' . esc_url($ico_url) . '" type="image/x-icon">';
+    if ($css_file) $preload .= '<link rel="preload" href="' . esc_url($css_url) . '" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" fetchpriority="high">';
+    if ($js_file)  $preload .= '<link rel="preload" href="' . esc_url($js_url)  . '" as="script" fetchpriority="high">';
+    if ($vendor_alpine) $preload .= '<link rel="preload" href="' . esc_url($base . $vendor_alpine) . '" as="script" fetchpriority="high">';
+    if ($vendor_splide) $preload .= '<link rel="preload" href="' . esc_url($base . $vendor_splide) . '" as="script" fetchpriority="high">';
 
-    echo $output;
+    $preload .= '<link rel="icon" href="' . esc_url($ico_url) . '" type="image/x-icon">';
+    $preload .= '<link rel="shortcut icon" href="' . esc_url($ico_url) . '" type="image/x-icon">';
 
-    // Debug chỉ khi cần (không ảnh hưởng production)
+    echo $preload;
+
+    // Debug chỉ khi cần
     if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log('✅ [PRELOAD 10/10] CSS: ' . $css_url);
-        error_log('✅ [PRELOAD 10/10] JS : ' . $js_url);
+        error_log("✅ [PRELOAD 10/10] CSS: {$css_url}");
+        error_log("✅ [PRELOAD 10/10] JS : {$js_url}");
     }
 }, 5);
+
+// Preconnect + DNS-Prefetch (tăng tốc kết nối domain ngoài)
+add_action('wp_head', function () {
+    echo '<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>';
+    echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+    echo '<link rel="dns-prefetch" href="https://fonts.googleapis.com">';
+}, 1);
 
 // Defer tất cả JS (trừ jQuery nếu có) + Async Alpine & Splide
 add_filter('script_loader_tag', function ($tag, $handle) {
