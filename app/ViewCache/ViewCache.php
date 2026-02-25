@@ -26,7 +26,7 @@ class ViewCache
 
         $key = self::makeStableKey($view, $data);
 
-        return CacheHelper::remember($key, $ttl, function () use ($view, $data) {
+        return CacheHelper::remember('html_' . $key, $ttl, function () use ($view, $data) {
             return view($view, $data)->render();
         });
     }
@@ -36,8 +36,7 @@ class ViewCache
         $isHome = is_home() || is_front_page();
         $context = $isHome ? 'home' : (get_queried_object_id() . '|' . get_query_var('paged', 1));
 
-        ksort($data); // Sắp xếp để key luôn giống nhau
-
-        return 'view_' . str_replace(['/', '.'], '_', trim($view, '/')) . '_' . md5(json_encode($data) . $context);
+        ksort($data);
+        return str_replace(['/', '.'], '_', trim($view, '/')) . '_' . md5(serialize($data) . $context);
     }
 }

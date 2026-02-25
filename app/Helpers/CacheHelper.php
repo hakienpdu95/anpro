@@ -29,7 +29,7 @@ class CacheHelper
 
         if (self::$debug) {
             $driver = wp_using_ext_object_cache() ? 'Redis' : 'File';
-            error_log("🚀 [CacheHelper 11/10] Initialized - Driver: {$driver}");
+            error_log("🚀 [CacheHelper 10/10] Initialized - Driver: {$driver}");
         }
     }
 
@@ -48,10 +48,7 @@ class CacheHelper
         self::$memory[$fullKey] = $result;
 
         $time = round((microtime(true) - $start) * 1000, 2);
-
-        if (self::$debug) {
-            error_log("📦 REDIS HIT → {$key} | {$time}ms | TTL {$seconds}s");
-        }
+        if (self::$debug) error_log("📦 REDIS HIT → {$key} | {$time}ms | TTL {$seconds}s");
 
         return $result;
     }

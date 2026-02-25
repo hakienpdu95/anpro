@@ -1,22 +1,10 @@
-{{-- BLOCK SLIDE: Tin có CẢ breaking VÀ hot --}}
 @props([
-    'title' => '🚨 Tin nóng & Khẩn cấp',
-    'post_type' => 'event',
-    'posts_per_page' => 8,
-    'perPage' => 3,
+    'title'    => '🚨 Tin khẩn cấp',
+    'posts'    => [],
+    'perPage'  => 3,
     'autoplay' => true,
     'interval' => 4000,
-    'debug' => true,
 ])
-
-@php
-    $posts = \App\Helpers\QueryCache::getPostsWithAllFlags(
-        $post_type, 
-        ['breaking', 'hot'], 
-        $posts_per_page,
-        300 
-    );
-@endphp
 
 <div class="my-16">
     @if ($title)
@@ -34,12 +22,9 @@
                     @foreach ($posts as $post)
                         @php setup_postdata($post); @endphp
                         <li class="splide__slide">
-                            <!-- Phần HTML render slide của bạn giữ nguyên từ đây -->
                             <div class="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all group">
                                 <a href="{{ get_permalink($post) }}">
-                                    {!! get_the_post_thumbnail($post->ID, 'medium_large', [
-                                        'class' => 'w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300 placeholder-image'
-                                    ]) !!}
+                                    {!! get_the_post_thumbnail($post->ID, 'medium_large', ['class' => 'w-full h-64 object-cover group-hover:scale-105 transition-transform']) !!}
                                 </a>
                                 <div class="p-6">
                                     <h4 class="font-semibold text-xl leading-tight mb-3 line-clamp-2">

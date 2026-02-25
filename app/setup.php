@@ -264,11 +264,13 @@ add_filter('default_hidden_meta_boxes', function ($hidden, $screen) {
 /** === QUERY HELPER === */
 require_once get_theme_file_path('app/Helpers/QueryHelper.php');
 
-/** === CACHE SYSTEM 10/10 (Redis + View Cache) === */
+/** === CACHE SYSTEM 11/10 – DATA CACHE GLOBAL + HTML CACHE === */
 require_once get_theme_file_path('app/Helpers/CacheHelper.php');
 \App\Helpers\CacheHelper::init();
 
-/** === QUERY CACHE TỰ ĐỘNG 110% === */
+require_once get_theme_file_path('app/Helpers/DataCache.php');
+\App\Helpers\DataCache::init();
+
 require_once get_theme_file_path('app/Helpers/QueryCache.php');
 \App\Helpers\QueryCache::init();
 

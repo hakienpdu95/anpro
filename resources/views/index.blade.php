@@ -31,11 +31,23 @@
         'interval' => 5000,
     ])
 
-    @includeCached('partials.block-slide-dynamic', [
-        'title' => '🚨 Tin khẩn cấp',
-        'post_type' => 'event',
-        'perPage' => 3,
-    ], 300)
+    {{-- BLOCK SLIDE DYNAMIC – Data Cache tách biệt, luôn log và ổn định --}}
+    @php
+        $posts = \App\Helpers\QueryCache::getPostsWithAllFlags(
+            'event', 
+            ['breaking', 'hot'], 
+            8,     
+            300    
+        );
+    @endphp
+
+    @include('partials.block-slide-dynamic', [
+        'title'    => '🚨 Tin khẩn cấp (breaking & hot)',
+        'posts'    => $posts,           
+        'perPage'  => 3,
+        'autoplay' => true,
+        'interval' => 4000,
+    ])
 
   @while(have_posts()) @php(the_post())
     @includeFirst(['partials.content-' . get_post_type(), 'partials.content'])
