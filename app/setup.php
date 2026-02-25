@@ -166,6 +166,15 @@ require_once get_theme_file_path('app/Permalinks/PermalinkManager.php');
 require_once get_theme_file_path('app/Watermark/WatermarkHandler.php');
 (new \App\Watermark\WatermarkHandler())->register();
 
+/** === PLACEHOLDER IMAGE ULTIMATE v3.0 – 100% sức mạnh === */
+require_once get_theme_file_path('app/Placeholders/PlaceholderHandler.php');
+\App\Placeholders\PlaceholderHandler::init();
+
+// === CÁC CẤU HÌNH NÂNG CAO (tùy chọn) ===
+// \App\Placeholders\PlaceholderHandler::useMediaImage(12345);           // ID ảnh từ Media Library (khuyến nghị)
+// \App\Placeholders\PlaceholderHandler::enableRandom(true);             // Bật random placeholder
+// \App\Placeholders\PlaceholderHandler::addPostType('project', 'placeholder-project.jpg');
+
 /** === FORCE CLASSIC EDITOR + DISABLE GUTENBERG === */
 add_filter('use_block_editor_for_post', '__return_false', 9999);
 add_filter('use_block_editor_for_post_type', '__return_false', 9999, 2);

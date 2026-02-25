@@ -41,11 +41,11 @@ if ($debug) {
                         <li class="splide__slide">
                             <!-- Phần HTML render slide của bạn giữ nguyên từ đây -->
                             <div class="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all group">
-                                @if (has_post_thumbnail($post->ID))
-                                    <a href="{{ get_permalink($post) }}">
-                                        {!! get_the_post_thumbnail($post->ID, 'medium_large', ['class' => 'w-full h-64 object-cover group-hover:scale-105 transition-transform']) !!}
-                                    </a>
-                                @endif
+                                <a href="{{ get_permalink($post) }}">
+                                    {!! get_the_post_thumbnail($post->ID, 'medium_large', [
+                                        'class' => 'w-full h-64 object-cover group-hover:scale-105 transition-transform duration-300 placeholder-image'
+                                    ]) !!}
+                                </a>
                                 <div class="p-6">
                                     <h4 class="font-semibold text-xl leading-tight mb-3 line-clamp-2">
                                         <a href="{{ get_permalink($post) }}" class="hover:text-blue-600">{{ get_the_title($post) }}</a>
