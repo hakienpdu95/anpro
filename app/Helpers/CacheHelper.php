@@ -9,8 +9,7 @@ use Illuminate\Filesystem\Filesystem;
 class CacheHelper
 {
     private static ?Repository $cache = null;
-    private static array $memory = [];        // In-memory siêu nhanh
-    private static string $version = 'v1';
+    private static array $memory = [];
     private static bool $debug = false;
 
     public static function init(): void
@@ -30,16 +29,15 @@ class CacheHelper
 
         if (self::$debug) {
             $driver = wp_using_ext_object_cache() ? 'Redis' : 'File';
-            error_log("🚀 [CacheHelper 110%] Initialized - Driver: {$driver}");
+            error_log("🚀 [CacheHelper 11/10] Initialized - Driver: {$driver}");
         }
     }
 
-    public static function remember(string $key, int $seconds, callable $callback)
+    public static function remember(string $key, int $seconds, callable $callback): mixed
     {
-        $fullKey = 'sage_' . self::$version . ':' . $key;
+        $fullKey = 'sage:' . $key;
         $start = microtime(true);
 
-        // In-memory layer
         if (isset(self::$memory[$fullKey])) {
             $time = round((microtime(true) - $start) * 1000, 2);
             if (self::$debug) error_log("⚡ MEMORY HIT → {$key} | {$time}ms");
@@ -50,27 +48,20 @@ class CacheHelper
         self::$memory[$fullKey] = $result;
 
         $time = round((microtime(true) - $start) * 1000, 2);
-        if (self::$debug) error_log("📦 CACHE HIT → {$key} | {$time}ms | TTL {$seconds}s");
+
+        if (self::$debug) {
+            error_log("📦 REDIS HIT → {$key} | {$time}ms | TTL {$seconds}s");
+        }
 
         return $result;
     }
 
     public static function flushOnPostSave(int $post_id, $post = null): void
     {
-        self::$version = 'v' . time();
         self::$memory = [];
-
         if (self::$debug) {
             $type = get_post_type($post_id) ?: 'unknown';
-            error_log("🗑️ FLUSH → Post #{$post_id} ({$type}) → New version: " . self::$version);
+            error_log("🗑️ FLUSH → Post #{$post_id} ({$type})");
         }
-    }
-
-    public static function flushAll(): void
-    {
-        self::$version = 'v' . time();
-        self::$memory = [];
-        self::$cache->flush();
-        if (self::$debug) error_log('🧹 FULL CACHE FLUSHED');
     }
 }

@@ -14,7 +14,7 @@ class ViewCache
         });
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('🚀 [ViewCache 110%] @includeCached directive registered');
+            error_log('🚀 [ViewCache 11/10] @includeCached registered');
         }
     }
 
@@ -24,16 +24,20 @@ class ViewCache
             return view($view, $data)->render();
         }
 
-        $key = self::makeKey($view, $data);
+        $key = self::makeStableKey($view, $data);
 
         return CacheHelper::remember($key, $ttl, function () use ($view, $data) {
             return view($view, $data)->render();
         });
     }
 
-    private static function makeKey(string $view, array $data): string
+    private static function makeStableKey(string $view, array $data): string
     {
-        $context = get_queried_object_id() . '|' . get_query_var('paged', 1);
-        return 'view_' . str_replace(['/', '.'], '_', trim($view, '/')) . '_' . md5(serialize($data) . $context);
+        $isHome = is_home() || is_front_page();
+        $context = $isHome ? 'home' : (get_queried_object_id() . '|' . get_query_var('paged', 1));
+
+        ksort($data); // Sắp xếp để key luôn giống nhau
+
+        return 'view_' . str_replace(['/', '.'], '_', trim($view, '/')) . '_' . md5(json_encode($data) . $context);
     }
 }
