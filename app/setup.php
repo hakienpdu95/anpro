@@ -154,6 +154,12 @@ add_action('widgets_init', function () {
     ] + $config);
 });
 
+// === FAVICON ===
+add_action('wp_head', function () {
+    echo '<link rel="icon" href="' . asset('images/favicon.ico') . '" type="image/x-icon">';
+    echo '<link rel="shortcut icon" href="' . asset('images/favicon.ico') . '" type="image/x-icon">';
+}, 5);
+
 /** === CUSTOM PERMALINKS 10/10 (thêm -postID) === */
 require_once get_theme_file_path('app/Permalinks/PermalinkManager.php');
 \App\Permalinks\PermalinkManager::init();
