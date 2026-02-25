@@ -32,3 +32,12 @@ rm -rf node_modules/.vite
 rm -rf public/build
 npm install
 npm run build
+
+## WP-COnfig File
+define('FORCE_HTML_MINIFY', true);   
+define('WP_REDIS_HOST', '127.0.0.1');
+define('WP_REDIS_PORT', 6379);
+define('WP_REDIS_TIMEOUT', 1);
+define('WP_REDIS_READ_TIMEOUT', 1);
+define('WP_REDIS_DATABASE', 0); // thay đổi nếu bạn có nhiều site
+define('WP_REDIS_PERSISTENT', true);
