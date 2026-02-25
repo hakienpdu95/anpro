@@ -154,11 +154,131 @@ add_action('widgets_init', function () {
     ] + $config);
 });
 
-// === FAVICON ===
+// ====================== TỐI ƯU ASSET + CRITICAL RENDERING PATH 10/10 ======================
+
+// Preload critical resources (giảm LCP rất mạnh)
+// ====================== PRELOAD CRITICAL ASSETS – FIX HASH 100% ======================
+// ====================== PRELOAD CRITICAL ASSETS 10/10 – TỐI ƯU HIỆU SUẤT CAO NHẤT ======================
 add_action('wp_head', function () {
-    echo '<link rel="icon" href="' . asset('images/favicon.ico') . '" type="image/x-icon">';
-    echo '<link rel="shortcut icon" href="' . asset('images/favicon.ico') . '" type="image/x-icon">';
+    if (is_admin() || wp_doing_ajax() || wp_doing_cron()) {
+        return;
+    }
+
+    static $done = false;
+    if ($done) return;
+    $done = true;
+
+    // Cache manifest để tránh đọc file mỗi request (tăng tốc rất mạnh)
+    $cache_key = 'sage_vite_manifest';
+    $manifest  = wp_cache_get($cache_key, 'sage_assets');
+
+    if ($manifest === false) {
+        $manifest_path = get_theme_file_path('public/build/manifest.json');
+        if (!file_exists($manifest_path)) {
+            return;
+        }
+
+        $manifest = json_decode(file_get_contents($manifest_path), true);
+
+        if (is_array($manifest)) {
+            wp_cache_set($cache_key, $manifest, 'sage_assets', 3600); // cache 1 giờ
+        } else {
+            return;
+        }
+    }
+
+    $base = get_theme_file_uri('public/build/');
+
+    // Lấy đúng file hashed (hỗ trợ tất cả key phổ biến của Vite + Sage)
+    $css_file = $manifest['app.css']['file'] ?? $manifest['assets/app.css']['file'] ?? $manifest['resources/css/app.css']['file'] ?? '';
+    $js_file  = $manifest['app.js']['file']  ?? $manifest['assets/app.js']['file']  ?? $manifest['resources/js/app.js']['file']  ?? '';
+
+    // Preload thêm 2 file vendor quan trọng (Alpine + Splide – rất lớn)
+    $vendor_alpine = $manifest['vendor-alpine.js']['file'] ?? '';
+    $vendor_splide = $manifest['vendor-splide.js']['file'] ?? '';
+
+    $css_url = $base . $css_file;
+    $js_url  = $base . $js_file;
+    $ico_url = $base . 'images/favicon.ico';
+
+    // Output preload chỉ 1 lần – cực nhanh
+    $output = '';
+    if ($css_file) {
+        $output .= '<link rel="preload" href="' . esc_url($css_url) . '" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" fetchpriority="high">';
+    }
+    if ($js_file) {
+        $output .= '<link rel="preload" href="' . esc_url($js_url) . '" as="script" fetchpriority="high">';
+    }
+    if ($vendor_alpine) {
+        $output .= '<link rel="preload" href="' . esc_url($base . $vendor_alpine) . '" as="script" fetchpriority="high">';
+    }
+    if ($vendor_splide) {
+        $output .= '<link rel="preload" href="' . esc_url($base . $vendor_splide) . '" as="script" fetchpriority="high">';
+    }
+
+    $output .= '<link rel="icon" href="' . esc_url($ico_url) . '" type="image/x-icon">';
+    $output .= '<link rel="shortcut icon" href="' . esc_url($ico_url) . '" type="image/x-icon">';
+
+    echo $output;
+
+    // Debug chỉ khi cần (không ảnh hưởng production)
+    if (defined('WP_DEBUG') && WP_DEBUG) {
+        error_log('✅ [PRELOAD 10/10] CSS: ' . $css_url);
+        error_log('✅ [PRELOAD 10/10] JS : ' . $js_url);
+    }
 }, 5);
+
+// Defer tất cả JS (trừ jQuery nếu có) + Async Alpine & Splide
+add_filter('script_loader_tag', function ($tag, $handle) {
+    if (is_admin()) return $tag;
+
+    if (strpos($handle, 'alpine') !== false || strpos($handle, 'splide') !== false) {
+        return str_replace(' src', ' defer src', $tag);
+    }
+
+    if (!str_contains($tag, 'jquery')) {
+        return str_replace(' src', ' defer src', $tag);
+    }
+
+    return $tag;
+}, 10, 2);
+
+// Remove bloat WordPress (tương đương Perfmatters miễn phí)
+add_action('init', function () {
+
+    // Tắt emoji, embed, wp-embed, xmlrpc, heartbeat, v.v.
+    remove_action('wp_head', 'print_emoji_detection_script', 7);
+    remove_action('wp_print_styles', 'print_emoji_styles');
+    remove_action('wp_head', 'wp_oembed_add_discovery_links');
+    remove_action('wp_head', 'wp_resource_hints', 2);
+    remove_action('wp_head', 'rest_output_link_wp_head', 10);
+    remove_action('wp_head', 'wlwmanifest_link');
+    remove_action('wp_head', 'rsd_link');
+
+    wp_deregister_script('heartbeat');
+
+    // Tắt query string ?ver= trên static files (dùng closure để tránh lỗi)
+    add_filter('script_loader_src', function ($src) {
+        if (strpos($src, '?ver=') !== false) {
+            $src = remove_query_arg('ver', $src);
+        }
+        return $src;
+    }, 15);
+
+    add_filter('style_loader_src', function ($src) {
+        if (strpos($src, '?ver=') !== false) {
+            $src = remove_query_arg('ver', $src);
+        }
+        return $src;
+    }, 15);
+
+}, 9999);
+
+// Preconnect đến domain quan trọng (tăng tốc DNS + connection)
+add_action('wp_head', function () {
+    echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
+    echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
+}, 1);
 
 /** === CUSTOM PERMALINKS 10/10 (thêm -postID) === */
 require_once get_theme_file_path('app/Permalinks/PermalinkManager.php');
