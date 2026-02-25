@@ -157,58 +157,30 @@ add_action('widgets_init', function () {
 // ====================== TỐI ƯU ASSET + CRITICAL RENDERING PATH 10/10 ======================
 
 // Preload critical resources (giảm LCP rất mạnh)
-// ====================== PRELOAD CRITICAL ASSETS – ULTIMATE 10/10 (TỐI ƯU HẾT CỠ) ======================
+// ====================== PRELOAD CRITICAL ASSETS ======================
 add_action('wp_head', function () {
-    if (is_admin() || wp_doing_ajax() || wp_doing_cron()) {
-        return;
-    }
+    if (is_admin() || wp_doing_ajax() || wp_doing_cron()) return;
 
     static $done = false;
     if ($done) return;
     $done = true;
 
-    // Cache manifest cực mạnh (chỉ đọc file 1 lần/giờ)
-    $manifest = wp_cache_get('sage_vite_manifest', 'sage_assets');
-    if ($manifest === false) {
-        $manifest_path = get_theme_file_path('public/build/manifest.json');
-        if (!file_exists($manifest_path)) return;
-
-        $manifest = json_decode(file_get_contents($manifest_path), true) ?: [];
-        wp_cache_set('sage_vite_manifest', $manifest, 'sage_assets', 3600);
-    }
-
-    $base = get_theme_file_uri('public/build/');
-
-    // Lấy đúng file hashed (hỗ trợ tất cả cách Vite sinh file)
-    $css_file = $manifest['app.css']['file'] ?? $manifest['assets/app.css']['file'] ?? $manifest['resources/css/app.css']['file'] ?? '';
-    $js_file  = $manifest['app.js']['file']  ?? $manifest['assets/app.js']['file']  ?? $manifest['resources/js/app.js']['file']  ?? '';
-
-    // Preload vendor lớn nhất (Alpine + Splide)
-    $vendor_alpine = $manifest['vendor-alpine.js']['file'] ?? $manifest['assets/vendor-alpine.js']['file'] ?? '';
-    $vendor_splide = $manifest['vendor-splide.js']['file'] ?? $manifest['assets/vendor-splide.js']['file'] ?? '';
-
-    $css_url = $base . $css_file;
-    $js_url  = $base . $js_file;
-    $ico_url = $base . 'images/favicon.ico';
-
-    // Output preload tối ưu (1 lần echo duy nhất)
     $preload = '';
 
-    if ($css_file) $preload .= '<link rel="preload" href="' . esc_url($css_url) . '" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" fetchpriority="high">';
-    if ($js_file)  $preload .= '<link rel="preload" href="' . esc_url($js_url)  . '" as="script" fetchpriority="high">';
-    if ($vendor_alpine) $preload .= '<link rel="preload" href="' . esc_url($base . $vendor_alpine) . '" as="script" fetchpriority="high">';
-    if ($vendor_splide) $preload .= '<link rel="preload" href="' . esc_url($base . $vendor_splide) . '" as="script" fetchpriority="high">';
+    $tailwind_url = Vite::asset('resources/css/app.css');
+    $main_url     = Vite::asset('resources/css/main.scss');  
+    $js_url       = Vite::asset('resources/js/app.js');
 
+    $preload .= '<link rel="preload" href="' . esc_url($tailwind_url) . '" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" fetchpriority="high">';
+    $preload .= '<link rel="preload" href="' . esc_url($main_url)     . '" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" fetchpriority="high">';
+    $preload .= '<link rel="preload" href="' . esc_url($js_url)       . '" as="script" fetchpriority="high">';
+
+
+    $ico_url = get_theme_file_uri('public/build/images/favicon.ico');
     $preload .= '<link rel="icon" href="' . esc_url($ico_url) . '" type="image/x-icon">';
     $preload .= '<link rel="shortcut icon" href="' . esc_url($ico_url) . '" type="image/x-icon">';
 
     echo $preload;
-
-    // Debug chỉ khi cần
-    if (defined('WP_DEBUG') && WP_DEBUG) {
-        error_log("✅ [PRELOAD 10/10] CSS: {$css_url}");
-        error_log("✅ [PRELOAD 10/10] JS : {$js_url}");
-    }
 }, 5);
 
 // Preconnect + DNS-Prefetch (tăng tốc kết nối domain ngoài)
