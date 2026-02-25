@@ -17,13 +17,29 @@ class CustomTableManager {
         // thêm sau: 'status', 'categories_check', ...
     ];
 
+    /** 
+     * SENSITIVE META KEYS PER POST TYPE – LINH HOẠT 100% THEO METABOX
+     * Field nào thay đổi thì bump cache version của CPT đó
+     */
+    private static array $sensitiveMetaKeys = [];
+
     private static string $cache_group = 'custom_post_meta_v2';
 
-    public static function register(string $post_type): void {
+    public static function register(string $post_type, array $sensitiveKeys = ['flags']): void
+    {
         $post_type = sanitize_key($post_type);
         if (!in_array($post_type, self::$registered)) {
             self::$registered[] = $post_type;
         }
+
+        // Merge sensitive keys (luôn có flags + multipleSimpleKeys)
+        $default = array_unique(array_merge(['flags'], self::$multipleSimpleKeys));
+        self::$sensitiveMetaKeys[$post_type] = array_unique(
+            array_merge(
+                self::$sensitiveMetaKeys[$post_type] ?? $default,
+                $sensitiveKeys
+            )
+        );
     }
 
     public static function getTableName(string $post_type): string {
@@ -249,12 +265,10 @@ class CustomTableManager {
 
         self::flushPostCache($object_id);
         
-        // === TỰ ĐỘNG INVALIDATE CACHE ===
+        // === TỰ ĐỘNG BUMP THEO SENSITIVE META CỦA TỪNG CPT ===
         $post_type = get_post_type($object_id);
-        if ($post_type && in_array($post_type, self::$registered)) {
-            if (in_array($meta_key, self::$multipleSimpleKeys, true) || $meta_key === 'flags' || empty($meta_key)) {
-                CacheHelper::bumpDataVersion($post_type);
-            }
+        if ($post_type && self::isSensitiveForCache($post_type, $meta_key)) {
+            CacheHelper::bumpDataVersion($post_type);
         }
         return true;
     }
@@ -276,12 +290,10 @@ class CustomTableManager {
         }
 
         self::flushPostCache($object_id);
-        // === TỰ ĐỘNG INVALIDATE CACHE ===
+        // === TỰ ĐỘNG BUMP THEO SENSITIVE META CỦA TỪNG CPT ===
         $post_type = get_post_type($object_id);
-        if ($post_type && in_array($post_type, self::$registered)) {
-            if ($delete_all || empty($meta_key) || in_array($meta_key, self::$multipleSimpleKeys, true)) {
-                CacheHelper::bumpDataVersion($post_type);
-            }
+        if ($post_type && (empty($meta_key) || self::isSensitiveForCache($post_type, $meta_key))) {
+            CacheHelper::bumpDataVersion($post_type);
         }
         return true;
     }
@@ -292,9 +304,9 @@ class CustomTableManager {
             global $wpdb;
             $wpdb->delete($table, ['post_id' => $post_id]);
         }
-        // === TỰ ĐỘNG INVALIDATE CACHE  ===
+        // === TỰ ĐỘNG BUMP THEO SENSITIVE META CỦA TỪNG CPT ===
         $post_type = get_post_type($post_id);
-        if ($post_type && in_array($post_type, self::$registered)) {
+        if ($post_type) {
             CacheHelper::bumpDataVersion($post_type);
         }
         self::flushPostCache($post_id);
@@ -375,14 +387,35 @@ class CustomTableManager {
 
         dbDelta($sql);
         self::$table_exists[$table_name] = true;
-        error_log("✅ [CustomTable 10/10] Đã tạo/tối ưu bảng: {$table_name}");
     }
 
-    // Helper siêu tiện (dùng trong Blade hoặc controller)
     public static function query(array $args = []): WP_Query {
         if (isset($args['post_type']) && in_array($args['post_type'], self::$registered)) {
             $args['suppress_filters'] = false;
         }
         return new WP_Query($args);
+    }    
+
+    public static function addSensitiveMetaKeys(string $post_type, array $metaKeys): void
+    {
+        $post_type = sanitize_key($post_type);
+        if (in_array($post_type, self::$registered)) {
+            self::$sensitiveMetaKeys[$post_type] = array_unique(
+                array_merge(self::$sensitiveMetaKeys[$post_type] ?? [], $metaKeys)
+            );
+        }
+    }
+
+    private static function isSensitiveForCache(string $post_type, string $meta_key): bool
+    {
+        if (empty($post_type) || $meta_key === '') return false;
+
+        $sensitive = self::$sensitiveMetaKeys[$post_type] ?? ['flags'];
+
+        // Wildcard: bump tất cả meta cho CPT này
+        if (in_array('*', $sensitive, true)) return true;
+
+        return in_array($meta_key, $sensitive, true)
+            || in_array($meta_key, self::$multipleSimpleKeys, true);
     }    
 }

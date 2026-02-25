@@ -201,6 +201,13 @@ require_once get_theme_file_path('app/helpers.php');
 // === CUSTOM TABLE EAV 10/10 ===
 require_once get_theme_file_path('app/Database/CustomTableManager.php');
 \App\Database\CustomTableManager::init();
+// === REGISTER CPT + KHAI BÁO FIELD QUAN TRỌNG (CRITICAL) ===
+\App\Database\CustomTableManager::register('event', ['flags', 'status', 'is_breaking']);
+// \App\Database\CustomTableManager::register('project', ['flags', 'budget', 'deadline', 'project_phase', 'client']);
+// \App\Database\CustomTableManager::register('news', ['flags', 'hot', 'trending', 'author_custom']);
+
+// Nếu muốn bump TẤT CẢ meta cho 1 CPT nào đó (ví dụ test):
+// \App\Database\CustomTableManager::register('video', ['*']);
 
 // === ARCHIVE FILTERS – MODULAR ===
 require_once get_theme_file_path('app/Archives/EventArchive.php');
