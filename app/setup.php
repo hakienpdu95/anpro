@@ -218,64 +218,25 @@ add_action('wp_head', function () {
     echo $preload;
 }, 5); 
 
-// Preconnect + DNS-Prefetch (tăng tốc kết nối domain ngoài)
-add_action('wp_head', function () {
-    echo '<link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>';
-    echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
-    echo '<link rel="dns-prefetch" href="https://fonts.googleapis.com">';
-}, 1);
+// === PERFORMANCE OPTIMIZER 12/10 (bloat, heartbeat, query string, XML-RPC...) ===
+require_once get_theme_file_path('app/Optimizations/PerformanceOptimizer.php');
+\App\Optimizations\PerformanceOptimizer::init();
 
-// Defer tất cả JS (trừ jQuery nếu có) + Async Alpine & Splide
-add_filter('script_loader_tag', function ($tag, $handle) {
-    if (is_admin()) return $tag;
+\App\Optimizations\PerformanceOptimizer::setConfig([
+    'heartbeat' => [
+        'admin_interval' => 75,           // 75 giây cho editor (có thể chỉnh 60-120)
+    ],
+]);
 
-    if (strpos($handle, 'alpine') !== false || strpos($handle, 'splide') !== false) {
-        return str_replace(' src', ' defer src', $tag);
-    }
+// === ASSET OPTIMIZER 12/10 (Defer/Async JS - Core Web Vitals) ===
+require_once get_theme_file_path('app/Optimizations/AssetOptimizer.php');
+\App\Optimizations\AssetOptimizer::init();
 
-    if (!str_contains($tag, 'jquery')) {
-        return str_replace(' src', ' defer src', $tag);
-    }
-
-    return $tag;
-}, 10, 2);
-
-// Remove bloat WordPress (tương đương Perfmatters miễn phí)
-add_action('init', function () {
-
-    // Tắt emoji, embed, wp-embed, xmlrpc, heartbeat, v.v.
-    remove_action('wp_head', 'print_emoji_detection_script', 7);
-    remove_action('wp_print_styles', 'print_emoji_styles');
-    remove_action('wp_head', 'wp_oembed_add_discovery_links');
-    remove_action('wp_head', 'wp_resource_hints', 2);
-    remove_action('wp_head', 'rest_output_link_wp_head', 10);
-    remove_action('wp_head', 'wlwmanifest_link');
-    remove_action('wp_head', 'rsd_link');
-
-    wp_deregister_script('heartbeat');
-
-    // Tắt query string ?ver= trên static files (dùng closure để tránh lỗi)
-    add_filter('script_loader_src', function ($src) {
-        if (strpos($src, '?ver=') !== false) {
-            $src = remove_query_arg('ver', $src);
-        }
-        return $src;
-    }, 15);
-
-    add_filter('style_loader_src', function ($src) {
-        if (strpos($src, '?ver=') !== false) {
-            $src = remove_query_arg('ver', $src);
-        }
-        return $src;
-    }, 15);
-
-}, 9999);
-
-// Preconnect đến domain quan trọng (tăng tốc DNS + connection)
-add_action('wp_head', function () {
-    echo '<link rel="preconnect" href="https://fonts.googleapis.com">';
-    echo '<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>';
-}, 1);
+\App\Optimizations\AssetOptimizer::setConfig([
+    'defer' => ['alpine', 'splide', 'swiper', 'gsap', 'videojs', 'chartjs', 'fancybox'],
+    'async' => ['alpine', 'splide', 'lazysizes'],
+    'exclude' => ['jquery', 'wp-', 'heartbeat', 'wp-auth-check'],
+]);
 
 /** === CUSTOM PERMALINKS 10/10 (thêm -postID) === */
 require_once get_theme_file_path('app/Permalinks/PermalinkManager.php');
