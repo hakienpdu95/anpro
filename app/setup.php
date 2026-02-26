@@ -164,6 +164,10 @@ require_once get_theme_file_path('app/Optimizations/PerformanceOptimizer.php');
     ],
 ]);
 
+// === EDITOR OPTIMIZER 12/10 (Force Classic Editor + Disable Gutenberg) ===
+require_once get_theme_file_path('app/Optimizations/EditorOptimizer.php');
+\App\Optimizations\EditorOptimizer::init();
+
 // === PRELOAD OPTIMIZER 12/10 (fix preload warning Vite/Sage) ===
 require_once get_theme_file_path('app/Optimizations/PreloadOptimizer.php');
 \App\Optimizations\PreloadOptimizer::init();
@@ -198,18 +202,6 @@ require_once get_theme_file_path('app/Placeholders/PlaceholderHandler.php');
 // \App\Placeholders\PlaceholderHandler::useMediaImage(12345);           // ID ảnh từ Media Library (khuyến nghị)
 // \App\Placeholders\PlaceholderHandler::enableRandom(true);             // Bật random placeholder
 // \App\Placeholders\PlaceholderHandler::addPostType('project', 'placeholder-project.jpg');
-
-/** === FORCE CLASSIC EDITOR + DISABLE GUTENBERG === */
-add_filter('use_block_editor_for_post', '__return_false', 9999);
-add_filter('use_block_editor_for_post_type', '__return_false', 9999, 2);
-add_action('init', fn() => add_post_type_support('post', 'editor'), 5);
-add_filter('gutenberg_use_widgets_block_editor', '__return_false', 9999);
-add_filter('use_widgets_block_editor', '__return_false', 9999);
-remove_theme_support('block-templates');
-remove_theme_support('block-template-parts');
-add_filter('should_load_block_editor_scripts_and_styles', '__return_false', 9999);
-add_action('wp_enqueue_scripts', fn() => wp_dequeue_style(['wp-block-library', 'wp-block-library-theme', 'global-styles', 'classic-theme-styles', 'wp-edit-blocks', 'wp-block-editor', 'wc-block-style']), 100);
-add_action('admin_enqueue_scripts', fn() => wp_dequeue_style(['wp-block-library', 'wp-block-library-theme', 'global-styles', 'classic-theme-styles', 'wp-edit-blocks', 'wp-block-editor', 'wc-block-style']), 100);
 
 /** ===============================================
  * MODULAR 10/10 – LOAD SAU AUTOLOADER
