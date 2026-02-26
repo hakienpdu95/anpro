@@ -11,24 +11,20 @@ class MergedPostsQuery
     private static bool $initialized = false;
     private static array $homepageConfig = [];
 
-    /** ====================== HOMEPAGE SETUP (Main Query) ====================== */
     public static function initHomepage(array $config = []): void
     {
-        if (self::$initialized) {
-            return;
-        }
+        if (self::$initialized) return;
 
         self::$homepageConfig = wp_parse_args($config, [
             'post_types'     => ['post', 'event'],
-            'posts_per_page' => 1,           // Thay số bài/trang tại đây
+            'posts_per_page' => 1,           // ← Thay số bài mỗi trang ở đây
             'orderby'        => 'date',
             'order'          => 'DESC',
         ]);
 
         add_action('pre_get_posts', [self::class, 'modifyHomepageMainQuery'], 2);
-        add_filter('redirect_canonical', [self::class, 'smartBlockCanonical'], 10, 2);
+        add_filter('redirect_canonical', [self::class, 'blockCanonicalRedirect'], 10, 2);
 
-        // Flush cache thông minh
         add_action('save_post', [self::class, 'flushCache'], 999, 2);
         add_action('delete_post', [self::class, 'flushCache'], 999);
 
@@ -37,15 +33,8 @@ class MergedPostsQuery
 
     public static function modifyHomepageMainQuery(WP_Query $query): void
     {
-        // Early return tối ưu hiệu suất (không chạy thừa)
         if (is_admin() || !$query->is_main_query() || !(is_home() || is_front_page())) {
             return;
-        }
-
-        $paged = max(1, (int) get_query_var('paged', 1));
-
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("[MergedPostsQuery] Homepage main query | paged={$paged}");
         }
 
         $query->set('post_type', self::$homepageConfig['post_types']);
@@ -58,31 +47,17 @@ class MergedPostsQuery
         $query->set('update_post_meta_cache', false);
         $query->set('update_post_term_cache', false);
 
-        // Cho phép tùy chỉnh từ ngoài (extensible 10/10)
-        $query = apply_filters('sage_merged_posts_query', $query, $paged);
+        $query = apply_filters('sage_merged_posts_query', $query, get_query_var('paged', 1));
     }
 
-    /** ====================== BLOCK CANONICAL THÔNG MINH ====================== */
-    public static function smartBlockCanonical($redirect_url, $requested_url)
+    public static function blockCanonicalRedirect($redirect_url, $requested_url)
     {
-        if (!(is_home() || is_front_page())) {
-            return $redirect_url;
-        }
-
-        if (preg_match('#/page/(\d+)/?$#', $requested_url, $matches)) {
-            $page = (int) $matches[1];
-            global $wp_query;
-            if ($page > 1 && $page <= ($wp_query->max_num_pages ?? 1)) {
-                if (WP_DEBUG) {
-                    error_log("[MergedPostsQuery] Blocked canonical for valid page {$page}");
-                }
-                return false;
-            }
+        if ((is_home() || is_front_page()) && strpos($requested_url, '/page/') !== false) {
+            return false;   // Block redirect /page/2/ → /
         }
         return $redirect_url;
     }
 
-    /** ====================== REUSABLE QUERY (cho archive, sidebar, related...) ====================== */
     public static function get(array $config = []): WP_Query
     {
         $default = [
@@ -134,7 +109,7 @@ class MergedPostsQuery
     {
         $version = CacheHelper::getDataVersion('merged_posts') ?? 1;
         $key = [
-            'pt'  => implode(',', (array) $config['post_types']),
+            'pt'  => implode(',', (array)$config['post_types']),
             'ppp' => $config['posts_per_page'],
             'p'   => $config['paged'],
             'o'   => $config['orderby'] . $config['order'],
@@ -144,9 +119,9 @@ class MergedPostsQuery
         return 'mpq_' . md5(serialize($key)) . '_v' . $version;
     }
 
-    /** ====================== FLUSH CACHE THÔNG MINH ====================== */
     public static function flushCache($post_id, $post = null): void
     {
+        $post = $post ?: get_post($post_id);
         if ($post && in_array($post->post_type, self::$homepageConfig['post_types'] ?? ['post', 'event'])) {
             CacheHelper::bumpDataVersion('merged_posts');
         }
