@@ -16,20 +16,15 @@
   <body @php(body_class())>
     @php(wp_body_open())
 
-    <div id="app" class="max-w-[1480px] mx-auto px-5 sm:px-8">
-      <a class="sr-only focus:not-sr-only" href="#main">
-        {{ __('Skip to content', 'sage') }}
-      </a>
-
+    <div id="app" class="container mx-auto">
       @include('sections.header')
-      @include('partials.header')
 
       <main id="main" class="main">
         @yield('content')
       </main>
 
       @hasSection('sidebar')
-        <aside class="sidebar">
+        <aside class="sidebar hidden!">
           @yield('sidebar')
         </aside>
       @endif
