@@ -1,0 +1,291 @@
+@use '../abstracts' as *;
+
+:root {
+  @each $name, $value in $css-vars {
+    --anpro-#{$name}: #{$value};
+  }
+}
+
+* {
+    box-sizing: border-box;
+}
+
+del {
+    text-decoration: line-through;
+}
+
+pre {
+    max-width: 100%;
+    margin: 15px 0;
+    padding: 15px;
+    background-color: #fafafa;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-family: monospace;
+    font-size: 1em;
+    color: #0f0f0f;
+}
+
+code {
+    background-color: #fafafa;
+    padding: 0;
+    font-family: monospace, monospace;
+    font-size: 1em;
+    color: #0f0f0f;
+}
+
+sub,
+sup {
+    position: relative;
+    vertical-align: baseline;
+    font-size: 75%;
+    line-height: 0;
+}
+
+sub {
+    bottom: -0.25em;
+}
+
+sup {
+    top: -0.5em;
+}
+
+table {
+    width: 100%;
+    vertical-align: middle;
+    border: medium none;
+    border-collapse: collapse;
+    border-spacing: 0;
+    font-size: inherit;
+    color: inherit;
+    line-height: inherit;
+}
+
+table tr {
+    border: 1px solid #1e1e1e;
+}
+
+table th {
+    padding: 5px 10px;
+    text-align: left;
+    border-right: 1px solid #1e1e1e;
+}
+
+table td {
+    padding: 5px 10px;
+    text-align: left;
+    border: 0;
+    border-right: 1px solid #1e1e1e;
+}
+
+table td br {
+    display: none;
+}
+
+hr {
+    background-color: #bbb;
+    border: 0;
+    height: 1px;
+    margin-top: 1.5em;
+    margin-bottom: 1.5em;
+}
+
+ol,
+ul {
+    list-style-position: inside;
+    margin-bottom: 1.5em;
+    padding: 0;
+}
+
+dt {
+    font-weight: 700;
+}
+
+dd {
+    margin: 0 1.5em 1.5em;
+}
+
+a img {
+    border: none;
+}
+
+.wp-caption,
+img {
+    height: auto;
+    max-width: 100%;
+}
+
+img {
+    vertical-align: middle;
+    border-style: none;
+}
+
+figure {
+    margin: 0;
+}
+
+embed,
+iframe,
+object {
+    display: block;
+    max-width: 100%;
+}
+
+video {
+    display: block;
+}
+
+embed,
+object {
+    height: auto;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5em;
+}
+
+fieldset {
+    margin-bottom: 1em;
+    padding: 0.35em 0.75em 0.625em;
+}
+
+input[type="submit"] {
+    -webkit-appearance: none;
+}
+
+abbr[title] {
+    border-bottom: none;
+    text-decoration: underline;
+    -webkit-text-decoration: underline dotted;
+    text-decoration: underline dotted;
+}
+
+b,
+strong {
+    font-weight: bolder;
+}
+
+kbd,
+samp {
+    font-family: monospace, monospace;
+    font-size: 1em;
+    background-color: #fafafa;
+}
+
+small {
+    font-size: 80%;
+}
+
+progress {
+    vertical-align: baseline;
+}
+
+summary {
+    display: list-item;
+}
+
+template {
+    display: none;
+}
+
+figcaption {
+    display: block;
+    max-width: 100%;
+    font-size: 17px !important;
+    line-height: 1em !important;
+    color: #0f0f0f;
+    text-align: center;
+    opacity: 1;
+    margin: 0 auto 20px auto;
+}
+
+figcaption a {
+    color: inherit;
+}
+
+::selection {
+    color: #fff;
+    background: var(--anpro-main-color);
+}
+
+::-moz-selection {
+    color: #fff;
+    background: var(--anpro-main-color);
+}
+
+.alignleft {
+    float: left;
+    text-align: left;
+    margin-right: 40px !important;
+    clear: left;
+}
+
+.aligncenter {
+    text-align: center;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.alignright {
+    float: right;
+    text-align: right;
+    margin-left: 40px !important;
+    clear: right;
+}
+
+img.aligncenter,
+img.alignleft,
+img.alignright {
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.clear:after,
+.clear:before,
+.comment-author:after,
+.comment-author:before,
+.comment-content:after,
+.comment-content:before,
+.comment-meta:after,
+.comment-meta:before,
+.nav-links:after,
+.nav-links:before,
+.pagination:after,
+.pagination:before,
+.widget-area:after,
+.widget-area:before,
+.widget:after,
+.widget:before {
+    content: "";
+    display: table;
+    table-layout: fixed;
+}
+
+.clear:after,
+.comment-author:after,
+.comment-content:after,
+.comment-meta:after,
+.nav-links:after,
+.pagination:after,
+.widget-area:after,
+.widget:after {
+    clear: both;
+}
+
+body {
+  font-family: $font-family-base;
+  font-size: 17px;
+  line-height: 1.364em;
+  font-weight: 500;
+  letter-spacing: -0.015em;
+  color: #0f0f0f;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  background: var(--anpro-main-color);
+
+  @include mq-max(xl) {
+    font-size: 15px;
+  }
+}
