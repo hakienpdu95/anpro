@@ -1,8 +1,4 @@
 <?php
-/**
- * Global Helpers – Chuẩn Sage 10/10
- * Load SIÊU SỚM → cmeta(), sage_get_files() có mặt ngay từ đầu
- */
 
 if (!function_exists('cmeta')) {
     function cmeta(string $key = '', $post_id = null, array $args = []) {
@@ -66,5 +62,26 @@ if (!function_exists('cterm_meta')) {
         if (!$term_id) return null;
 
         return rwmb_meta($key, ['object_type' => 'term'] + $args, $term_id);
+    }
+}
+
+if (!function_exists('get_toc')) {
+    function get_toc() {
+        if (!is_singular()) return [];
+
+        $content = get_post_field('post_content', get_the_ID());
+        $headings = [];
+
+        preg_match_all('/<h([2-4])([^>]*)id="([^"]+)"([^>]*)>(.*?)<\/h\1>/is', $content, $matches, PREG_SET_ORDER);
+
+        foreach ($matches as $m) {
+            $headings[] = [
+                'level' => (int)$m[1],
+                'id'    => $m[3],
+                'text'  => wp_strip_all_tags($m[5])
+            ];
+        }
+
+        return $headings;
     }
 }

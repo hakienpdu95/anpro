@@ -1,0 +1,92 @@
+@use '../abstracts' as *;
+
+.toc {
+  position: sticky;
+  top: 120px;
+  background: var(--qode-body-bg);
+  border: 1px solid var(--qode-border-color);
+  border-radius: 12px;
+  overflow: hidden;
+  max-height: calc(100vh - 160px);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 1rem 1.25rem;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+  }
+
+  &__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--qode-text-primary);
+  }
+
+  &__toggle-icon {
+    transition: transform 0.3s ease;
+    font-size: 1.25rem;
+    line-height: 1;
+
+    &--open {
+      transform: rotate(180deg);
+    }
+  }
+
+  &__body {
+    overflow-y: auto;
+    max-height: 60vh;
+  }
+
+  &__list {
+    list-style: none;
+    padding: 0.5rem 0;
+    margin: 0;
+  }
+
+  &__item {
+    padding: 0 1.25rem;
+  }
+
+  &__item--level-3 { padding-left: 2.25rem; }
+  &__item--level-4 { padding-left: 3.25rem; }
+
+  &__link {
+    display: block;
+    padding: 0.45rem 0;
+    color: var(--qode-text-primary);
+    text-decoration: none;
+    transition: all 0.2s ease;
+    font-size: 0.95rem;
+    line-height: 1.4;
+
+    &:hover {
+      color: var(--qode-main-color);
+      padding-left: 0.5rem;
+    }
+
+    &--active {
+      color: var(--qode-main-color);
+      font-weight: 600;
+      padding-left: 0.75rem;
+      position: relative;
+
+      &::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 4px;
+        height: 1.1em;
+        background: var(--qode-main-color);
+        border-radius: 2px;
+      }
+    }
+  }
+}

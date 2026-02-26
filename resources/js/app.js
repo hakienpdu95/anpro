@@ -10,3 +10,5 @@ Alpine.start();
 
 // === COMPONENTS AUTO-INIT ===
 import './components/init.js';
+// import './components/toc.js';
+// Alpine.data('toc', toc);
