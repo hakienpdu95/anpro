@@ -318,6 +318,66 @@ add_action('template_redirect', function () {
     }
 }, 1);
 
+/**
+ * ===============================================
+ * CARBON FIELDS - BOOT & REGISTER (FIX FATAL ERROR)
+ * ===============================================
+ */
+use Carbon_Fields\Carbon_Fields;
+use Carbon_Fields\Container;
+use Carbon_Fields\Field;
+
+// Boot Carbon Fields
+add_action('after_setup_theme', function () {
+    Carbon_Fields::boot();
+}, 20);
+
+// Đăng ký tất cả fields
+add_action('carbon_fields_register_fields', function () {
+
+    // ==================== TAXONOMY FIELDS ====================
+    Container::make('term_meta', 'Thông tin bổ sung cho danh mục')
+        ->where('term_taxonomy', '=', 'event-categories')   // ← Đổi slug taxonomy nếu khác
+
+        ->add_fields([
+            Field::make('text', 'custom_title', 'Tiêu đề hiển thị')
+                ->set_help_text('Tiêu đề sẽ ghi đè tên mặc định của danh mục'),
+
+            Field::make('image', 'image1', 'Ảnh 1')
+                ->set_value_type('url'),
+
+            Field::make('text', 'image1_link', 'Link cho Ảnh 1')
+                ->set_attribute('type', 'url')
+                ->set_help_text('https://...'),
+
+            Field::make('image', 'image2', 'Ảnh 2')
+                ->set_value_type('url'),
+
+            Field::make('text', 'image2_link', 'Link cho Ảnh 2')
+                ->set_attribute('type', 'url')
+                ->set_help_text('https://...'),
+        ]);
+
+    // ==================== THEME OPTIONS ====================
+    Container::make('theme_options', 'Cài đặt Theme')
+        ->set_page_parent(null)                    // null = menu chính
+        ->set_page_menu_title('Theme Options')
+        ->set_page_menu_position(58)
+
+        ->add_tab('Chung', [
+            Field::make('image', 'logo', 'Logo chính'),
+            Field::make('image', 'favicon', 'Favicon'),
+        ])
+
+        ->add_tab('Header', [
+            Field::make('text', 'slogan', 'Slogan / Tagline'),
+        ])
+
+        ->add_tab('Footer', [
+            Field::make('textarea', 'copyright', 'Copyright'),
+        ]);
+});
+
 // === MERGED POSTS QUERY MODULE 10/10 TỐI ƯU ===
 require_once get_theme_file_path('app/Queries/MergedPostsQuery.php');
 // Homepage (merge post + event)
