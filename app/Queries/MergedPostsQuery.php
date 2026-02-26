@@ -5,25 +5,24 @@ use WP_Query;
 use App\Helpers\DataCache;
 use App\Helpers\CacheHelper;
 use App\Database\CustomTableManager;
+use App\Helpers\QueryHelper;
 
 class MergedPostsQuery
 {
     private static bool $initialized = false;
     private static array $configs = [];
 
-    /** ====================== HOMEPAGE (merge post + event) ====================== */
+    /** ====================== HOMEPAGE + ARCHIVE ====================== */
     public static function initHomepage(array $config = []): void
     {
         self::init('homepage', $config + ['post_types' => ['post', 'event']]);
     }
 
-    /** ====================== ARCHIVE CPT (event, project, ...) ====================== */
     public static function initArchive(string $post_type, array $config = []): void
     {
         self::init("archive_{$post_type}", $config + ['post_types' => [$post_type]]);
     }
 
-    /** ====================== CORE INIT (chung cho homepage + archive) ====================== */
     private static function init(string $context, array $config): void
     {
         if (isset(self::$configs[$context])) return;
@@ -35,10 +34,9 @@ class MergedPostsQuery
             'order'          => 'DESC',
         ]);
 
-        add_action('pre_get_posts', fn($query) => self::modifyMainQuery($query, $context), 2);
-        add_filter('redirect_canonical', fn($r, $u) => self::blockCanonicalRedirect($r, $u, $context), 10, 2);
+        add_action('pre_get_posts', fn($q) => self::modifyMainQuery($q, $context), 2);
+        add_filter('redirect_canonical', fn($r, $u) => self::blockCanonical($r, $u, $context), 10, 2);
 
-        // Flush cache thông minh
         add_action('save_post', [self::class, 'flushCache'], 999, 2);
         add_action('delete_post', [self::class, 'flushCache'], 999);
 
@@ -48,17 +46,11 @@ class MergedPostsQuery
     private static function modifyMainQuery(WP_Query $query, string $context): void
     {
         $cfg = self::$configs[$context] ?? null;
-        if (!$cfg) return;
+        if (!$cfg || is_admin() || !$query->is_main_query()) return;
 
-        $is_homepage = ($context === 'homepage');
-        $post_type   = $cfg['post_types'][0] ?? 'post';
-
-        if (is_admin() || !$query->is_main_query()) return;
-
-        if ($is_homepage && !(is_home() || is_front_page())) return;
-        if (!$is_homepage && !is_post_type_archive($post_type)) return;
-
-        $paged = max(1, (int) get_query_var('paged', 1));
+        $is_home = ($context === 'homepage');
+        if ($is_home && !(is_home() || is_front_page())) return;
+        if (!$is_home && !is_post_type_archive($cfg['post_types'][0])) return;
 
         $query->set('post_type', $cfg['post_types']);
         $query->set('posts_per_page', $cfg['posts_per_page']);
@@ -69,49 +61,84 @@ class MergedPostsQuery
         $query->set('suppress_filters', false);
         $query->set('update_post_meta_cache', false);
         $query->set('update_post_term_cache', false);
-
-        $query = apply_filters("sage_merged_posts_query_{$context}", $query, $paged);
     }
 
-    private static function blockCanonicalRedirect($redirect_url, $requested_url, string $context)
+    private static function blockCanonical($redirect_url, $requested_url, string $context)
     {
-        $is_homepage = ($context === 'homepage');
-        $post_type   = self::$configs[$context]['post_types'][0] ?? '';
+        if (strpos($requested_url, '/page/') === false) return $redirect_url;
 
-        if ($is_homepage && (is_home() || is_front_page()) && strpos($requested_url, '/page/') !== false) {
-            return false;
-        }
-
-        if (!$is_homepage && is_post_type_archive($post_type) && strpos($requested_url, '/page/') !== false) {
-            return false;
-        }
+        if ($context === 'homepage' && (is_home() || is_front_page())) return false;
+        if (is_post_type_archive(self::$configs[$context]['post_types'][0] ?? '')) return false;
 
         return $redirect_url;
     }
 
-    /** ====================== REUSABLE QUERY (dùng ở bất kỳ đâu) ====================== */
+    /** ====================== QUERY CHÍNH ====================== */
     public static function get(array $config = []): WP_Query
     {
         $default = [
             'post_types'     => ['post', 'event'],
-            'posts_per_page' => 12,
+            'posts_per_page' => 6,
             'paged'          => 1,
             'orderby'        => 'date',
             'order'          => 'DESC',
             'tax_query'      => [],
             'meta_query'     => [],
+            'no_found_rows'  => true,
             'use_cache'      => true,
-            'cache_duration' => 20 * MINUTE_IN_SECONDS,
+            'cache_duration' => 10 * MINUTE_IN_SECONDS,
         ];
 
         $config = wp_parse_args($config, $default);
-        $cacheKey = self::generateCacheKey($config);
 
-        if (!$config['use_cache']) {
-            return self::executeRawQuery($config);
+        // Nếu có flags → luôn dùng QueryHelper::getPostsWithAnyFlags (tối ưu cho custom table)
+        if (self::hasFlagsMetaQuery($config['meta_query'])) {
+            return self::getWithFlags($config);
         }
 
-        return DataCache::remember($cacheKey, $config['cache_duration'], fn() => self::executeRawQuery($config));
+        $query = $config['use_cache']
+            ? DataCache::remember(self::generateCacheKey($config), $config['cache_duration'], fn() => self::executeRawQuery($config))
+            : self::executeRawQuery($config);
+
+        if ($query->have_posts()) {
+            CustomTableManager::preloadThePostsMeta($query->posts, $query);
+        }
+        return $query;
+    }
+
+    private static function getWithFlags(array $config): WP_Query
+    {
+        $post_types = (array)$config['post_types'];
+        $flags      = [];
+        foreach ((array)$config['meta_query'] as $q) {
+            if (isset($q['key']) && $q['key'] === 'flags') {
+                $flags = (array)($q['value'] ?? []);
+                break;
+            }
+        }
+
+        $allPosts = [];
+        foreach ($post_types as $pt) {
+            if (!in_array($pt, CustomTableManager::$registered ?? [])) continue;
+            $result = QueryHelper::getPostsWithAnyFlags($pt, $flags, $config['posts_per_page'] * 2);
+            $allPosts = array_merge($allPosts, $result);
+        }
+
+        // Sort theo ngày mới nhất
+        usort($allPosts, fn($a, $b) => strtotime($b->post_date ?? 0) - strtotime($a->post_date ?? 0));
+        $allPosts = array_slice($allPosts, 0, $config['posts_per_page']);
+
+        $query = new WP_Query();
+        $query->posts         = $allPosts;
+        $query->post_count    = count($allPosts);
+        $query->found_posts   = count($allPosts);
+        $query->max_num_pages = 1;
+
+        if ($allPosts) {
+            CustomTableManager::preloadThePostsMeta($allPosts, $query);
+        }
+
+        return $query;
     }
 
     private static function executeRawQuery(array $config): WP_Query
@@ -123,7 +150,7 @@ class MergedPostsQuery
             'orderby'                => $config['orderby'],
             'order'                  => $config['order'],
             'post_status'            => 'publish',
-            'no_found_rows'          => false,
+            'no_found_rows'          => $config['no_found_rows'],
             'suppress_filters'       => false,
             'update_post_meta_cache' => false,
             'update_post_term_cache' => false,
@@ -149,6 +176,16 @@ class MergedPostsQuery
         return 'mpq_' . md5(serialize($key)) . '_v' . $version;
     }
 
+    private static function hasFlagsMetaQuery($meta_query): bool
+    {
+        if (empty($meta_query)) return false;
+        foreach ((array)$meta_query as $q) {
+            if (isset($q['key']) && $q['key'] === 'flags') return true;
+            if (is_array($q) && self::hasFlagsMetaQuery($q)) return true;
+        }
+        return false;
+    }
+
     public static function flushCache($post_id, $post = null): void
     {
         $post = $post ?: get_post($post_id);
@@ -160,5 +197,35 @@ class MergedPostsQuery
                 return;
             }
         }
+    }
+
+    /** ====================== HELPER ====================== */
+    public static function latest(int $limit = 6, array $post_types = ['post', 'event']): WP_Query
+    {
+        return self::get(['post_types' => $post_types, 'posts_per_page' => $limit, 'orderby' => 'date', 'order' => 'DESC']);
+    }
+
+    public static function withAnyFlags(array $flags, int $limit = 6, array $post_types = ['post', 'event']): WP_Query
+    {
+        return self::get([
+            'post_types' => $post_types,
+            'posts_per_page' => $limit,
+            'meta_query' => [['key' => 'flags', 'value' => $flags, 'compare' => 'IN']]
+        ]);
+    }
+
+    public static function breaking(int $limit = 6, array $post_types = ['post', 'event']): WP_Query
+    {
+        return self::withAnyFlags(['breaking'], $limit, $post_types);
+    }
+
+    public static function hot(int $limit = 5, array $post_types = ['post', 'event']): WP_Query
+    {
+        return self::withAnyFlags(['hot'], $limit, $post_types);
+    }
+
+    public static function featured(int $limit = 5, array $post_types = ['post', 'event']): WP_Query
+    {
+        return self::withAnyFlags(['featured'], $limit, $post_types);
     }
 }

@@ -24,7 +24,7 @@
       </main>
 
       @hasSection('sidebar')
-        <aside class="sidebar hidden!">
+        <aside class="sidebar">
           @yield('sidebar')
         </aside>
       @endif
