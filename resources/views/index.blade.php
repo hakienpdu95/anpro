@@ -6,7 +6,7 @@
         <div class="xl:col-span-9 col-span-12">
             @php
                 $paged = get_query_var('paged') ?: 1;
-                $query = \App\Helpers\QueryHelper::getLatestMergedPosts(15, $paged);
+                $query = \App\Helpers\QueryHelper::getLatestMergedPosts(1, $paged);
             @endphp
 
             @include('partials.content-listing', ['query' => $query])

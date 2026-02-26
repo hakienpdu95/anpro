@@ -3,7 +3,7 @@ namespace App\Helpers;
 
 class PaginationHelper {
     /**
-     * Number pagination đẹp cho custom WP_Query (đã fix type hint)
+     * Number pagination - ĐÃ FIX 404 CHO HOMEPAGE + CUSTOM QUERY
      */
     public static function numberPagination(?\WP_Query $query = null): string
     {
@@ -16,9 +16,20 @@ class PaginationHelper {
             return '';
         }
 
+        $big = 999999999;
+
+        // === FIX ĐẶC BIỆT CHO HOMEPAGE ===
+        if (is_front_page() || is_home()) {
+            $base   = trailingslashit(home_url()) . 'page/%#%/';
+            $format = '';
+        } else {
+            $base   = str_replace($big, '%#%', esc_url(get_pagenum_link($big)));
+            $format = '';
+        }
+
         return paginate_links([
-            'base'      => str_replace(999999999, '%#%', esc_url(get_pagenum_link(999999999))),
-            'format'    => '/page/%#%',
+            'base'      => $base,
+            'format'    => $format,
             'current'   => max(1, $query->get('paged')),
             'total'     => $query->max_num_pages,
             'mid_size'  => 3,

@@ -168,7 +168,7 @@ class QueryHelper
      * LẤY DANH SÁCH MỚI NHẤT MERGED (post + event) – TỐI ƯU CHO 500+ BÀI
      * Dùng DataCache + versioning (tự invalidate khi publish bài mới)
      */
-    public static function getLatestMergedPosts(int $posts_per_page = 1, int $paged = 1): \WP_Query
+    public static function getLatestMergedPosts(int $posts_per_page = 15, int $paged = 1): \WP_Query
     {
         $paged = max(1, (int) $paged);
 
