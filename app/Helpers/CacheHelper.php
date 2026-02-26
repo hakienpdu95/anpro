@@ -89,6 +89,11 @@ class CacheHelper
             self::bumpDataVersion($post_type);
         }
 
+        // === BUMP CHO DANH SÁCH MERGED (post + event) ===
+        if (in_array($post_type, ['post', 'event'])) {
+            self::bumpDataVersion('content_list');
+        }
+        
         if (self::$debug) {
             error_log("🗑️ [CacheHelper] FLUSH → Post #{$post_id} ({$post_type})");
         }
