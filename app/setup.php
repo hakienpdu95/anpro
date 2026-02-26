@@ -316,3 +316,39 @@ add_action('template_redirect', function () {
         ob_start([\App\Helpers\HtmlMinifier::class, 'minify']);
     }
 }, 1);
+
+/**
+ * ===============================================
+ * HOMEPAGE MERGE 'post' + 'event' - PAGINATION 404 FIX TRIỆT ĐỂ
+ * Cách WordPress chuẩn nhất (không override object, không bị redirect_canonical)
+ * ===============================================
+ */
+add_action('pre_get_posts', function ($query) {
+    if (is_admin() || !$query->is_main_query() || !(is_home() || is_front_page())) {
+        return;
+    }
+
+    $paged = max(1, (int) get_query_var('paged', 1));
+
+    error_log("[HOMEPAGE_FINAL] Main query modified | paged = {$paged}");
+
+    $query->set('post_type', ['post', 'event']);
+    $query->set('posts_per_page', 1);           // ← Thay số này nếu bạn muốn 5-10 bài/trang
+    $query->set('orderby', 'date');
+    $query->set('order', 'DESC');
+    $query->set('post_status', 'publish');
+    $query->set('no_found_rows', false);        // BẮT BUỘC cho pagination chính xác
+    $query->set('suppress_filters', false);     // Để CustomTableManager + meta flags chạy
+    $query->set('update_post_meta_cache', false);
+    $query->set('update_post_term_cache', false);
+
+}, 1); // priority 1 - chạy cực sớm
+
+// Block redirect_canonical triệt để (nguyên nhân chính gây lỗi)
+add_filter('redirect_canonical', function ($redirect_url) {
+    if (is_home() || is_front_page()) {
+        error_log("[HOMEPAGE_FINAL] Blocked redirect_canonical");
+        return false; // Không redirect /page/2/ về /
+    }
+    return $redirect_url;
+}, 10);

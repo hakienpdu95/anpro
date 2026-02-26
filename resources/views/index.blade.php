@@ -5,19 +5,17 @@
     <div class="grid grid-cols-12 gap-6">
         <div class="xl:col-span-9 col-span-12">
             @php
-                $paged = get_query_var('paged') ?: 1;
-                $query = \App\Helpers\QueryHelper::getLatestMergedPosts(1, $paged);
+                global $wp_query;
+                $query = $wp_query;   // Dùng main query (đã merge & pagination chuẩn)
             @endphp
 
             @include('partials.content-listing', ['query' => $query])
-
             {!! \App\Helpers\PaginationHelper::numberPagination($query) !!}
-
         </div>
 
         <div class="xl:col-span-3 col-span-12">
             @section('sidebar')
-            @include('sections.sidebar')
+                @include('sections.sidebar')
             @endsection
         </div>
     </div>
