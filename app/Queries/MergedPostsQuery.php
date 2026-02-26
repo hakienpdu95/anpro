@@ -9,55 +9,87 @@ use App\Database\CustomTableManager;
 class MergedPostsQuery
 {
     private static bool $initialized = false;
-    private static array $homepageConfig = [];
+    private static array $configs = [];
 
+    /** ====================== HOMEPAGE (merge post + event) ====================== */
     public static function initHomepage(array $config = []): void
     {
-        if (self::$initialized) return;
+        self::init('homepage', $config + ['post_types' => ['post', 'event']]);
+    }
 
-        self::$homepageConfig = wp_parse_args($config, [
-            'post_types'     => ['post', 'event'],
-            'posts_per_page' => 1,           // ← Thay số bài mỗi trang ở đây
+    /** ====================== ARCHIVE CPT (event, project, ...) ====================== */
+    public static function initArchive(string $post_type, array $config = []): void
+    {
+        self::init("archive_{$post_type}", $config + ['post_types' => [$post_type]]);
+    }
+
+    /** ====================== CORE INIT (chung cho homepage + archive) ====================== */
+    private static function init(string $context, array $config): void
+    {
+        if (isset(self::$configs[$context])) return;
+
+        self::$configs[$context] = wp_parse_args($config, [
+            'post_types'     => ['post'],
+            'posts_per_page' => ($context === 'homepage') ? 1 : 12,
             'orderby'        => 'date',
             'order'          => 'DESC',
         ]);
 
-        add_action('pre_get_posts', [self::class, 'modifyHomepageMainQuery'], 2);
-        add_filter('redirect_canonical', [self::class, 'blockCanonicalRedirect'], 10, 2);
+        add_action('pre_get_posts', fn($query) => self::modifyMainQuery($query, $context), 2);
+        add_filter('redirect_canonical', fn($r, $u) => self::blockCanonicalRedirect($r, $u, $context), 10, 2);
 
+        // Flush cache thông minh
         add_action('save_post', [self::class, 'flushCache'], 999, 2);
         add_action('delete_post', [self::class, 'flushCache'], 999);
 
         self::$initialized = true;
     }
 
-    public static function modifyHomepageMainQuery(WP_Query $query): void
+    private static function modifyMainQuery(WP_Query $query, string $context): void
     {
-        if (is_admin() || !$query->is_main_query() || !(is_home() || is_front_page())) {
-            return;
-        }
+        $cfg = self::$configs[$context] ?? null;
+        if (!$cfg) return;
 
-        $query->set('post_type', self::$homepageConfig['post_types']);
-        $query->set('posts_per_page', self::$homepageConfig['posts_per_page']);
-        $query->set('orderby', self::$homepageConfig['orderby']);
-        $query->set('order', self::$homepageConfig['order']);
+        $is_homepage = ($context === 'homepage');
+        $post_type   = $cfg['post_types'][0] ?? 'post';
+
+        if (is_admin() || !$query->is_main_query()) return;
+
+        if ($is_homepage && !(is_home() || is_front_page())) return;
+        if (!$is_homepage && !is_post_type_archive($post_type)) return;
+
+        $paged = max(1, (int) get_query_var('paged', 1));
+
+        $query->set('post_type', $cfg['post_types']);
+        $query->set('posts_per_page', $cfg['posts_per_page']);
+        $query->set('orderby', $cfg['orderby']);
+        $query->set('order', $cfg['order']);
         $query->set('post_status', 'publish');
         $query->set('no_found_rows', false);
         $query->set('suppress_filters', false);
         $query->set('update_post_meta_cache', false);
         $query->set('update_post_term_cache', false);
 
-        $query = apply_filters('sage_merged_posts_query', $query, get_query_var('paged', 1));
+        $query = apply_filters("sage_merged_posts_query_{$context}", $query, $paged);
     }
 
-    public static function blockCanonicalRedirect($redirect_url, $requested_url)
+    private static function blockCanonicalRedirect($redirect_url, $requested_url, string $context)
     {
-        if ((is_home() || is_front_page()) && strpos($requested_url, '/page/') !== false) {
-            return false;   // Block redirect /page/2/ → /
+        $is_homepage = ($context === 'homepage');
+        $post_type   = self::$configs[$context]['post_types'][0] ?? '';
+
+        if ($is_homepage && (is_home() || is_front_page()) && strpos($requested_url, '/page/') !== false) {
+            return false;
         }
+
+        if (!$is_homepage && is_post_type_archive($post_type) && strpos($requested_url, '/page/') !== false) {
+            return false;
+        }
+
         return $redirect_url;
     }
 
+    /** ====================== REUSABLE QUERY (dùng ở bất kỳ đâu) ====================== */
     public static function get(array $config = []): WP_Query
     {
         $default = [
@@ -79,9 +111,7 @@ class MergedPostsQuery
             return self::executeRawQuery($config);
         }
 
-        return DataCache::remember($cacheKey, $config['cache_duration'], function () use ($config) {
-            return self::executeRawQuery($config);
-        });
+        return DataCache::remember($cacheKey, $config['cache_duration'], fn() => self::executeRawQuery($config));
     }
 
     private static function executeRawQuery(array $config): WP_Query
@@ -122,8 +152,13 @@ class MergedPostsQuery
     public static function flushCache($post_id, $post = null): void
     {
         $post = $post ?: get_post($post_id);
-        if ($post && in_array($post->post_type, self::$homepageConfig['post_types'] ?? ['post', 'event'])) {
-            CacheHelper::bumpDataVersion('merged_posts');
+        if (!$post) return;
+
+        foreach (self::$configs as $cfg) {
+            if (in_array($post->post_type, (array)$cfg['post_types'])) {
+                CacheHelper::bumpDataVersion('merged_posts');
+                return;
+            }
         }
     }
 }

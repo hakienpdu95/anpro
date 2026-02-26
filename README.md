@@ -55,3 +55,13 @@ define('WP_REDIS_PERSISTENT', true);
 
 @include('partials.content-listing', ['query' => $query])
 {!! \App\Helpers\PaginationHelper::numberPagination($query) !!}
+
+## Hoặc dùng reusable get() ở bất kỳ đâu (sidebar, related, custom page…):
+@php
+    $query = \App\Queries\MergedPostsQuery::get([
+        'post_types'     => ['event'],
+        'posts_per_page' => 12,
+        'paged'          => get_query_var('paged', 1),
+        // 'tax_query' => [...],
+    ]);
+@endphp

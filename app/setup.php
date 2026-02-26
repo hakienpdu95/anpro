@@ -319,9 +319,12 @@ add_action('template_redirect', function () {
 
 // === MERGED POSTS QUERY MODULE 10/10 TỐI ƯU ===
 require_once get_theme_file_path('app/Queries/MergedPostsQuery.php');
-\App\Queries\MergedPostsQuery::initHomepage([
-    'posts_per_page' => 1,   // Thay số bài/trang bạn muốn
-]);
+// Homepage (merge post + event)
+\App\Queries\MergedPostsQuery::initHomepage(['posts_per_page' => 1]);
+// Archive CPT (thêm bao nhiêu CPT cũng được)
+\App\Queries\MergedPostsQuery::initArchive('event',   ['posts_per_page' => 2]);
+// \App\Queries\MergedPostsQuery::initArchive('project', ['posts_per_page' => 9]);
+// \App\Queries\MergedPostsQuery::initArchive('news',    ['posts_per_page' => 15]);
 
 /**
  * ===============================================
