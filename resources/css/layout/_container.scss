@@ -3,7 +3,7 @@
 @layer components {
   .container {
     @include mq('2xl') {
-      max-width: 1060px !important;
+      max-width: 1160px !important;
       width: 100%;
     }
   }
