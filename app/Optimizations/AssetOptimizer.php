@@ -4,54 +4,18 @@ namespace App\Optimizations;
 
 use Illuminate\Support\Arr;
 
-/**
- * ASSET OPTIMIZER 12/10
- *
- * - Defer / Async tất cả JS frontend (tối ưu Core Web Vitals - FID, TBT)
- * - Configurable 100% theo handle/pattern
- * - Tự động tránh conflict với jQuery, WP core, admin
- * - Hỗ trợ cả defer + async (Splide/Alpine mặc định async)
- * - Early return + cache-friendly
- * - Debug rõ ràng khi WP_DEBUG
- */
 class AssetOptimizer
 {
     private static array $config = [
-        // Handle hoặc pattern chứa → áp dụng defer
-        'defer' => [
-            'alpine',
-            'splide',
-            'swiper',
-            'gsap',
-            'lazysizes',
-            'fancybox',
-        ],
-
-        // Handle hoặc pattern chứa → áp dụng async (ưu tiên cho lightweight libs)
-        'async' => [
-            'alpine',
-            'splide',
-        ],
-
-        // Không bao giờ defer/async (critical hoặc gây lỗi)
-        'exclude' => [
-            'jquery',
-            'jquery-core',
-            'jquery-migrate',
-            'wp-polyfill',
-            'wp-emoji',
-            'heartbeat',           // đã xử lý riêng
-            'wp-auth-check',
-        ],
-
-        'enabled' => true,         // Tắt nhanh nếu cần debug
+        'defer' => ['alpine', 'splide', 'swiper', 'gsap', 'lazysizes', 'fancybox'],
+        'async' => ['alpine', 'splide'],
+        'exclude' => ['jquery', 'jquery-core', 'jquery-migrate', 'wp-polyfill', 'wp-emoji', 'heartbeat', 'wp-auth-check'],
+        'enabled' => true,
     ];
 
     public static function init(): void
     {
-        if (!self::config('enabled')) {
-            return;
-        }
+        if (!self::config('enabled')) return;
 
         add_filter('script_loader_tag', [self::class, 'optimizeScriptTag'], 9999, 3);
 
@@ -72,27 +36,23 @@ class AssetOptimizer
 
     public static function optimizeScriptTag(string $tag, string $handle, string $src): string
     {
-        // === EARLY RETURN TỐI ƯU ===
         if (is_admin() || empty($src) || strpos($tag, ' defer') !== false || strpos($tag, ' async') !== false) {
             return $tag;
         }
 
-        // Không áp dụng cho script inline hoặc admin
-        if (wp_doing_ajax() || strpos($tag, 'type="text/javascript"') === false) {
-            return $tag;
+        if (wp_doing_ajax()) return $tag;
+
+        if (self::shouldExclude($handle)) return $tag;
+
+        // HỖ TRỢ VITE ES MODULE
+        if (strpos($tag, 'type="module"') !== false) {
+            return str_replace('<script ', '<script defer ', $tag); // defer cho module là chuẩn nhất
         }
 
-        // Check exclude
-        if (self::shouldExclude($handle)) {
-            return $tag;
-        }
-
-        // Async ưu tiên (nhẹ + non-blocking)
         if (self::shouldAsync($handle)) {
             return str_replace('<script ', '<script async ', $tag);
         }
 
-        // Defer (chạy sau DOM parsed)
         if (self::shouldDefer($handle)) {
             return str_replace('<script ', '<script defer ', $tag);
         }
