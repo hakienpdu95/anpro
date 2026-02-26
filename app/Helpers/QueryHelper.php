@@ -163,35 +163,4 @@ class QueryHelper
             'suppress_filters' => false,
         ]);
     }
-
-    /**
-     * LẤY DANH SÁCH MỚI NHẤT MERGED (post + event) – TỐI ƯU CHO 500+ BÀI
-     * Dùng DataCache + versioning (tự invalidate khi publish bài mới)
-     */
-    public static function getLatestMergedPosts(int $posts_per_page = 15, int $paged = 1): \WP_Query
-    {
-        $paged = max(1, (int) $paged);
-
-        // Tự động lấy version merged (invalidate khi có bài post hoặc event mới)
-        $version = \App\Helpers\CacheHelper::getDataVersion('content_list') ?? 1;
-
-        $cacheKey = "merged_latest_{$posts_per_page}_p{$paged}_v{$version}";
-
-        return \App\Helpers\DataCache::remember($cacheKey, 20 * MINUTE_IN_SECONDS, function () use ($posts_per_page, $paged) {
-            $args = [
-                'post_type'              => ['post', 'event'],
-                'post_status'            => 'publish',
-                'posts_per_page'         => $posts_per_page,
-                'paged'                  => $paged,
-                'orderby'                => 'date',
-                'order'                  => 'DESC',
-                'no_found_rows'          => false,        // BẮT BUỘC để pagination chính xác
-                'update_post_meta_cache' => false,
-                'update_post_term_cache' => false,
-                'suppress_filters'       => false,        // Để CustomTableManager chạy meta_query
-            ];
-
-            return \App\Database\CustomTableManager::query($args);
-        });
-    }
 }

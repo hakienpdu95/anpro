@@ -6,7 +6,7 @@
         <div class="xl:col-span-9 col-span-12">
             @php
                 global $wp_query;
-                $query = $wp_query;   // Dùng main query (đã merge & pagination chuẩn)
+                $query = $wp_query;
             @endphp
 
             @include('partials.content-listing', ['query' => $query])

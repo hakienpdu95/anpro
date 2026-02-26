@@ -317,9 +317,15 @@ add_action('template_redirect', function () {
     }
 }, 1);
 
+// === MERGED POSTS QUERY MODULE 10/10 TỐI ƯU ===
+require_once get_theme_file_path('app/Queries/MergedPostsQuery.php');
+\App\Queries\MergedPostsQuery::initHomepage([
+    'posts_per_page' => 1,   // Thay số bài/trang bạn muốn
+]);
+
 /**
  * ===============================================
- * HOMEPAGE MERGE 'post' + 'event' - PAGINATION 404 FIX TRIỆT ĐỂ
+ * HOMEPAGE MERGE 'post' + 'event' - PAGINATION 404 FIX
  * Cách WordPress chuẩn nhất (không override object, không bị redirect_canonical)
  * ===============================================
  */

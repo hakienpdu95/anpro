@@ -41,3 +41,17 @@ define('WP_REDIS_TIMEOUT', 1);
 define('WP_REDIS_READ_TIMEOUT', 1);
 define('WP_REDIS_DATABASE', 0); // thay đổi nếu bạn có nhiều site
 define('WP_REDIS_PERSISTENT', true);
+
+## Cách dùng cho trang khác (archive, custom page…)
+@php
+    $paged = get_query_var('paged') ?: 1;
+    $query = \App\Queries\MergedPostsQuery::get([
+        'posts_per_page' => 12,
+        'paged'          => $paged,
+        // 'tax_query' => [...],
+        // 'use_cache' => false, // test
+    ]);
+@endphp
+
+@include('partials.content-listing', ['query' => $query])
+{!! \App\Helpers\PaginationHelper::numberPagination($query) !!}
