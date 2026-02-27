@@ -20,16 +20,24 @@
       @include('sections.header')
 
       <main id="main" class="main">
-        @yield('content')
-      </main>
+        <div class="container">
+          <div class="grid grid-cols-12 gap-6">
+              <div class="xl:col-span-9 col-span-12">
+                  @yield('content')
+              </div>
 
-      @hasSection('sidebar')
-        <aside class="sidebar">
-          @yield('sidebar')
-        </aside>
-      @endif
+              <div class="xl:col-span-3 col-span-12">
+                  @hasSection('sidebar')
+                    <aside class="sidebar">
+                      @yield('sidebar')
+                    </aside>
+                  @endif
+              </div>
+          </div>
+      </div>
+    </main>
 
-      @include('sections.footer')
+    @include('sections.footer')
     </div>
 
     @php(do_action('get_footer'))

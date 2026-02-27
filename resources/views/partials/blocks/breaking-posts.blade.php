@@ -8,7 +8,6 @@
 
 <section class="mb-12">
     <h2 class="text-2xl font-bold mb-6 flex items-center gap-3">
-        <span class="text-red-600 text-3xl">🚨</span>
         {{ $title }}
     </h2>
 
