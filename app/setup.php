@@ -224,7 +224,14 @@ require_once get_theme_file_path('app/helpers.php');
 require_once get_theme_file_path('app/Database/CustomTableManager.php');
 \App\Database\CustomTableManager::init();
 // === REGISTER CPT + KHAI BÁO FIELD QUAN TRỌNG (CRITICAL) ===
-// \App\Database\CustomTableManager::register('post', ['flags', 'status', 'is_breaking']);
+// Trong app/setup.php (sau register_nav_menus hoặc trong init)
+\App\Database\CustomTableManager::register('post', [
+    'subtitle', 'lead', 'reading_time', 'article_type',
+    'flags', 'priority', 'is_pinned', 'pinned_until', 'is_sponsored',
+    'custom_author', 'source', 'source_url',
+    'series', 'related_posts',
+    '*'
+]);
 \App\Database\CustomTableManager::register('event', ['flags', 'status', 'is_breaking']);
 // \App\Database\CustomTableManager::register('project', ['flags', 'budget', 'deadline', 'project_phase', 'client']);
 // \App\Database\CustomTableManager::register('news', ['flags', 'hot', 'trending', 'author_custom']);
