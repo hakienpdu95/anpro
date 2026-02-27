@@ -65,6 +65,16 @@ if (!function_exists('cterm_meta')) {
     }
 }
 
+/**
+ * Lấy Theme Option với cache (siêu nhanh)
+ */
+if (!function_exists('theme_option')) {
+    function theme_option(string $key, $default = null)
+    {
+        return \App\CMB2\ThemeOptions::get($key, $default);
+    }
+}
+
 if (!function_exists('tmeta')) {
     function tmeta(string $key, int $term_id = 0)
     {

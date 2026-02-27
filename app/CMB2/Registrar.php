@@ -35,8 +35,10 @@ class Registrar
             return;
         }
 
+        // \App\CMB2\ThemeOptions::register();
+        
         // Đăng ký các module fields
         \App\CMB2\Taxonomy\EventCategoryFields::register();
-        \App\CMB2\ThemeOptions::register();
+        
     }
 }

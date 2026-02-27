@@ -82,3 +82,13 @@ define('WP_REDIS_PERSISTENT', true);
         <img src="{{ esc_url($img1) }}" alt="{{ get_term_meta($term_id, 'banner_1_title', true) }}">
     </a>
 @endif
+
+
+## Cách dùng trong Blade gọi theme option
+<img src="{{ theme_option('logo') }}" alt="Logo">
+
+@if (theme_option('header_sticky'))
+    <header class="sticky">...</header>
+@endif
+
+<p>{{ theme_option('footer_copyright') }}</p>
