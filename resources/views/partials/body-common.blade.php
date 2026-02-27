@@ -2,6 +2,12 @@
 <div data-overlay-for="" class="modal-overlay hidden w-full h-screen fixed top-0 left-0 bg-[#161C247A] z-90"></div>
 <!-- Overlay End -->
 
+<!-- Scroll To Top Button Start -->
+<button class="scroll-to-top btn btn-primary size-10 rounded-[50px] z-50 inline-flex items-center justify-center fixed md:right-8 md:bottom-8 right-[15px] bottom-[85px] transition-all duration-400 ease-in-out hide">
+	Tiến lên
+</button>
+<!-- Scroll To Top Button End -->
+
 <div class="fixed top-0 left-0 w-[350px] bg-white h-full z-91 px-4 py-6 flex flex-col justify-between gap-y-6 overflow-y-auto shadow-dark-z-24 transition-all duration-250 ease-[cubic-bezier(0.645,0.045,0.355,1)] data-[state=open]:translate-x-0 data-[state=open]:opacity-100 data-[state=open]:visible data-[state=close]:-translate-x-[200px] data-[state=close]:opacity-0 data-[state=close]:invisible" id="sidebar" data-state="close">
 	<div>
 		<div class="relative pb-6">

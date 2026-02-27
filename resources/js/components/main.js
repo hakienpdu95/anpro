@@ -6,7 +6,7 @@
     const $body = $("body");
     const $modalOverlay = $(".modal-overlay");
     const $tabPanes = $(".tab-pane");
-    
+
     /*------ Product Filter Buttons ------*/
     const productFilterButtons = $(".home-one-product-filter button");
     if (productFilterButtons.length) {
@@ -65,4 +65,22 @@
             $(this).removeAttr("data-overlay-for");
         });
     }
+
+    /*------ Scroll To Top Button ----*/
+    const $scrollToTop = $(".scroll-to-top");
+    $win.on("scroll.sellzy", function() {
+        if ($win.scrollTop() > 300) {
+            $scrollToTop.removeClass("hide").addClass("active");
+        } else {
+            $scrollToTop.removeClass("active").addClass("hide");
+        }
+    });
+
+    $scrollToTop.on("click.sellzy", function() {
+        window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
+        return false;
+    });
 })(jQuery);
