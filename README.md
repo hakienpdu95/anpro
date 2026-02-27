@@ -65,3 +65,20 @@ define('WP_REDIS_PERSISTENT', true);
         // 'tax_query' => [...],
     ]);
 @endphp
+
+
+## Cách dùng trong Blade để gọi các field trong term
+@php
+    $term_id = get_queried_object_id();
+@endphp
+
+<h1>{{ get_term_meta($term_id, 'general_title', true) ?: single_term_title('', false) }}</h1>
+
+<p>{!! wpautop(get_term_meta($term_id, 'general_description', true)) !!}</p>
+
+<!-- Banner 1 -->
+@if ($img1 = get_term_meta($term_id, 'banner_1_image', true))
+    <a href="{{ get_term_meta($term_id, 'banner_1_link', true) }}">
+        <img src="{{ esc_url($img1) }}" alt="{{ get_term_meta($term_id, 'banner_1_title', true) }}">
+    </a>
+@endif

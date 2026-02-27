@@ -1,0 +1,49 @@
+/* ===============================================
+   ADMIN GLOBAL STYLES + CMB2 FULL WIDTH
+   =============================================== */
+
+/* CMB2 - Làm full width tất cả field */
+.cmb2-wrap .cmb-row {
+    width: 100% !important;
+    max-width: 100% !important;
+}
+
+/* WYSIWYG Editor full width */
+.cmb2-wrap .wp-editor-wrap {
+    width: 100% !important;
+}
+
+/* Group fields full width */
+.cmb2-wrap .cmb-repeatable-group {
+    width: 100% !important;
+}
+
+.cmb2-wrap input, .cmb2-wrap textarea {
+    max-width: 100%;
+    width: 100%;
+}
+
+.cmb2-wrap input.cmb2-upload-file {
+    width: 100%;
+}
+
+.cmb2-wrap input.cmb2-text-medium {
+    width: 100%;
+}
+
+.cmb2-wrap input:not([type=hidden])+.button-secondary, .cmb2-wrap input:not([type=hidden])+input, .cmb2-wrap input:not([type=hidden])+select {
+    margin-left: 20px;
+    margin-top: 10px;
+}
+
+.cmb2-wrap h2.cmb-group-name {
+    margin: 5px 0px;
+}
+
+.cmb2-wrap .cmb-th+.cmb-td {
+    width: calc(100% - 260px);
+}
+
+#addtag .cmb-th+.cmb-td {
+    width: 100%;
+}

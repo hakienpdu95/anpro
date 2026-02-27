@@ -318,6 +318,20 @@ add_action('template_redirect', function () {
     }
 }, 1);
 
+add_action('admin_enqueue_scripts', function () {
+    // Chỉ load khi ở admin
+    wp_enqueue_style(
+        'anpro-admin-styles',
+        get_theme_file_uri('resources/css/admin/admin.css'),
+        ['cmb2-styles'],
+        '1.0.0'
+    );
+}, 99);
+
+// === CMB2 MODULE ===
+require_once get_theme_file_path('app/CMB2/Registrar.php');
+\App\CMB2\Registrar::init();
+
 // === MERGED POSTS QUERY MODULE 10/10 TỐI ƯU ===
 require_once get_theme_file_path('app/Queries/MergedPostsQuery.php');
 // Homepage (merge post + event)

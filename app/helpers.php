@@ -65,6 +65,17 @@ if (!function_exists('cterm_meta')) {
     }
 }
 
+if (!function_exists('tmeta')) {
+    function tmeta(string $key, int $term_id = 0)
+    {
+        if ($term_id === 0) {
+            $term = get_queried_object();
+            $term_id = $term->term_id ?? 0;
+        }
+        return get_term_meta($term_id, $key, true);
+    }
+}
+
 if (!function_exists('get_toc')) {
     function get_toc() {
         if (!is_singular()) return [];

@@ -40,6 +40,7 @@
   },
   "require": {
     "php": ">=8.2",
+    "cmb2/cmb2": "^2.11",
     "illuminate/cache": "^12.53",
     "roots/acorn": "^5.0",
     "voku/html-min": "^4.5",
