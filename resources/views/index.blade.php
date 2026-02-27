@@ -1,6 +1,8 @@
 @extends('layouts.app')
 
 @section('content')
+    @include('partials.blocks.tabs-highlight')
+    
     @php
         global $wp_query;
         $query = $wp_query;

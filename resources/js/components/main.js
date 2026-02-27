@@ -5,6 +5,34 @@
     const $doc = $(document);
     const $body = $("body");
     const $modalOverlay = $(".modal-overlay");
+    const $tabPanes = $(".tab-pane");
+    
+    /*------ Product Filter Buttons ------*/
+    const productFilterButtons = $(".home-one-product-filter button");
+    if (productFilterButtons.length) {
+        $(".home-one-product-filter button:nth-child(1)")
+            .addClass("btn-primary")
+            .removeClass("btn-default outline shadow-none")
+            .siblings()
+            .removeClass("btn-primary")
+            .addClass("btn-default outline  shadow-none");
+        $tabPanes.hide();
+
+        $(".tab-pane:nth-child(1)").addClass("active").show();
+        $(".home-one-product-filter button").on("click.sellzy", function() {
+            $(this)
+                .removeClass("btn-default outline shadow-none")
+                .addClass("btn-primary")
+                .siblings()
+                .removeClass("btn-primary")
+                .addClass("btn-default outline  shadow-none");
+            $tabPanes.removeClass("active fade").hide();
+            let activeTab = $(this).attr("data-tab");
+            $(`#${activeTab}`).addClass("active fade").fadeIn();
+            return false;
+        });
+    }
+
      /*------ Sidebar ----*/
      const sidebarMenu = $("#sidebar-menu-btn");
      const sidebar = $("#sidebar");
