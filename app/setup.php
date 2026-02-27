@@ -77,12 +77,13 @@ add_action('after_setup_theme', function () {
      */
     
     register_nav_menus([
-        'primary_navigation'   => __('Primary Navigation', 'sage'),      // Menu chính – Header (đã có)
-        'topbar_navigation'    => __('Top Bar Navigation', 'sage'),      // Menu thanh trên cùng (hotline, ngôn ngữ, account...)
-        'secondary_navigation' => __('Secondary Navigation', 'sage'),    // Menu phụ (danh mục, mega menu, sidebar...)
-        'footer_navigation'    => __('Footer Navigation', 'sage'),       // Menu chân trang chính
-        'mobile_navigation'    => __('Mobile Navigation', 'sage'),       // Menu riêng cho mobile (off-canvas/hamburger)
-        // 'social_navigation'    => __('Social Navigation', 'sage'),    // Bỏ comment nếu cần menu icon MXH
+        'primary_navigation'   => __('Primary Navigation', 'sage'),      
+        'footer_column_1'      => __('Footer Column 1', 'sage'),
+        'footer_column_2'      => __('Footer Column 2', 'sage'),
+        'footer_column_3'      => __('Footer Column 3', 'sage'),
+        'footer_column_4'      => __('Footer Column 4', 'sage'),     
+        'mobile_navigation'    => __('Mobile Navigation', 'sage'),       
+        'social_navigation'    => __('Social Navigation', 'sage'), 
     ]);
     /**
      * Disable the default block patterns.

@@ -92,3 +92,6 @@ define('WP_REDIS_PERSISTENT', true);
 @endif
 
 <p>{{ theme_option('footer_copyright') }}</p>
+
+## Gọi soccial 
+{!! sage_social_icons('social_navigation', 'flex items-center gap-6 text-3xl') !!}
