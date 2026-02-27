@@ -106,3 +106,16 @@ if (!function_exists('get_toc')) {
         return $headings;
     }
 }
+
+if (!function_exists('sage_menu')) {
+    function sage_menu(string $location, array $args = []): string
+    {
+        $defaults = [
+            'theme_location' => $location,
+            'container'      => false,
+            'echo'           => false,
+            'fallback_cb'    => false,
+        ];
+        return wp_nav_menu(array_merge($defaults, $args));
+    }
+}

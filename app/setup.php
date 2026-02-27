@@ -75,10 +75,15 @@ add_action('after_setup_theme', function () {
      *
      * @link https://developer.wordpress.org/reference/functions/register_nav_menus/
      */
+    
     register_nav_menus([
-        'primary_navigation' => __('Primary Navigation', 'sage'),
+        'primary_navigation'   => __('Primary Navigation', 'sage'),      // Menu chính – Header (đã có)
+        'topbar_navigation'    => __('Top Bar Navigation', 'sage'),      // Menu thanh trên cùng (hotline, ngôn ngữ, account...)
+        'secondary_navigation' => __('Secondary Navigation', 'sage'),    // Menu phụ (danh mục, mega menu, sidebar...)
+        'footer_navigation'    => __('Footer Navigation', 'sage'),       // Menu chân trang chính
+        'mobile_navigation'    => __('Mobile Navigation', 'sage'),       // Menu riêng cho mobile (off-canvas/hamburger)
+        // 'social_navigation'    => __('Social Navigation', 'sage'),    // Bỏ comment nếu cần menu icon MXH
     ]);
-
     /**
      * Disable the default block patterns.
      *
