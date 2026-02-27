@@ -12,6 +12,7 @@ export default defineConfig({
       input: [
         'resources/css/app.css',      // Tailwind core
         'resources/css/main.scss',    // Custom SCSS của bạn → main.{hash}.css
+        'resources/js/jquery.js',
         'resources/js/app.js',
         'resources/css/editor.css',
         'resources/js/editor.js',

@@ -1,7 +1,4 @@
-import.meta.glob([
-  '../images/**',
-  '../fonts/**',
-]);
+import.meta.glob(['../images/**', '../fonts/**']);
 
 // === ALPINE.JS ===
 import Alpine from 'alpinejs';
@@ -10,5 +7,4 @@ Alpine.start();
 
 // === COMPONENTS AUTO-INIT ===
 import './components/init.js';
-// import './components/toc.js';
-// Alpine.data('toc', toc);
+import './components/main.js';
