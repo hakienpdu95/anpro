@@ -66,6 +66,57 @@
         });
     }
 
+    /*------ Mobile Menu ----*/
+    const mobileMenu = $(".mobile-menu");
+    if (mobileMenu.length) {
+        mobileMenu
+            .find("ul li")
+            .parents(".mobile-menu ul li")
+            .addClass("has-sub-item")
+            .prepend('<span class="submenu-button"></span>'),
+            mobileMenu.find(".submenu-button").on("click.sellzy", function() {
+                $(this).toggleClass("submenu-opened");
+                $(this).siblings("ul").hasClass("open") ?
+                    $(this).siblings("ul").removeClass("open").slideUp("fast") :
+                    $(this).siblings("ul").addClass("open").slideDown("fast");
+            });
+    }
+
+    /*------ Main Menu ----*/
+    const mainMenu = $(".main-menu");
+    if (mainMenu.length) {
+        mainMenu.find("ul li").parents(".main-menu ul li").addClass("has-sub-item");
+        mainMenu
+            .find("ul li.has-sub-item > a")
+            .append(
+                '<i class="hgi hgi-stroke hgi-arrow-down-01 text-xl text-light-primary-text"></i>'
+            );
+    }
+
+    /*------ Is Anything Open ------*/
+    function isAnythingOpen() {
+        const isAnythingOpen = $modalOverlay.attr("data-overlay-for");
+        if (isAnythingOpen) {
+            $(isAnythingOpen).attr("data-state", "close");
+        }
+    }
+
+    /*------ Show Sidebar ------*/
+    function showSidebar(sidebarFor) {
+        $(sidebarFor).attr("data-state", "open");
+        $body.addClass("overflow-hidden scrollbar-offset");
+        $modalOverlay.fadeIn();
+        $modalOverlay.attr("data-overlay-for", sidebarFor);
+    }
+
+    /*------ Close Sidebar ------*/
+    function closeSidebar(sidebarFor) {
+        $(sidebarFor).attr("data-state", "close");
+        $body.removeClass("overflow-hidden scrollbar-offset");
+        $modalOverlay.fadeOut();
+        $modalOverlay.removeAttr("data-overlay-for");
+    }
+
     /*------ Scroll To Top Button ----*/
     const $scrollToTop = $(".scroll-to-top");
     $win.on("scroll.sellzy", function() {
