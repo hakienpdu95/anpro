@@ -16,7 +16,8 @@
 
   <body @php(body_class())>
     @php(wp_body_open())
-
+    @include('partials.body-common')
+    
     <div id="app" class="container mx-auto bg-white">
       @include('sections.header')
 
