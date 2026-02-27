@@ -2,7 +2,7 @@
 
 :root {
   @each $name, $value in $css-vars {
-    --anpro-#{$name}: #{$value};
+    --#{$name}: #{$value};
   }
 }
 
@@ -93,7 +93,7 @@ hr {
 ol,
 ul {
     list-style-position: inside;
-    margin-bottom: 1.5em;
+    margin: 0;
     padding: 0;
 }
 
@@ -206,12 +206,12 @@ figcaption a {
 
 ::selection {
     color: #fff;
-    background: var(--anpro-main-color);
+    background: var(--main-color);
 }
 
 ::-moz-selection {
     color: #fff;
-    background: var(--anpro-main-color);
+    background: var(--main-color);
 }
 
 .alignleft {
@@ -283,7 +283,7 @@ body {
   color: #0f0f0f;
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
-  background: var(--anpro-main-color);
+  background: var(--main-color);
 
   @include mq-max(xl) {
     font-size: 15px;

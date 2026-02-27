@@ -1,0 +1,79 @@
+@use '../abstracts' as *;
+
+.main-menu {
+	ul {
+		background: #6697a1;
+		display: none;
+	    align-items: center;
+	    justify-content: flex-start;
+
+		@include mq(xl) {
+		    display: flex;
+		}
+
+		> li {
+			> a {
+				display: inline-flex;
+			    align-items: center;
+			    justify-content: center;
+		        column-gap: calc(var(--spacing) * 2);
+			    padding-inline: calc(var(--spacing) * 4);
+			    padding-block: calc(var(--spacing) * 6);
+			    font-size: var(--text-base);
+			    line-height: var(--tw-leading, var(--text-base--line-height));
+			    line-height: calc(var(--spacing) * 6);
+			    font-weight: var(--font-weight-semibold);
+			    color: var(--color-light-primary-text);
+			}
+		}
+
+    	li {
+
+    		&.current-menu-item {
+    			a {
+    				color: var(--main-color);
+    			}
+    		}
+
+    		&.menu-item-has-children {
+			    position: relative;
+
+			    &:hover {
+			    	> ul {
+		    		    visibility: visible;
+					    --tw-translate-y: calc(var(--spacing) * 0);
+					    translate: var(--tw-translate-x) var(--tw-translate-y);
+					    opacity: 100%;
+			    	}
+			    }
+			}
+
+			> ul {
+				visibility: hidden;
+			    position: absolute;
+			    top: 100%;
+			    left: calc(0.25rem * 0);
+			    z-index: 50;
+			    width: 250px;
+		        --tw-translate-y: calc(var(--spacing) * 4);
+			    translate: var(--tw-translate-x) var(--tw-translate-y);
+			    transform: var(--tw-rotate-x, ) var(--tw-rotate-y, ) var(--tw-rotate-z, ) var(--tw-skew-x, ) var(--tw-skew-y, );
+			    border-radius: var(--radius-lg);
+			    background-color: var(--color-white);
+			    padding-block: calc(var(--spacing) * 3);
+			    opacity: 0%;
+			    --tw-shadow: 0px 24px 48px 0px var(--tw-shadow-color, rgba(145, 158, 171, 0.12));
+			    box-shadow: var(--tw-inset-shadow), var(--tw-inset-ring-shadow), var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow);
+			    transition-property: all;
+			    transition-timing-function: var(--tw-ease, var(--default-transition-timing-function));
+			    transition-duration: var(--tw-duration, var(--default-transition-duration));
+			    --tw-duration: 300ms;
+			    transition-duration: 300ms;
+			}
+
+    		a {
+
+    		}
+    	}
+	}
+}

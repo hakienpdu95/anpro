@@ -1,11 +1,10 @@
 <header>
-	<a class="hidden!" href="{{ home_url('/') }}">{!! $siteName !!}</a>
 	<div class="py-4 border border-gray-300 xl:border-0 hidden xl:block header-top">
 		<div class="container">
 			<div class="xl:flex items-center hidden">
 				<div>
-				    <a href="/">
-				        <img src="./assets/images/logo.png" alt="Logo">
+				    <a href="{{ home_url('/') }}">
+				        <img src="{{ asset('images/logo.png') }}" alt="Logo">
 				    </a>
 				</div>
 			</div>
