@@ -115,3 +115,8 @@ define('WP_REDIS_PERSISTENT', true);
         </div>
     </div>
 {!! sage_post_link_close() !!}
+
+## REVISION OPTIMIZER
+define('WP_POST_REVISIONS', 3);        // Giữ tối đa 3 revision gần nhất (rất đủ cho site tin tức)
+define('AUTOSAVE_INTERVAL', 180);      // Tăng thời gian autosave lên 3 phút (giảm tạo revision)
+// define('WP_POST_REVISIONS', false); // Tắt hoàn toàn revision (nếu bạn không cần khôi phục)
