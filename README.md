@@ -120,3 +120,11 @@ define('WP_REDIS_PERSISTENT', true);
 define('WP_POST_REVISIONS', 3);        // Giữ tối đa 3 revision gần nhất (rất đủ cho site tin tức)
 define('AUTOSAVE_INTERVAL', 180);      // Tăng thời gian autosave lên 3 phút (giảm tạo revision)
 // define('WP_POST_REVISIONS', false); // Tắt hoàn toàn revision (nếu bạn không cần khôi phục)
+
+## Link_type gợi ý (dùng trong GTM để phân biệt)
+
+Trang chủ / archive / category / tag → 'archive'
+Related posts → 'related'
+Bài nổi bật / featured → 'featured'
+Tìm kiếm → 'search'
+Menu / widget → 'menu'

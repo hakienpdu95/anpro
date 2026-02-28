@@ -1,9 +1,9 @@
 <article @php(post_class())>
-    {!! sage_post_link_open(get_post(), '', 'archive') !!}   {{-- link_type = 'archive' --}}
-        
+    {!! sage_post_link_open(get_post(), '', 'listing') !!}
+
         <header>
             <h2 class="entry-title">
-                {!! get_the_title() !!}  
+                {!! get_the_title() !!}
             </h2>
             @include('partials.entry-meta')
         </header>
