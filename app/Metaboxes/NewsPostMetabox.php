@@ -118,10 +118,25 @@ class NewsPostMetabox extends BaseMetabox
                 'id'   => 'source_url',
                 'type' => 'url',
             ],
+
+            // ====================== CHUYỂN HƯỚNG ======================
             [
-                'name' => 'Chuyển hướng',
+                'type' => 'heading',
+                'name' => 'Chuyển hướng (Redirect)',
+            ],
+            [
+                'name' => 'Bật chuyển hướng',
                 'id'   => 'is_redirect',
                 'type' => 'checkbox',
+                'desc' => 'Nếu bật, bài viết sẽ dẫn ra link ngoài (mở tab mới)',
+            ],
+            [
+                'name'    => 'URL chuyển hướng',
+                'id'      => 'redirect_url',
+                'type'    => 'url',
+                'visible' => ['is_redirect', '=', 1],   // Ẩn/hiện thông minh
+                'desc'    => 'Ví dụ: https://affiliate.com/san-pham',
+                'placeholder' => 'https://',
             ],
         ];
     }

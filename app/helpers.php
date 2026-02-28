@@ -204,4 +204,26 @@ if (!function_exists('sage_social_icons')) {
         $output .= '</ul>';
         return $output;
     }
+
+/**
+ * Trả về toàn bộ thẻ <a> mở (hỗ trợ redirect)
+ * Dùng trong Blade: {!! sage_post_link_open_tag() !!}
+ */
+if (!function_exists('sage_post_link_open_tag')) {
+    function sage_post_link_open_tag(int $post_id = 0): string
+    {
+        $post_id = $post_id ?: get_the_ID();
+
+        $is_redirect  = (bool) rwmb_meta('is_redirect', [], $post_id);
+        $redirect_url = rwmb_meta('redirect_url', [], $post_id);
+
+        if ($is_redirect && !empty($redirect_url) && filter_var($redirect_url, FILTER_VALIDATE_URL)) {
+            $url = esc_url($redirect_url);
+            return '<a href="' . $url . '" target="_blank" rel="noopener noreferrer">';
+        }
+
+        $url = get_permalink($post_id);
+        return '<a href="' . esc_url($url) . '">';
+    }
+}
 }

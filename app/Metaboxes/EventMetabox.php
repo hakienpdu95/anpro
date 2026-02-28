@@ -69,7 +69,7 @@ class EventMetabox extends BaseMetabox
             // 3. ĐỊA ĐIỂM & BẢN ĐỒ
             [
                 'type' => 'heading',
-                'name' => 'Địa điểm & Bản đồ',
+                'name' => 'Địa điểm',
             ],
             [
                 'name' => 'Tên địa điểm',
@@ -140,6 +140,26 @@ class EventMetabox extends BaseMetabox
                 'id'   => 'ticket_price',
                 'type' => 'text',
                 'placeholder' => 'Miễn phí hoặc 500.000 VNĐ',
+            ],
+
+            // ====================== CHUYỂN HƯỚNG ======================
+            [
+                'type' => 'heading',
+                'name' => 'Chuyển hướng (Redirect)',
+            ],
+            [
+                'name' => 'Bật chuyển hướng',
+                'id'   => 'is_redirect',
+                'type' => 'checkbox',
+                'desc' => 'Nếu bật, bài viết sẽ dẫn ra link ngoài (mở tab mới)',
+            ],
+            [
+                'name'    => 'URL chuyển hướng',
+                'id'      => 'redirect_url',
+                'type'    => 'url',
+                'visible' => ['is_redirect', '=', 1],   // Ẩn/hiện thông minh
+                'desc'    => 'Ví dụ: https://affiliate.com/san-pham',
+                'placeholder' => 'https://',
             ],
         ];
     }
