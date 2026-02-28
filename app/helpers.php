@@ -347,7 +347,7 @@ if (!function_exists('sage_social_icons')) {
     if (!function_exists('sage_post_link_open')) {
         function sage_post_link_open($post = 0, string $extra_classes = '', string $link_type = 'default'): string {
             $link = sage_post_link($post, $link_type);
-            $classes = 'block w-full h-full group' . ($extra_classes ? ' ' . trim($extra_classes) : '');
+            $classes = 'group' . ($extra_classes ? ' ' . trim($extra_classes) : '');
 
             return '<a href="' . $link['url'] . '"' .
                    ($link['target'] ? ' target="' . $link['target'] . '"' : '') .

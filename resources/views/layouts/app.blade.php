@@ -23,7 +23,7 @@
 
       <main id="main" class="main">
         <div class="container">
-          <div class="grid grid-cols-12 gap-6">
+          <div class="grid grid-cols-12 gap-6 px-3 pt-8">
               <div class="xl:col-span-9 col-span-12">
                   @yield('content')
               </div>

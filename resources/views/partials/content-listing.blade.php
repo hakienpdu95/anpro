@@ -3,7 +3,7 @@
         {!! __('Không tìm thấy bài viết nào.', 'sage') !!}
     </x-alert>
 @else
-    <div class="grid grid-cols-1 gap-y-6 pb-12">
+    <div class="grid grid-cols-1 gap-y-3 pb-6">
         @while ($query->have_posts())
             @php
                 $query->the_post();
