@@ -205,25 +205,97 @@ if (!function_exists('sage_social_icons')) {
         return $output;
     }
 
-/**
- * Trả về toàn bộ thẻ <a> mở (hỗ trợ redirect)
- * Dùng trong Blade: {!! sage_post_link_open_tag() !!}
- */
-if (!function_exists('sage_post_link_open_tag')) {
-    function sage_post_link_open_tag(int $post_id = 0): string
-    {
-        $post_id = $post_id ?: get_the_ID();
+    /**
+     * ===============================================
+     * SAGE REDIRECT LINK SYSTEM – 10/10
+     * Static cache + tái sử dụng toàn site + hiệu suất cực cao
+     * ===============================================
+     */
 
-        $is_redirect  = (bool) rwmb_meta('is_redirect', [], $post_id);
-        $redirect_url = rwmb_meta('redirect_url', [], $post_id);
+    /**
+     * Lấy thông tin link (array)
+     */
+    if (!function_exists('sage_post_link')) {
+        function sage_post_link($post = 0): array
+        {
+            static $cache = [];
 
-        if ($is_redirect && !empty($redirect_url) && filter_var($redirect_url, FILTER_VALIDATE_URL)) {
-            $url = esc_url($redirect_url);
-            return '<a href="' . $url . '" target="_blank" rel="noopener noreferrer">';
+            $post_id = is_object($post) ? $post->ID : ($post ?: get_the_ID());
+            if ($post_id <= 0) {
+                return ['url' => '#', 'target' => '', 'rel' => '', 'is_external' => false];
+            }
+
+            if (isset($cache[$post_id])) {
+                return $cache[$post_id];
+            }
+
+            $is_redirect  = (bool) rwmb_meta('is_redirect', [], $post_id);
+            $redirect_url = rwmb_meta('redirect_url', [], $post_id);
+
+            if ($is_redirect && !empty($redirect_url) && filter_var($redirect_url, FILTER_VALIDATE_URL)) {
+                $data = [
+                    'url'         => esc_url($redirect_url),
+                    'target'      => '_blank',
+                    'rel'         => 'noopener noreferrer',
+                    'is_external' => true,
+                ];
+            } else {
+                $data = [
+                    'url'         => get_permalink($post_id),
+                    'target'      => '',
+                    'rel'         => '',
+                    'is_external' => false,
+                ];
+            }
+
+            return $cache[$post_id] = $data;
         }
-
-        $url = get_permalink($post_id);
-        return '<a href="' . esc_url($url) . '">';
     }
-}
+
+    /**
+     * Trả về toàn bộ thẻ <a> cho tiêu đề (dùng nhanh)
+     */
+    if (!function_exists('sage_post_title_link')) {
+        function sage_post_title_link($post = 0, string $extra_class = ''): string
+        {
+            $link = sage_post_link($post);
+            $title = get_the_title($post);
+            $class = $extra_class ? ' class="' . esc_attr($extra_class) . '"' : '';
+
+            return sprintf(
+                '<a href="%s"%s%s%s>%s</a>',
+                $link['url'],
+                $link['target'] ? ' target="' . $link['target'] . '"' : '',
+                $link['rel'] ? ' rel="' . $link['rel'] . '"' : '',
+                $class,
+                esc_html($title)
+            );
+        }
+    }
+
+    /**
+     * Mở thẻ <a> bao quanh toàn bộ card/block
+     */
+    if (!function_exists('sage_post_link_open')) {
+        function sage_post_link_open($post = 0, string $extra_classes = ''): string
+        {
+            $link = sage_post_link($post);
+            $classes = 'block w-full h-full group' . ($extra_classes ? ' ' . trim($extra_classes) : '');
+
+            return '<a href="' . $link['url'] . '"' 
+                . ($link['target'] ? ' target="' . $link['target'] . '"' : '')
+                . ($link['rel'] ? ' rel="' . $link['rel'] . '"' : '')
+                . ' class="' . esc_attr($classes) . '">';
+        }
+    }
+
+    /**
+     * Đóng thẻ </a>
+     */
+    if (!function_exists('sage_post_link_close')) {
+        function sage_post_link_close(): string
+        {
+            return '</a>';
+        }
+    }
 }

@@ -95,3 +95,23 @@ define('WP_REDIS_PERSISTENT', true);
 
 ## Gọi soccial 
 {!! sage_social_icons('social_navigation', 'flex items-center gap-6 text-3xl') !!}
+
+## Phiên bản Full Card Wrapper sử dụng helper bọc link có redirect
+{!! sage_post_link_open() !!}
+    <div class="card bg-white rounded-2xl overflow-hidden shadow hover:shadow-2xl transition-all duration-300 group">
+        <div class="relative">
+            {!! get_the_post_thumbnail(null, 'large', ['class' => 'w-full h-56 object-cover']) !!}
+            @if (sage_post_link()['is_external'])
+                <span class="absolute top-4 right-4 bg-red-600 text-white text-xs px-3 py-1 rounded-full font-medium">↗ External</span>
+            @endif
+        </div>
+        <div class="p-6">
+            <h3 class="text-2xl font-semibold mb-3 line-clamp-2 group-hover:text-primary">
+                {!! get_the_title() !!}
+            </h3>
+            <div class="text-gray-600 line-clamp-3">
+                @php(the_excerpt())
+            </div>
+        </div>
+    </div>
+{!! sage_post_link_close() !!}

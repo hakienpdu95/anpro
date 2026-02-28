@@ -158,7 +158,7 @@ class EventMetabox extends BaseMetabox
                 'id'      => 'redirect_url',
                 'type'    => 'url',
                 'visible' => ['is_redirect', '=', 1],   // Ẩn/hiện thông minh
-                'desc'    => 'Ví dụ: https://affiliate.com/san-pham',
+                'desc'    => 'Ví dụ: Ví dụ: https://affiliate.com/san-pham-hoac-bai-khac',
                 'placeholder' => 'https://',
             ],
         ];
