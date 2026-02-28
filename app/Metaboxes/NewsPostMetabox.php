@@ -3,7 +3,7 @@ namespace App\Metaboxes;
 
 class NewsPostMetabox extends BaseMetabox
 {
-    protected string $title = 'Thông tin tin tức chuyên nghiệp (10/10)';
+    protected string $title = 'Cấu hình bài đăng tin tức';
     protected array $post_types = ['post'];
     protected string $context = 'normal';
     protected string $priority = 'high';
@@ -118,29 +118,10 @@ class NewsPostMetabox extends BaseMetabox
                 'id'   => 'source_url',
                 'type' => 'url',
             ],
-
-            // 5. SERIES & BÀI LIÊN QUAN
             [
-                'type' => 'heading',
-                'name' => 'Series & Bài liên quan',
-            ],
-            [
-                'name'          => 'Thuộc series dài kỳ',
-                'id'            => 'series',
-                'type'          => 'post',
-                'post_type'     => 'series', // bạn tạo CPT series riêng
-                'multiple'      => false,
-                'field_type'    => 'select_advanced',
-            ],
-            [
-                'name'          => 'Bài viết liên quan',
-                'id'            => 'related_posts',
-                'type'          => 'post',
-                'post_type'     => 'post',
-                'multiple'      => true,
-                'sortable'      => true,
-                'field_type'    => 'select_advanced',
-                'query_args'    => ['posts_per_page' => -1, 'post_status' => 'publish'],
+                'name' => 'Chuyển hướng',
+                'id'   => 'is_redirect',
+                'type' => 'checkbox',
             ],
         ];
     }

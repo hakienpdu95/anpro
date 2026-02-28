@@ -228,11 +228,17 @@ require_once get_theme_file_path('app/Database/CustomTableManager.php');
 \App\Database\CustomTableManager::register('post', [
     'subtitle', 'lead', 'reading_time', 'article_type',
     'flags', 'priority', 'is_pinned', 'pinned_until', 'is_sponsored',
-    'custom_author', 'source', 'source_url',
-    'series', 'related_posts',
+    'custom_author', 'source', 'source_url', 'is_redirect', 
     '*'
 ]);
-\App\Database\CustomTableManager::register('event', ['flags', 'status', 'is_breaking']);
+\App\Database\CustomTableManager::register('event', [
+    'subtitle', 'lead', 'reading_time',
+    'event_start', 'event_end', 'event_status',
+    'venue', 'address',
+    'flags', 'priority', 'is_pinned', 'pinned_until',
+    'organizer', 'ticket_link', 'ticket_price',
+    '*'
+]);
 // \App\Database\CustomTableManager::register('project', ['flags', 'budget', 'deadline', 'project_phase', 'client']);
 // \App\Database\CustomTableManager::register('news', ['flags', 'hot', 'trending', 'author_custom']);
 
