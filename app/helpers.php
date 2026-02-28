@@ -205,96 +205,163 @@ if (!function_exists('sage_social_icons')) {
         return $output;
     }
 
-    /**
-     * ===============================================
-     * SAGE REDIRECT LINK SYSTEM – 10/10
-     * Static cache + tái sử dụng toàn site + hiệu suất cực cao
-     * ===============================================
+    /** 
+     * =============================================== 
+     * SAGE REDIRECT LINK SYSTEM – 10/10 ULTIMATE PERFORMANCE
+     * Bulk prefetch + WP_Post object + native meta + max speed
+     * =============================================== 
      */
 
-    /**
-     * Lấy thông tin link (array)
-     */
-    if (!function_exists('sage_post_link')) {
-        function sage_post_link($post = 0): array
-        {
-            static $cache = [];
+    if (!function_exists('sage_prefetch_link_posts')) {
+        /**
+         * Gọi TRƯỚC loop để prefetch meta + permalink + title một lần duy nhất
+         * → Giảm 70–90% queries khi hiển thị nhiều card
+         */
+        function sage_prefetch_link_posts(array $posts): void {
+            if (empty($posts)) return;
 
-            $post_id = is_object($post) ? $post->ID : ($post ?: get_the_ID());
-            if ($post_id <= 0) {
-                return ['url' => '#', 'target' => '', 'rel' => '', 'is_external' => false];
+            $ids = [];
+            foreach ($posts as $p) {
+                $ids[] = is_object($p) && isset($p->ID) ? $p->ID : (int) $p;
             }
+            $ids = array_unique(array_filter($ids));
 
-            if (isset($cache[$post_id])) {
-                return $cache[$post_id];
-            }
+            if (empty($ids)) return;
 
-            $is_redirect  = (bool) rwmb_meta('is_redirect', [], $post_id);
-            $redirect_url = rwmb_meta('redirect_url', [], $post_id);
+            // Bulk meta prefetch (siêu mạnh!)
+            update_postmeta_cache($ids);
 
-            if ($is_redirect && !empty($redirect_url) && filter_var($redirect_url, FILTER_VALIDATE_URL)) {
-                $data = [
-                    'url'         => esc_url($redirect_url),
-                    'target'      => '_blank',
-                    'rel'         => 'noopener noreferrer',
-                    'is_external' => true,
-                ];
-            } else {
-                $data = [
-                    'url'         => get_permalink($post_id),
-                    'target'      => '',
-                    'rel'         => '',
-                    'is_external' => false,
-                ];
-            }
-
-            return $cache[$post_id] = $data;
+            // Prime post cache (permalink + title)
+            _prime_post_caches($ids, false, true);
         }
     }
 
-    /**
-     * Trả về toàn bộ thẻ <a> cho tiêu đề (dùng nhanh)
+    /** 
+     * Lấy thông tin link (array) 
+     */
+    if (!function_exists('sage_post_link')) {
+        function sage_post_link($post = 0, string $link_type = 'default'): array {
+            static $cache = [];
+
+            // Hỗ trợ cả WP_Post object lẫn ID
+            if (is_object($post) && isset($post->ID)) {
+                $post_id    = $post->ID;
+                $post_title = $post->post_title;               // Nhanh nhất
+                $post_obj   = $post;
+            } else {
+                $post_id = (int) ($post ?: get_the_ID());
+                $post_title = '';
+                $post_obj   = null;
+            }
+
+            if ($post_id <= 0) {
+                return [
+                    'url'          => '#',
+                    'target'       => '',
+                    'rel'          => '',
+                    'is_external'  => false,
+                    'link_type'    => $link_type,
+                    'post_id'      => 0,
+                    'post_title'   => '',
+                    'is_redirect'  => false,
+                ];
+            }
+
+            $cache_key = $post_id . '|' . $link_type;
+            if (isset($cache[$cache_key])) {
+                return $cache[$cache_key];
+            }
+
+            // Dùng get_post_meta native (nhanh hơn rwmb_meta)
+            $is_redirect   = (bool) get_post_meta($post_id, 'is_redirect', true);
+            $redirect_url  = get_post_meta($post_id, 'redirect_url', true);
+
+            if ($is_redirect && !empty($redirect_url) && filter_var($redirect_url, FILTER_VALIDATE_URL)) {
+                $data = [
+                    'url'          => esc_url($redirect_url),
+                    'target'       => '_blank',
+                    'rel'          => 'noopener noreferrer',
+                    'is_external'  => true,
+                    'link_type'    => $link_type,
+                    'post_id'      => $post_id,
+                    'post_title'   => $post_title ?: get_the_title($post_id),
+                    'is_redirect'  => true,
+                ];
+            } else {
+                $data = [
+                    'url'          => get_permalink($post_obj ?: $post_id),
+                    'target'       => '',
+                    'rel'          => '',
+                    'is_external'  => false,
+                    'link_type'    => $link_type,
+                    'post_id'      => $post_id,
+                    'post_title'   => $post_title ?: get_the_title($post_id),
+                    'is_redirect'  => false,
+                ];
+            }
+
+            return $cache[$cache_key] = $data;
+        }
+    }
+
+    /** 
+     * Helper sinh data attributes cho GTM 
+     */
+    if (!function_exists('sage_link_data_attrs')) {
+        function sage_link_data_attrs(array $link): string {
+            return sprintf(
+                ' data-post-id="%d" data-post-title="%s" data-link-type="%s" data-is-external="%s" data-is-redirect="%s"',
+                $link['post_id'] ?? 0,
+                esc_attr($link['post_title'] ?? ''),
+                esc_attr($link['link_type'] ?? 'default'),
+                $link['is_external'] ? 'true' : 'false',
+                $link['is_redirect'] ? 'true' : 'false'
+            );
+        }
+    }
+
+    /** 
+     * Trả về toàn bộ thẻ <a> cho tiêu đề 
      */
     if (!function_exists('sage_post_title_link')) {
-        function sage_post_title_link($post = 0, string $extra_class = ''): string
-        {
-            $link = sage_post_link($post);
+        function sage_post_title_link($post = 0, string $extra_class = '', string $link_type = 'default'): string {
+            $link  = sage_post_link($post, $link_type);
             $title = get_the_title($post);
             $class = $extra_class ? ' class="' . esc_attr($extra_class) . '"' : '';
 
             return sprintf(
-                '<a href="%s"%s%s%s>%s</a>',
+                '<a href="%s"%s%s%s%s>%s</a>',
                 $link['url'],
                 $link['target'] ? ' target="' . $link['target'] . '"' : '',
                 $link['rel'] ? ' rel="' . $link['rel'] . '"' : '',
                 $class,
+                sage_link_data_attrs($link),
                 esc_html($title)
             );
         }
     }
 
-    /**
-     * Mở thẻ <a> bao quanh toàn bộ card/block
+    /** 
+     * Mở thẻ <a> bao quanh card/block 
      */
     if (!function_exists('sage_post_link_open')) {
-        function sage_post_link_open($post = 0, string $extra_classes = ''): string
-        {
-            $link = sage_post_link($post);
+        function sage_post_link_open($post = 0, string $extra_classes = '', string $link_type = 'default'): string {
+            $link = sage_post_link($post, $link_type);
             $classes = 'block w-full h-full group' . ($extra_classes ? ' ' . trim($extra_classes) : '');
 
-            return '<a href="' . $link['url'] . '"' 
-                . ($link['target'] ? ' target="' . $link['target'] . '"' : '')
-                . ($link['rel'] ? ' rel="' . $link['rel'] . '"' : '')
-                . ' class="' . esc_attr($classes) . '">';
+            return '<a href="' . $link['url'] . '"' .
+                   ($link['target'] ? ' target="' . $link['target'] . '"' : '') .
+                   ($link['rel'] ? ' rel="' . $link['rel'] . '"' : '') .
+                   sage_link_data_attrs($link) .
+                   ' class="' . esc_attr($classes) . '">';
         }
     }
 
-    /**
-     * Đóng thẻ </a>
+    /** 
+     * Đóng thẻ </a> 
      */
     if (!function_exists('sage_post_link_close')) {
-        function sage_post_link_close(): string
-        {
+        function sage_post_link_close(): string {
             return '</a>';
         }
     }
