@@ -10,56 +10,116 @@
 		</div>
 
 		<div class="tab-content">
-			<div class="tab-pane active" id="all-products">
-				<div class="w-full flex flex-col">
-					@php
-				        $posts = \App\Helpers\QueryCache::getPostsWithAllFlags(
-				            'event', 
-				            ['hot'], 
-				            8,     
-				            300    
-				        );
-				    @endphp
+		    @php
+		        // ================== CONFIG SIÊU LINH HOẠT CHO TỪNG TAB ==================
+		        // Anh chỉ cần sửa post_type + flags + limit ở đây là xong hết
+		        $tab_configs = [
+		            'all-products' => [
+		                'slide' => [
+		                    'post_type' => 'event',
+		                    'flags'     => ['hot'],
+		                    'limit'     => 8
+		                ],
+		                'grid' => [
+		                    'post_type' => 'event',
+		                    'flags'     => ['breaking'],
+		                    'limit'     => 4
+		                ],
+		                'link_type' => 'listing'
+		            ],
 
-				    @includeCached('partials.blocks.block-slide-tab-one', [
-				        'posts' => $posts,
-				        'perPage' => 1,
-				        'autoplay' => true,
-				        'interval' => 4000,
-				    ], 300)
+		            'medical-device' => [
+		                'slide' => [
+		                    'post_type' => 'post',      // ← anh sửa post_type nếu khác
+		                    'flags'     => ['featured'],   // ← anh sửa flags
+		                    'limit'     => 8
+		                ],
+		                'grid' => [
+		                    'post_type' => 'event',
+		                    'flags'     => ['medical-device'],
+		                    'limit'     => 4
+		                ],
+		                'link_type' => 'medical'
+		            ],
 
-					<div class="article-thumb grid sm:grid-cols-2 grid-cols-1 gap-[30px]">	
-						<div class="item group">
-							<div class="w-full">
-								<div class="w-full h-[100px] overflow-hidden relative mb-5">
-									{!! get_the_post_thumbnail($post->ID, 'medium_large', ['class' => 'w-full h-full object-cover']) !!}
-								</div>
+		            'first-aid' => [
+		                'slide' => [
+		                    'post_type' => 'event',
+		                    'flags'     => ['first-aid'],
+		                    'limit'     => 8
+		                ],
+		                'grid' => [
+		                    'post_type' => 'event',
+		                    'flags'     => ['first-aid', 'hot'],
+		                    'limit'     => 4
+		                ],
+		                'link_type' => 'first-aid'
+		            ],
 
-								<ul class="flex space-x-5 items-center mb-5">
-				                	<li><span class="sm:text-base sm:leading-[27px] text-sm text-primary-100">By Admin</span></li>
-				                	<li class="flex sm:space-x-5 space-x-2.5 items-center">
-				                		<div class="w-2.5 h-2.5 rounded-full bg-primary-500"></div>
-				                		<span class="sm:text-base sm:leading-[27px] text-sm text-primary-100">Category</span>
-				                	</li>
-				                	<li class="flex sm:space-x-5 space-x-2.5 items-center">
-				                		<div class="w-2.5 h-2.5 rounded-full bg-primary-500"></div>
-				                		<span class="sm:text-base sm:leading-[27px] text-sm text-primary-100">Comment</span>
-				                	</li>
-				                </ul>
+		            'diabetic-care' => [
+		                'slide' => [
+		                    'post_type' => 'post',      // ← anh sửa post_type nếu khác
+		                    'flags'     => ['diabetic'],
+		                    'limit'     => 8
+		                ],
+		                'grid' => [
+		                    'post_type' => 'event',
+		                    'flags'     => ['diabetic-care'],
+		                    'limit'     => 4
+		                ],
+		                'link_type' => 'diabetic'
+		            ],
+		        ];
 
-				                {!! sage_post_link_open(get_post(), 'no-underline!', 'listing') !!}
-				                    <h2 class="xl:text-lg xl:leading-7 text-md font-bold spline-sans text-primary-900 mb-5">
-				                        {!! get_the_title() !!}
-				                    </h2>
-				                {!! sage_post_link_close() !!}
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="tab-pane" id="medical-device" style="display: none;">TAB 2</div>
-			<div class="tab-pane" id="first-aid" style="display: none;">TAB 3</div>
-			<div class="tab-pane" id="diabetic-care" style="display: none;">TAB 4</div>
+		        $tab_data = [];
+		        $all_posts_for_prefetch = [];
+
+		        foreach ($tab_configs as $tab_id => $config) {
+		            // Query Slide (có thể khác post_type với grid)
+		            $slide_posts = \App\Helpers\QueryCache::getPostsWithAllFlags(
+		                $config['slide']['post_type'],
+		                $config['slide']['flags'],
+		                $config['slide']['limit'],
+		                300
+		            );
+
+		            // Query Grid (có thể khác post_type với slide)
+		            $grid_posts = \App\Helpers\QueryCache::getPostsWithAllFlags(
+		                $config['grid']['post_type'],
+		                $config['grid']['flags'],
+		                $config['grid']['limit'],
+		                300
+		            );
+
+		            $tab_data[$tab_id] = [
+		                'slide_posts' => $slide_posts,
+		                'grid_posts'  => $grid_posts,
+		                'link_type'   => $config['link_type']
+		            ];
+
+		            // Thu thập tất cả posts để prefetch 1 lần
+		            $all_posts_for_prefetch = array_merge($all_posts_for_prefetch, $slide_posts, $grid_posts);
+		        }
+
+		        // BULK PREFETCH – TỐI ƯU HIỆU SUẤT CAO NHẤT
+		        if (!empty($all_posts_for_prefetch)) {
+		            sage_prefetch_link_posts($all_posts_for_prefetch);
+		        }
+		    @endphp
+
+		    <!-- Render các tab -->
+		    @foreach ($tab_data as $tab_id => $data)
+		        <div class="tab-pane {{ $tab_id === 'all-products' ? 'active' : '' }}" 
+		             id="{{ $tab_id }}" 
+		             style="{{ $tab_id === 'all-products' ? '' : 'display: none;' }}">
+		            
+		            @include('partials.blocks/home-tab-section', [
+		                'slide_posts' => $data['slide_posts'],
+		                'grid_posts'  => $data['grid_posts'],
+		                'link_type'   => $data['link_type']
+		            ])
+		        </div>
+		    @endforeach
 		</div>
 	</div>
 </section>

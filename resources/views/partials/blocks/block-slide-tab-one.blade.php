@@ -7,7 +7,7 @@
 
 @if (empty($posts))
     <div class="bg-red-50 border border-red-200 p-8 rounded-3xl text-center">
-        <p class="text-red-600">Không tìm thấy bài viết nào có cả breaking & hot.</p>
+        <p class="text-red-600">Không tìm thấy bài viết nào phù hợp.</p>
     </div>
 @else
     <div class="splide" data-splide-config='{ "type": "loop", "perPage": {{ $perPage }}, "autoplay": {{ $autoplay ? 'true' : 'false' }}, "interval": {{ $interval }}, "arrows": true, "pagination": true, "gap": "1.5rem", "lazyLoad": "nearby" }'>
