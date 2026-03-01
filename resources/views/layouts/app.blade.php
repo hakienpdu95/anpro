@@ -24,11 +24,11 @@
       <main id="main" class="main">
         <div class="container">
           <div class="grid grid-cols-12 gap-6 px-3 pt-8">
-              <div class="xl:col-span-9 col-span-12">
+              <div class="xl:col-span-8 col-span-12">
                   @yield('content')
               </div>
 
-              <div class="xl:col-span-3 col-span-12">
+              <div class="xl:col-span-4 col-span-12">
                   @hasSection('sidebar')
                     <aside class="sidebar">
                       @yield('sidebar')
