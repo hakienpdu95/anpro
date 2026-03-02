@@ -347,6 +347,10 @@ add_action('admin_enqueue_scripts', function () {
     );
 }, 99);
 
+// === SEARCH MODULE 11/10 – TỐI ƯU CAO NHẤT ===
+require_once get_theme_file_path('app/Search/SearchManager.php');
+\App\Search\SearchManager::init();
+
 // === CMB2 MODULE ===
 require_once get_theme_file_path('app/CMB2/Registrar.php');
 \App\CMB2\Registrar::init();
