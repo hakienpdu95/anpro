@@ -10,10 +10,7 @@
             @endphp
 
 
-            @includeFirst([
-                'partials.content-' . get_post_type(),
-                'partials.content'
-            ])
+            @include('partials.content')
         @endwhile
     </div>
 @endif
