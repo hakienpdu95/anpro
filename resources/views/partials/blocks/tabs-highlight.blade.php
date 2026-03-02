@@ -33,8 +33,16 @@
 			        'slide' => [
 			            'post_type'      => 'post',                    // CPT post
 			            'flags'          => ['featured'],
-			            'category'       => ['medical-device', 'choi-gem'],          // ← Slug của taxonomy "category" (CPT post)
+			            //'category'       => ['medical-device', 'choi-gem'],          // ← Slug của taxonomy "category" (CPT post)
 			            //'category'    => 10,                        // Hoặc dùng term_id nếu thích
+			            'tax_query' => [
+						    [
+						        'taxonomy' => 'category',      // hoặc 'event-categories', 'post_tag'...
+						        'field'    => 'term_id',       // hoặc 'slug', 'id', 'name'
+						        'terms'    => 10,              // hoặc ['medical-device'], hoặc [12,34]
+						        'operator' => 'IN'
+						    ]
+						],
 			            'pinned_first'   => false,
 			            'posts_per_page' => 8,
 			        ],
