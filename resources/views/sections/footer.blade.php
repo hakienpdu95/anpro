@@ -1,4 +1,4 @@
-<footer id="footer" class="bg-zinc-950 text-zinc-400 py-14 border-t border-zinc-800">
+<footer id="footer" class="bg-[#6697a1] text-white px-3 py-10 border-t border-zinc-800">
     <div class="container">
         <div class="grid grid-cols-12 gap-5">
 
@@ -30,54 +30,16 @@
             </div>
 
             {{-- CỘT 2 --}}
-            <div class="col-span-2">
-                <a href="#" class="block text-white font-semibold hover:text-emerald-400 mb-4">เตรียมเป็นคุณแม่</a>
-                <ul class="space-y-2.5 text-sm">
-                    <li><a href="#" class="hover:text-white transition-colors">ปฏิทินการตั้งครรภ์40สัปดาห์</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">สุขภาพครรภ์</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">โภชนาการแม่ตั้งครรภ์</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">ตั้งชื่อลูก</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">การคลอด</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">หลังคลอดบุตร</a></li>
-                </ul>
-            </div>
+            {!! sage_footer_column('footer_column_1', 'เตรียมเป็นคุณแม่') !!}
 
             {{-- CỘT 3 --}}
-            <div class="col-span-2">
-                <a href="#" class="block text-white font-semibold hover:text-emerald-400 mb-4">เคล็ดลับการเลี้ยงลูก</a>
-                <ul class="space-y-2.5 text-sm">
-                    <li><a href="#" class="hover:text-white transition-colors">พัฒนาการเด็ก 0 - 6 ปี</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">เลี้ยงลูกวัยแบบเบาะ</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">เลี้ยงลูกวัยเตาะเเตะ</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">เลี้ยงลูกวัยอนุบาล</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">สุขภาพลูกรัก</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">เมนูลูกรัก</a></li>
-                </ul>
-            </div>
+            {!! sage_footer_column('footer_column_2', 'เคล็ดลับการเลี้ยงลูก') !!}
 
             {{-- CỘT 4 --}}
-            <div class="col-span-2">
-                <a href="#" class="block text-white font-semibold hover:text-emerald-400 mb-4">ไลฟ์สไตล์</a>
-                <ul class="space-y-2.5 text-sm">
-                    <li><a href="#" class="hover:text-white transition-colors">ผู้หญิง/ความงาม</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">เซ็กส์ / สุขภาพ</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">เมนูเด็ด</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">ทริปครอบครัว</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">คุณแม่แชร์ไอเดีย</a></li>
-                </ul>
-            </div>
+            {!! sage_footer_column('footer_column_3', 'ไลฟ์สไตล์') !!}
 
             {{-- CỘT 5 --}}
-            <div class="col-span-2">
-                <a href="#" class="block text-white font-semibold hover:text-emerald-400 mb-4">เกี่ยวกับเรา</a>
-                <ul class="space-y-2.5 text-sm">
-                    <li><a href="#" class="hover:text-white transition-colors">ทีมงานของเรา</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">นโยบายการใช้งาน</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">ติดต่อเรา</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">ติดต่อลงโฆษณา</a></li>
-                    <li><a href="#" class="hover:text-white transition-colors">แนะนำ-ติชม</a></li>
-                </ul>
-            </div>
+            {!! sage_footer_column('footer_column_4', 'เกี่ยวกับเรา') !!}
         </div>
 
         {{-- BOTTOM BAR --}}

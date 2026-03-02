@@ -44,7 +44,7 @@
 	</div>
 	<!-- Mobile Menu End -->
 
-	<div class="border border-gray-300 hidden xl:flex header-middle sticky-header border-r-0 border-l-0">
+	<div class="border border-gray-300 hidden xl:flex header-middle sticky-header border-r-0 border-l-0 bg-[#6697a1]">
 		<div class="w-full items-center flex justify-between">
 			@if (has_nav_menu('primary_navigation'))
 			<nav class="main-menu">

@@ -1,11 +1,11 @@
 <section class="pb-[70px]">
 	<div class="container">
-		<div class="mb-10 flex xl:flex-row flex-col gap-y-4 items-center xl:justify-between wow animate__ animate__fadeInUp animated" data-wow-delay=".2s" style="visibility: visible; animation-delay: 0.2s; animation-name: fadeInUp;">
-		    <div class="flex gap-x-4 overflow-x-scroll lg:overflow-x-visible home-one-product-filter max-w-full">
-		        <button data-tab="all-products" class="btn btn-large py-2.5 px-[22px] rounded-full btn-primary"> All Products </button>
-		        <button data-tab="medical-device" class="btn btn-large py-2.5 px-[22px] rounded-full btn-default outline shadow-none"> Medical Device </button>
-		        <button data-tab="first-aid" class="btn btn-large py-2.5 px-[22px] rounded-full btn-default outline shadow-none"> First Aid </button>
-		        <button data-tab="diabetic-care" class="btn btn-large py-2.5 px-[22px] rounded-full btn-default outline shadow-none"> Diabetic Care </button>
+		<div class="mb-5 flex xl:flex-row flex-col gap-y-3 items-center xl:justify-between">
+		    <div class="flex gap-x-0 overflow-x-scroll lg:overflow-x-visible home-one-product-filter max-w-full">
+		        <button data-tab="all-products" class="btn btn-large py-1  px-[12px] btn-primary"> All Products </button>
+		        <button data-tab="medical-device" class="btn btn-large py-1  px-[12px] btn-default outline shadow-none"> Medical Device </button>
+		        <button data-tab="first-aid" class="btn btn-large py-1  px-[12px] btn-default outline shadow-none"> First Aid </button>
+		        <button data-tab="diabetic-care" class="btn btn-large py-1  px-[12px] btn-default outline shadow-none"> Diabetic Care </button>
 		    </div>
 		</div>
 

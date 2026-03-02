@@ -458,4 +458,42 @@ if (!function_exists('sage_social_icons')) {
             return '';
         }
     }
+
+    /**
+     * RENDER 1 CỘT FOOTER MENU – Tự động lấy tên menu làm tiêu đề
+     */
+    if (!function_exists('sage_footer_column')) {
+        function sage_footer_column(string $location, string $fallback_title = ''): string
+        {
+            if (!has_nav_menu($location)) {
+                return '';
+            }
+
+            $menu = wp_get_nav_menu_object(wp_get_nav_menu_locations()[$location] ?? 0);
+            $title = $menu ? $menu->name : $fallback_title;
+
+            $output = '<div class="col-span-2">';
+
+            // Tiêu đề cột
+            if ($title) {
+                $output .= '<a href="#" class="block text-white font-semibold hover:text-emerald-400 mb-4">' 
+                        . esc_html($title) . '</a>';
+            }
+
+            // Render menu
+            $output .= wp_nav_menu([
+                'theme_location'  => $location,
+                'container'       => false,
+                'menu_class'      => 'space-y-2.5 text-sm footer-menu',
+                'items_wrap'      => '<ul class="%2$s">%3$s</ul>',
+                'echo'            => false,
+                'fallback_cb'     => false,
+                'depth'           => 1,           // chỉ hiển thị cấp 1
+            ]);
+
+            $output .= '</div>';
+
+            return $output;
+        }
+    }
 }

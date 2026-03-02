@@ -6,7 +6,7 @@
 ])
 
 @if (empty($posts))
-    <div class="bg-red-50 border border-red-200 p-8 rounded-3xl text-center">
+    <div class="bg-red-50 border border-red-200 p-3 mb-4 text-center">
         <p class="text-red-600">Không tìm thấy bài viết nào phù hợp.</p>
     </div>
 @else
@@ -17,7 +17,7 @@
                     <li class="splide__slide">
                         <div class="w-full article-content">
                             <!-- Thumbnail + link -->
-                            <div class="w-full h-[350px] overflow-hidden rounded-2xl">
+                            <div class="w-full h-[350px] overflow-hidden">
                                 @php $primary_flag = sage_get_primary_flag($post); @endphp
                                 {!! sage_flag_badge($primary_flag) !!}
 
@@ -27,9 +27,9 @@
                             </div>
 
                             <!-- Nội dung -->
-                            <div class="w-full sm:px-[30px] -mt-[30px] relative z-10">
+                            <div class="w-full relative z-10">
                                 {!! sage_post_link_open($post, 'no-underline!', 'featured') !!}
-                                    <p class="sm:text-[30px] font-semibold spline-sans sm:leading-9 text-2xl text-primary-900 mb-2">
+                                    <p class="font-semibold spline-sans text-primary-900 mb-2">
                                         {!! get_the_title($post) !!}
                                     </p>
                                 {!! sage_post_link_close() !!}
