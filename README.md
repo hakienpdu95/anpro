@@ -128,3 +128,20 @@ Related posts → 'related'
 Bài nổi bật / featured → 'featured'
 Tìm kiếm → 'search'
 Menu / widget → 'menu'
+
+## 'pinned_first' => true là gì & hoạt động thế nào?
+
+Mục đích:
+Ưu tiên bài viết được admin “Ghim nổi bật” (is_pinned = 1) lên đầu tiên trong slider/tab, dù bài đó đăng lâu hơn các bài khác.
+Đây là tính năng rất hay cho tin tức/hot news (bài ghim luôn ở vị trí top).
+Cách hoạt động thực tế:
+Nếu bật pinned_first => true:
+Tự động lọc chỉ những bài có:
+is_pinned = '1'
+pinned_until >= thời gian hiện tại (chưa hết hạn)
+
+Sắp xếp: Tất cả bài ghim lên đầu → sau đó là bài mới nhất (date DESC).
+
+Nếu không bật → sắp xếp bình thường theo date.
+
+Nó hoàn toàn tự động, không làm chậm hệ thống nhờ cache version của bạn.
