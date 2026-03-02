@@ -4,7 +4,8 @@
 <section class="py-12">
     <div class="container max-w-6xl mx-auto px-4">
         @php
-            global $wp_query;                       // ← FIX QUAN TRỌNG NHẤT
+            global $wp_query;    
+            nocache_headers();            
             $keyword = get_search_query();
             $time    = \App\Search\SearchManager::getQueryTime();
             $total   = $wp_query->found_posts ?? 0;
@@ -25,7 +26,10 @@
         @if (have_posts())
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                 @while (have_posts())
-                    @php the_post(); @endphp
+                    @php 
+                      the_post(); 
+                      $primary_flag = sage_get_primary_flag(get_post());
+                    @endphp
                     
                     @include('partials.blocks.article-thumb-grid', [
                         'posts' => [get_post()]

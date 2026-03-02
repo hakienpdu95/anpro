@@ -7,9 +7,20 @@ class SearchManager {
 
     public static function init(): void {
         add_action('pre_get_posts', [self::class, 'optimizeSearchQuery'], 5);
-        add_filter('posts_join', [self::class, 'joinCustomMetaForSearch'], 999, 2);
-        add_filter('posts_where', [self::class, 'extendSearchWhere'], 999, 2);
-        add_filter('posts_distinct', [self::class, 'searchDistinct'], 10, 2);
+        add_filter('posts_join', [self::class, 'joinCustomMeta'], 999, 2);
+        add_filter('posts_search', [self::class, 'buildOptimizedSearch'], 999, 2);
+        add_filter('posts_orderby', [self::class, 'relevanceOrderBy'], 999, 2);
+        add_filter('posts_clauses', [self::class, 'addGroupByToSearch'], 999, 2); // ← FIX DUPLICATE
+        add_action('the_posts', [self::class, 'preloadSearchMeta'], 10, 2);
+
+        // TẮT CACHE HOÀN TOÀN CHO SEARCH
+        add_action('template_redirect', [self::class, 'disableCacheForSearch']);
+    }
+
+    public static function disableCacheForSearch(): void {
+        if (is_search()) {
+            nocache_headers(); // Chống cache browser, CDN, Varnish...
+        }
     }
 
     public static function optimizeSearchQuery(\WP_Query $query): void {
@@ -21,9 +32,10 @@ class SearchManager {
         $query->set('update_post_meta_cache', false);
         $query->set('update_post_term_cache', false);
         $query->set('suppress_filters', false);
+        $query->set('cache_results', false); // Tắt cache WP hoàn toàn
     }
 
-    public static function joinCustomMetaForSearch(string $join, \WP_Query $query): string {
+    public static function joinCustomMeta(string $join, \WP_Query $query): string {
         if (!$query->is_search() || is_admin()) return $join;
 
         global $wpdb;
@@ -35,47 +47,64 @@ class SearchManager {
         if (strpos($join, $meta_table) === false) {
             $join .= " LEFT JOIN `{$meta_table}` AS search_meta ON ({$wpdb->posts}.ID = search_meta.post_id) ";
         }
-
         return $join;
     }
 
-    public static function extendSearchWhere(string $where, \WP_Query $query): string {
-        if (!$query->is_search() || empty($query->query_vars['s']) || is_admin()) return $where;
+    public static function buildOptimizedSearch(string $search, \WP_Query $query): string {
+        if (!$query->is_search() || empty($query->query_vars['s']) || is_admin()) return $search;
 
         global $wpdb;
-        $search_term = trim($query->query_vars['s']);
-        $like = '%' . $wpdb->esc_like($search_term) . '%';
+        $term = trim($query->query_vars['s']);
+        $like = '%' . $wpdb->esc_like($term) . '%';
 
-        $meta_conditions = $wpdb->prepare(
-            "(search_meta.meta_key IN ('subtitle', 'lead') AND search_meta.meta_value LIKE %s) " .
-            "OR (search_meta.meta_key = 'flags' AND search_meta.meta_value LIKE %s)",
-            $like, $like
+        return $wpdb->prepare(
+            " AND (
+                {$wpdb->posts}.post_title LIKE %s OR
+                {$wpdb->posts}.post_content LIKE %s OR
+                {$wpdb->posts}.post_excerpt LIKE %s OR
+                (search_meta.meta_key IN ('subtitle','lead') AND search_meta.meta_value LIKE %s) OR
+                (search_meta.meta_key = 'flags' AND search_meta.meta_value LIKE %s)
+            ) ",
+            $like, $like, $like, $like, $like
         );
-
-        $new_where = $wpdb->prepare(
-            "({$wpdb->posts}.post_title LIKE %s " .
-            "OR {$wpdb->posts}.post_content LIKE %s " .
-            "OR {$wpdb->posts}.post_excerpt LIKE %s " .
-            "OR {$meta_conditions})",
-            $like, $like, $like
-        );
-
-        $where = preg_replace(
-            '/\(\s*post_title LIKE .+?\s*\)/',
-            $new_where,
-            $where
-        );
-
-        return $where;
     }
 
-    public static function searchDistinct(string $distinct, \WP_Query $query): string {
-        return $query->is_search() ? 'DISTINCT' : $distinct;
+    public static function relevanceOrderBy(string $orderby, \WP_Query $query): string {
+        if (!$query->is_search() || is_admin()) return $orderby;
+
+        global $wpdb;
+        $term = trim($query->query_vars['s']);
+
+        return "
+            (CASE 
+                WHEN {$wpdb->posts}.post_title LIKE '%{$term}%' THEN 1 
+                WHEN {$wpdb->posts}.post_title LIKE '%{$term}' THEN 2 
+                ELSE 3 
+            END), 
+            {$wpdb->posts}.post_date DESC
+        ";
     }
 
-    /** 
-     * LẤY THỜI GIAN XỬ LÝ QUERY – AN TOÀN & CHÍNH XÁC 
-     */
+    // FIX DUPLICATE CHÍNH – GROUP BY wp_posts.ID
+    public static function addGroupByToSearch(array $clauses, \WP_Query $query): array {
+        if ($query->is_search() && !is_admin()) {
+            global $wpdb;
+            $clauses['groupby'] = "{$wpdb->posts}.ID";
+        }
+        return $clauses;
+    }
+
+    public static function preloadSearchMeta(array $posts, \WP_Query $query): array {
+        if (!$query->is_search() || empty($posts)) return $posts;
+
+        foreach ($posts as $post) {
+            if (in_array($post->post_type, CustomTableManager::$registered ?? [])) {
+                CustomTableManager::getMeta($post->ID, '');
+            }
+        }
+        return $posts;
+    }
+
     public static function getQueryTime(): float {
         return round(timer_stop(0, 5), 2);
     }
