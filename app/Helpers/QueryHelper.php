@@ -157,7 +157,42 @@ class QueryHelper
     }
 
     /**
-     * QUERY 10/10 – SIÊU NHANH (Raw SQL khi cần + pinned ưu tiên riêng)
+     * XÂY DỰNG TAX_QUERY LINH HOẠT TỪ CÚ PHÁP NGẮN GỌN
+     */
+    private static function buildTaxQuery(array $config): array
+    {
+        $tax_query = $config['tax_query'] ?? [];
+
+        // Cú pháp ngắn gọn: 'category' => 'slug' hoặc 'category' => 123 hoặc 'event-categories' => [12,34]
+        $short_keys = ['category', 'post_tag', 'tag', 'tags', 'event-categories', 'category_id', 'tag_id'];
+
+        foreach ($short_keys as $key) {
+            if (empty($config[$key])) continue;
+
+            $taxonomy = $key;
+            if (in_array($key, ['category_id', 'tag_id'])) $taxonomy = str_replace('_id', '', $key);
+            if (in_array($key, ['tags', 'tag'])) $taxonomy = 'post_tag';
+
+            $terms = (array) $config[$key];
+            $field = (is_numeric($terms[0] ?? '') || is_numeric($terms)) ? 'term_id' : 'slug';
+
+            $tax_query[] = [
+                'taxonomy' => $taxonomy,
+                'field'    => $field,
+                'terms'    => $terms,
+                'operator' => 'IN'
+            ];
+        }
+
+        if (count($tax_query) > 1) {
+            $tax_query['relation'] = 'AND';
+        }
+
+        return $tax_query;
+    }
+
+    /**
+     * QUERY 11/10 – HỖ TRỢ TAX_QUERY LINH HOẠT + PINNED_FIRST + FLAGS (tối ưu tốc độ)
      */
     public static function getAdvancedPosts(array $config = [], int $ttl = 300): array
     {
@@ -165,8 +200,6 @@ class QueryHelper
             'post_type'      => 'post',
             'posts_per_page' => 8,
             'flags'          => [],
-            'tax_query'      => [],
-            'meta_query'     => [],
             'pinned_first'   => false,
             'post_status'    => 'publish',
         ];
@@ -174,16 +207,32 @@ class QueryHelper
         $config = wp_parse_args($config, $defaults);
         $post_type = $config['post_type'];
 
-        // === 10/10: Nếu bật pinned_first → dùng raw pinned query siêu nhanh ===
-        if ($config['pinned_first'] && !empty($config['flags'])) {
-            return self::getPinnedPostsWithFlags(
-                $post_type,
-                $config['flags'],
-                $config['posts_per_page']
-            );
+        // === XÂY DỰNG TAX_QUERY LINH HOẠT ===
+        $tax_query = self::buildTaxQuery($config);
+
+        // === META QUERY (flags + pinned) ===
+        $meta_query = [];
+        if (!empty($config['flags'])) {
+            if (count($config['flags']) === 1) {
+                $meta_query[] = ['key' => 'flags', 'value' => $config['flags'][0]];
+            } else {
+                // multi flags → raw SQL cũ (đã tối ưu)
+                return self::getPostsWithAllFlags($post_type, $config['flags'], $config['posts_per_page']);
+            }
         }
 
-        // === Trường hợp bình thường (không pinned hoặc không flags) ===
+        // === PINNED_FIRST (luôn dùng WP_Query để hỗ trợ tax_query) ===
+        if ($config['pinned_first']) {
+            $meta_query[] = ['key' => 'is_pinned', 'value' => '1', 'compare' => '='];
+            $meta_query[] = [
+                'key'     => 'pinned_until',
+                'value'   => current_time('mysql'),
+                'compare' => '>=',
+                'type'    => 'DATETIME'
+            ];
+        }
+
+        // === BUILD WP_QUERY ARGS ===
         $args = [
             'post_type'              => $post_type,
             'posts_per_page'         => $config['posts_per_page'],
@@ -194,19 +243,12 @@ class QueryHelper
             'suppress_filters'       => false,
         ];
 
-        if (!empty($config['flags'])) {
-            if (count($config['flags']) === 1) {
-                $args['meta_query'][] = ['key' => 'flags', 'value' => $config['flags'][0]];
-            } else {
-                return self::getPostsWithAllFlags($post_type, $config['flags'], $config['posts_per_page']);
-            }
+        if (!empty($tax_query)) {
+            $args['tax_query'] = $tax_query;
         }
-
-        if (!empty($config['tax_query'])) {
-            $args['tax_query'] = $config['tax_query'];
-        }
-        if (!empty($config['meta_query'])) {
-            $args['meta_query'] = array_merge($args['meta_query'] ?? [], $config['meta_query']);
+        if (!empty($meta_query)) {
+            $args['meta_query'] = $meta_query;
+            $args['meta_query']['relation'] = 'AND';
         }
 
         $query = CustomTableManager::query($args);

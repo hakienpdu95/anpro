@@ -155,3 +155,30 @@ ADD INDEX `idx_pinned_flags` (`meta_key`(50), `meta_value`(20), `post_id`);
 -- Cho bảng post mặc định
 ALTER TABLE `wp_post_custom_meta` 
 ADD INDEX `idx_pinned_flags` (`meta_key`(50), `meta_value`(20), `post_id`);
+
+## Cách dùng mới (khuyến nghị – ngắn gọn nhất)
+'slide' => [
+    'post_type'      => 'event',
+    'flags'          => ['hot'],
+    'category'       => 'medical-device',     // slug
+    // 'category'    => 45,                    // term_id (tag_id)
+    // 'event-categories' => [12, 34],         // nhiều term_id
+    // 'post_tag'    => 'tag-slug',            // tag
+    'pinned_first'   => true,
+    'posts_per_page' => 8,
+],
+
+## Cách cũ (vẫn giữ nguyên, đầy đủ hơn)
+'tax_query' => [
+    [
+        'taxonomy' => 'category',      // hoặc 'event-categories', 'post_tag'...
+        'field'    => 'term_id',       // hoặc 'slug', 'id', 'name'
+        'terms'    => 45,              // hoặc ['medical-device'], hoặc [12,34]
+        'operator' => 'IN'
+    ]
+],
+
+Muốn nhiều danh mục cùng lúc?
+Ví dụ: 'event-categories' => ['medical-device', 'first-aid']
+Muốn dùng tax_query cũ (nếu cần phức tạp hơn)?
+Vẫn giữ nguyên như trước: 'tax_query' => [ ['taxonomy' => 'event-categories', 'field' => 'slug', 'terms' => 'medical-device'] ]

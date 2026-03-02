@@ -11,27 +11,15 @@
 
 		<div class="tab-content">
 		    @php
-			// ================== CONFIG SIÊU LINH HOẠT (bạn chỉ cần sửa ở đây) ==================
+			// ================== CONFIG TAXONOMY LINH HOẠT – CHUẨN CHO POST & EVENT ==================
 			$tab_configs = [
 			    'all-products' => [
 			        'slide' => [
 			            'post_type'      => 'event',
 			            'flags'          => ['hot'],
-			            'meta_query'     => [
-			                [
-			                    'key'     => 'is_pinned',
-			                    'value'   => '1',
-			                    'compare' => '='
-			                ],
-			                [
-			                    'key'     => 'pinned_until',
-			                    'value'   => current_time('mysql'),
-			                    'compare' => '>=',
-			                    'type'    => 'DATETIME'
-			                ]
-			            ],
 			            'pinned_first'   => true,
 			            'posts_per_page' => 8,
+			            // Không cần tax_query = lấy tất cả event có flag 'hot'
 			        ],
 			        'grid' => [
 			            'post_type'      => 'event',
@@ -43,80 +31,65 @@
 
 			    'medical-device' => [
 			        'slide' => [
-			            'post_type'      => 'post',
+			            'post_type'      => 'post',                    // CPT post
 			            'flags'          => ['featured'],
-			            'tax_query'      => [
-			                [
-			                    'taxonomy' => 'category',
-			                    'field'    => 'slug',
-			                    'terms'    => 'medical-device'
-			                ]
-			            ],
-			            'posts_per_page' => 8,
+			            'category'       => ['medical-device', 'choi-gem'],          // ← Slug của taxonomy "category" (CPT post)
+			            //'category'    => 10,                        // Hoặc dùng term_id nếu thích
 			            'pinned_first'   => false,
+			            'posts_per_page' => 8,
 			        ],
 			        'grid' => [
-			            'post_type'      => 'event',
-			            'flags'          => ['medical-device', 'hot'],
-			            'posts_per_page' => 4,
+			            'post_type'        => 'event',
+			            'flags'            => ['hot'],
+			            'event-categories' => 'medical-device',        // ← Slug của taxonomy "event-categories" (CPT event)
+			            // 'event-categories' => 67,                   // Hoặc dùng term_id
+			            'posts_per_page'   => 4,
 			        ],
 			        'link_type' => 'medical'
 			    ],
 
 			    'first-aid' => [
 			        'slide' => [
-			            'post_type'      => 'event',
-			            'flags'          => ['first-aid'],
-			            'posts_per_page' => 8,
-			            'pinned_first'   => true,
+			            'post_type'        => 'event',
+			            'flags'            => ['first-aid'],
+			            'event-categories' => 'first-aid',             // taxonomy event-categories
+			            'pinned_first'     => true,
+			            'posts_per_page'   => 8,
 			        ],
 			        'grid' => [
-			            'post_type'      => 'post',
-			            'flags'          => ['editors_pick', 'hot'],
-			            'posts_per_page' => 4,
+			            'post_type'        => 'event',
+			            'flags'            => ['first-aid', 'hot'],
+			            'event-categories' => 'first-aid',
+			            'posts_per_page'   => 4,
 			        ],
 			        'link_type' => 'first-aid'
 			    ],
 
 			    'diabetic-care' => [
 			        'slide' => [
-			            'post_type'      => 'post',
+			            'post_type'      => 'post',                    // CPT post
 			            'flags'          => ['diabetic'],
-			            'tax_query'      => [
-			                [
-			                    'taxonomy' => 'category',
-			                    'field'    => 'slug',
-			                    'terms'    => 'diabetic-care'
-			                ]
-			            ],
-			            'posts_per_page' => 8,
+			            'category'       => 'diabetic-care',           // taxonomy category
 			            'pinned_first'   => true,
+			            'posts_per_page' => 8,
 			        ],
 			        'grid' => [
-			            'post_type'      => 'event',
-			            'flags'          => ['diabetic-care'],
-			            'posts_per_page' => 4,
+			            'post_type'        => 'event',
+			            'flags'            => ['diabetic-care'],
+			            'event-categories' => 'diabetic-care',         // taxonomy event-categories
+			            'posts_per_page'   => 4,
 			        ],
 			        'link_type' => 'diabetic'
 			    ],
 			];
 
-			// Query với cache + điều kiện đầy đủ
+			// ================== QUERY + CACHE (KHÔNG CẦN SỬA) ==================
 			$tab_data = [];
 			$all_posts_for_prefetch = [];
 
 			foreach ($tab_configs as $tab_id => $config) {
-			    $slide_posts = \App\Helpers\QueryCache::getCachedAdvancedPosts(
-			        "slide_{$tab_id}", 
-			        $config['slide'], 
-			        300
-			    );
-
-			    $grid_posts = \App\Helpers\QueryCache::getCachedAdvancedPosts(
-			        "grid_{$tab_id}", 
-			        $config['grid'], 
-			        300
-			    );
+			    $slide_posts = \App\Helpers\QueryCache::getCachedAdvancedPosts("slide_{$tab_id}", $config['slide'], 300);
+			    $grid_posts  = \App\Helpers\QueryCache::getCachedAdvancedPosts("grid_{$tab_id}",  $config['grid'],  300);
 
 			    $tab_data[$tab_id] = [
 			        'slide_posts' => $slide_posts,
@@ -127,7 +100,6 @@
 			    $all_posts_for_prefetch = array_merge($all_posts_for_prefetch, $slide_posts, $grid_posts);
 			}
 
-			// Bulk prefetch
 			if (!empty($all_posts_for_prefetch)) {
 			    sage_prefetch_link_posts($all_posts_for_prefetch);
 			}
