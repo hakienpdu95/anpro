@@ -145,3 +145,13 @@ Sắp xếp: Tất cả bài ghim lên đầu → sau đó là bài mới nhất
 Nếu không bật → sắp xếp bình thường theo date.
 
 Nó hoàn toàn tự động, không làm chậm hệ thống nhờ cache version của bạn.
+
+## Thêm Index DB (chạy 1 lần – tăng tốc pinned x15–25 lần)
+
+-- Cho bảng event
+ALTER TABLE `wp_event_meta` 
+ADD INDEX `idx_pinned_flags` (`meta_key`(50), `meta_value`(20), `post_id`);
+
+-- Cho bảng post mặc định
+ALTER TABLE `wp_post_custom_meta` 
+ADD INDEX `idx_pinned_flags` (`meta_key`(50), `meta_value`(20), `post_id`);
