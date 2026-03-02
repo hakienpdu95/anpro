@@ -156,6 +156,32 @@ ADD INDEX `idx_pinned_flags` (`meta_key`(50), `meta_value`(20), `post_id`);
 ALTER TABLE `wp_post_custom_meta` 
 ADD INDEX `idx_pinned_flags` (`meta_key`(50), `meta_value`(20), `post_id`);
 
+## CHẠY 1 LẦN – TẠO INDEX DB (TĂNG TỐC 10–20 LẦN)
+-- Cho CPT event
+ALTER TABLE `wp_event_meta` 
+ADD INDEX `idx_search_meta` (`meta_key`(50), `meta_value`(191)),
+ADD INDEX `idx_search_post` (`post_id`, `meta_key`(50));
+
+-- Cho CPT post mặc định
+ALTER TABLE `wp_post_custom_meta` 
+ADD INDEX `idx_search_meta` (`meta_key`(50), `meta_value`(191)),
+ADD INDEX `idx_search_post` (`post_id`, `meta_key`(50));
+
+-- ================================================
+-- INDEX TỐI ƯU CHO CẢ PINNED + SEARCH (11/10)
+-- ================================================
+
+-- Cho bảng event
+ALTER TABLE `wp_event_meta`
+    ADD INDEX IF NOT EXISTS `idx_meta_composite` (`meta_key`(50), `meta_value`(191), `post_id`),
+    ADD INDEX IF NOT EXISTS `idx_post_meta` (`post_id`, `meta_key`(50));
+
+-- Cho bảng post mặc định
+ALTER TABLE `wp_post_custom_meta`
+    ADD INDEX IF NOT EXISTS `idx_meta_composite` (`meta_key`(50), `meta_value`(191), `post_id`),
+    ADD INDEX IF NOT EXISTS `idx_post_meta` (`post_id`, `meta_key`(50));
+    
+
 ## Cách dùng mới (khuyến nghị – ngắn gọn nhất)
 'slide' => [
     'post_type'      => 'event',
