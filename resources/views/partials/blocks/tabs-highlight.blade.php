@@ -47,13 +47,13 @@
 			            'flags'          => ['featured'],
 			            'tax_query'      => [
 			                [
-			                    'taxonomy' => 'category',   // hoặc 'event-categories' tùy CPT
+			                    'taxonomy' => 'category',
 			                    'field'    => 'slug',
 			                    'terms'    => 'medical-device'
 			                ]
 			            ],
 			            'posts_per_page' => 8,
-			            'pinned_first'   => true,
+			            'pinned_first'   => false,
 			        ],
 			        'grid' => [
 			            'post_type'      => 'event',
