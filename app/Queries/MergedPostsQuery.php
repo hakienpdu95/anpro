@@ -235,23 +235,117 @@ class MergedPostsQuery
     }
 
     /** ====================== HELPER ====================== */
-    public static function latest(int $limit = 6, array $post_types = ['post', 'event']): WP_Query
-    {
-        return self::get(['post_types' => $post_types, 'posts_per_page' => $limit, 'orderby' => 'date', 'order' => 'DESC']);
-    }
-
+    /**
+     * LẤY BÀI CÓ FLAG 'breaking' TỪ NHIỀU CPT (post + event + ...)
+     * Trả về WP_Query chuẩn để dùng loop trong Blade
+     */
     public static function breaking(int $limit = 6, array $post_types = ['post', 'event']): WP_Query
     {
-        return self::get(['post_types' => $post_types, 'posts_per_page' => $limit, 'meta_query' => [['key' => 'flags', 'value' => ['breaking'], 'compare' => 'IN']]]);
+        if (empty($post_types)) {
+            return new WP_Query(['post__in' => [0]]); // empty query
+        }
+
+        $all_post_ids = [];
+
+        foreach ($post_types as $post_type) {
+            $posts = \App\Helpers\QueryHelper::getPostsWithAllFlags(
+                $post_type,
+                ['breaking'],
+                $limit * 3   // lấy dư để sort chính xác
+            );
+
+            $all_post_ids = array_merge($all_post_ids, wp_list_pluck($posts, 'ID'));
+        }
+
+        $all_post_ids = array_unique($all_post_ids);
+
+        // Nếu không có bài nào
+        if (empty($all_post_ids)) {
+            return new WP_Query(['post__in' => [0]]);
+        }
+
+        // Tạo WP_Query chuẩn, sort theo ngày mới nhất
+        return new WP_Query([
+            'post_type'              => $post_types,
+            'post__in'               => $all_post_ids,
+            'posts_per_page'         => $limit,
+            'orderby'                => 'date',
+            'order'                  => 'DESC',
+            'suppress_filters'       => false,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+        ]);
     }
 
+    /**
+     * BÀI MỚI NHẤT (latest) – Từ nhiều CPT, sắp xếp theo ngày đăng
+     */
+    public static function latest(int $limit = 6, array $post_types = ['post', 'event']): WP_Query
+    {
+        return new WP_Query([
+            'post_type'              => $post_types,
+            'posts_per_page'         => $limit,
+            'orderby'                => 'date',
+            'order'                  => 'DESC',
+            'post_status'            => 'publish',
+            'suppress_filters'       => false,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+        ]);
+    }
+
+    /**
+     * BÀI HOT – Flag 'hot' từ nhiều CPT
+     */
     public static function hot(int $limit = 5, array $post_types = ['post', 'event']): WP_Query
     {
-        return self::get(['post_types' => $post_types, 'posts_per_page' => $limit, 'meta_query' => [['key' => 'flags', 'value' => ['hot'], 'compare' => 'IN']]]);
+        return self::getByFlags(['hot'], $limit, $post_types);
     }
 
+    /**
+     * BÀI FEATURED – Flag 'featured' từ nhiều CPT
+     */
     public static function featured(int $limit = 5, array $post_types = ['post', 'event']): WP_Query
     {
-        return self::get(['post_types' => $post_types, 'posts_per_page' => $limit, 'meta_query' => [['key' => 'flags', 'value' => ['featured'], 'compare' => 'IN']]]);
+        return self::getByFlags(['featured'], $limit, $post_types);
+    }
+
+    /**
+     * HÀM CHUNG TỐI ƯU – Lấy theo flags từ nhiều CPT (dùng chung cho hot, featured, breaking...)
+     */
+    private static function getByFlags(array $flags, int $limit = 5, array $post_types = ['post', 'event']): WP_Query
+    {
+        $all_post_ids = [];
+
+        foreach ($post_types as $post_type) {
+            $posts = \App\Helpers\QueryHelper::getPostsWithAllFlags(
+                $post_type,
+                $flags,
+                $limit * 3   // lấy dư để sort chính xác sau khi merge
+            );
+
+            $all_post_ids = array_merge($all_post_ids, wp_list_pluck($posts, 'ID'));
+        }
+
+        $all_post_ids = array_unique($all_post_ids);
+
+        if (empty($all_post_ids)) {
+            return new WP_Query(['post__in' => [0]]); // empty query
+        }
+
+        return new WP_Query([
+            'post_type'              => $post_types,
+            'post__in'               => $all_post_ids,
+            'posts_per_page'         => $limit,
+            'orderby'                => 'date',
+            'order'                  => 'DESC',
+            'post_status'            => 'publish',
+            'suppress_filters'       => false,
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+        ]);
     }
 }
