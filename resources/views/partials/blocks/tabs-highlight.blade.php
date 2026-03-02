@@ -11,101 +11,127 @@
 
 		<div class="tab-content">
 		    @php
-		        // ================== CONFIG SIÊU LINH HOẠT CHO TỪNG TAB ==================
-		        // Anh chỉ cần sửa post_type + flags + limit ở đây là xong hết
-		        $tab_configs = [
-		            'all-products' => [
-		                'slide' => [
-		                    'post_type' => 'event',
-		                    'flags'     => ['hot'],
-		                    'limit'     => 8
-		                ],
-		                'grid' => [
-		                    'post_type' => 'event',
-		                    'flags'     => ['breaking'],
-		                    'limit'     => 4
-		                ],
-		                'link_type' => 'listing'
-		            ],
+			// ================== CONFIG SIÊU LINH HOẠT (bạn chỉ cần sửa ở đây) ==================
+			$tab_configs = [
+			    'all-products' => [
+			        'slide' => [
+			            'post_type'      => 'event',
+			            'flags'          => ['hot'],
+			            'meta_query'     => [
+			                [
+			                    'key'     => 'is_pinned',
+			                    'value'   => '1',
+			                    'compare' => '='
+			                ],
+			                [
+			                    'key'     => 'pinned_until',
+			                    'value'   => current_time('mysql'),
+			                    'compare' => '>=',
+			                    'type'    => 'DATETIME'
+			                ]
+			            ],
+			            'pinned_first'   => true,
+			            'posts_per_page' => 8,
+			        ],
+			        'grid' => [
+			            'post_type'      => 'event',
+			            'flags'          => ['breaking'],
+			            'posts_per_page' => 4,
+			        ],
+			        'link_type' => 'listing'
+			    ],
 
-		            'medical-device' => [
-		                'slide' => [
-		                    'post_type' => 'post',      // ← anh sửa post_type nếu khác
-		                    'flags'     => ['featured'],   // ← anh sửa flags
-		                    'limit'     => 8
-		                ],
-		                'grid' => [
-		                    'post_type' => 'event',
-		                    'flags'     => ['medical-device'],
-		                    'limit'     => 4
-		                ],
-		                'link_type' => 'medical'
-		            ],
+			    'medical-device' => [
+			        'slide' => [
+			            'post_type'      => 'post',
+			            'flags'          => ['featured'],
+			            'tax_query'      => [
+			                [
+			                    'taxonomy' => 'category',   // hoặc 'event-categories' tùy CPT
+			                    'field'    => 'slug',
+			                    'terms'    => 'medical-device'
+			                ]
+			            ],
+			            'posts_per_page' => 8,
+			            'pinned_first'   => true,
+			        ],
+			        'grid' => [
+			            'post_type'      => 'event',
+			            'flags'          => ['medical-device', 'hot'],
+			            'posts_per_page' => 4,
+			        ],
+			        'link_type' => 'medical'
+			    ],
 
-		            'first-aid' => [
-		                'slide' => [
-		                    'post_type' => 'event',
-		                    'flags'     => ['first-aid'],
-		                    'limit'     => 8
-		                ],
-		                'grid' => [
-		                    'post_type' => 'event',
-		                    'flags'     => ['first-aid', 'hot'],
-		                    'limit'     => 4
-		                ],
-		                'link_type' => 'first-aid'
-		            ],
+			    'first-aid' => [
+			        'slide' => [
+			            'post_type'      => 'event',
+			            'flags'          => ['first-aid'],
+			            'posts_per_page' => 8,
+			            'pinned_first'   => true,
+			        ],
+			        'grid' => [
+			            'post_type'      => 'event',
+			            'flags'          => ['first-aid', 'hot'],
+			            'posts_per_page' => 4,
+			        ],
+			        'link_type' => 'first-aid'
+			    ],
 
-		            'diabetic-care' => [
-		                'slide' => [
-		                    'post_type' => 'post',      // ← anh sửa post_type nếu khác
-		                    'flags'     => ['diabetic'],
-		                    'limit'     => 8
-		                ],
-		                'grid' => [
-		                    'post_type' => 'event',
-		                    'flags'     => ['diabetic-care'],
-		                    'limit'     => 4
-		                ],
-		                'link_type' => 'diabetic'
-		            ],
-		        ];
+			    'diabetic-care' => [
+			        'slide' => [
+			            'post_type'      => 'post',
+			            'flags'          => ['diabetic'],
+			            'tax_query'      => [
+			                [
+			                    'taxonomy' => 'category',
+			                    'field'    => 'slug',
+			                    'terms'    => 'diabetic-care'
+			                ]
+			            ],
+			            'posts_per_page' => 8,
+			            'pinned_first'   => true,
+			        ],
+			        'grid' => [
+			            'post_type'      => 'event',
+			            'flags'          => ['diabetic-care'],
+			            'posts_per_page' => 4,
+			        ],
+			        'link_type' => 'diabetic'
+			    ],
+			];
 
-		        $tab_data = [];
-		        $all_posts_for_prefetch = [];
+			// Query với cache + điều kiện đầy đủ
+			$tab_data = [];
+			$all_posts_for_prefetch = [];
 
-		        foreach ($tab_configs as $tab_id => $config) {
-		            // Query Slide (có thể khác post_type với grid)
-		            $slide_posts = \App\Helpers\QueryCache::getPostsWithAllFlags(
-		                $config['slide']['post_type'],
-		                $config['slide']['flags'],
-		                $config['slide']['limit'],
-		                300
-		            );
+			foreach ($tab_configs as $tab_id => $config) {
+			    $slide_posts = \App\Helpers\QueryCache::getCachedAdvancedPosts(
+			        "slide_{$tab_id}", 
+			        $config['slide'], 
+			        300
+			    );
 
-		            // Query Grid (có thể khác post_type với slide)
-		            $grid_posts = \App\Helpers\QueryCache::getPostsWithAllFlags(
-		                $config['grid']['post_type'],
-		                $config['grid']['flags'],
-		                $config['grid']['limit'],
-		                300
-		            );
+			    $grid_posts = \App\Helpers\QueryCache::getCachedAdvancedPosts(
+			        "grid_{$tab_id}", 
+			        $config['grid'], 
+			        300
+			    );
 
-		            $tab_data[$tab_id] = [
-		                'slide_posts' => $slide_posts,
-		                'grid_posts'  => $grid_posts,
-		                'link_type'   => $config['link_type']
-		            ];
+			    $tab_data[$tab_id] = [
+			        'slide_posts' => $slide_posts,
+			        'grid_posts'  => $grid_posts,
+			        'link_type'   => $config['link_type']
+			    ];
 
-		            // Thu thập tất cả posts để prefetch 1 lần
-		            $all_posts_for_prefetch = array_merge($all_posts_for_prefetch, $slide_posts, $grid_posts);
-		        }
+			    $all_posts_for_prefetch = array_merge($all_posts_for_prefetch, $slide_posts, $grid_posts);
+			}
 
-		        // BULK PREFETCH – TỐI ƯU HIỆU SUẤT CAO NHẤT
-		        if (!empty($all_posts_for_prefetch)) {
-		            sage_prefetch_link_posts($all_posts_for_prefetch);
-		        }
-		    @endphp
+			// Bulk prefetch
+			if (!empty($all_posts_for_prefetch)) {
+			    sage_prefetch_link_posts($all_posts_for_prefetch);
+			}
+			@endphp
 
 		    <!-- Render các tab -->
 		    @foreach ($tab_data as $tab_id => $data)

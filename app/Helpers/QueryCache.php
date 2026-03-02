@@ -36,4 +36,26 @@ class QueryCache
         }
         return $result;
     }
+
+    /**
+     * Cache cho query nâng cao (tự động bump khi save post)
+     */
+    public static function getCachedAdvancedPosts(string $cache_suffix, array $config, int $ttl = 300): array
+    {
+        $start = microtime(true);
+        $post_type = $config['post_type'] ?? 'post';
+        $version   = CacheHelper::getDataVersion($post_type);
+
+        $key = "advanced_{$cache_suffix}_v{$version}_" . md5(json_encode($config));
+
+        $result = DataCache::remember($key, $ttl, function () use ($config) {
+            return QueryHelper::getAdvancedPosts($config);
+        });
+
+        $time = round((microtime(true) - $start) * 1000, 2);
+        if (self::$debug) {
+            error_log("[QUERY CACHE] getCachedAdvancedPosts | {$time}ms | v{$version} | {$cache_suffix}");
+        }
+        return $result;
+    }    
 }

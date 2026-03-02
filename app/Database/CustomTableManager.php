@@ -72,6 +72,8 @@ class CustomTableManager {
         add_action('load-post.php', [self::class, 'preloadCurrentPostMeta']);
         add_action('load-post-new.php', [self::class, 'preloadCurrentPostMeta']);
         add_filter('the_posts', [self::class, 'preloadThePostsMeta'], 10, 2);
+
+        add_action('pre_get_posts', [self::class, 'preGetPostsHandler'], 5);
     }
 
     private static function shouldHandle(int $post_id): bool {
@@ -312,13 +314,12 @@ class CustomTableManager {
         self::flushPostCache($post_id);
     }
 
-    // ==================== META_QUERY 10/10 (FULL WP SUPPORT) ====================
     public static function filterPostsClauses(array $clauses, WP_Query $query): array {
         $post_type = $query->get('post_type');
         if (is_array($post_type)) $post_type = $post_type[0] ?? '';
         if (!$post_type || !in_array($post_type, self::$registered)) return $clauses;
 
-        $meta_query = $query->get('meta_query');
+        $meta_query = $query->get('custom_meta_query') ?: $query->get('meta_query');
         if (empty($meta_query)) return $clauses;
 
         global $wpdb;
@@ -336,9 +337,7 @@ class CustomTableManager {
             $clauses['where'] .= $sql['where'];
         }
 
-        // Group by tránh duplicate khi JOIN
         $clauses['groupby'] = $wpdb->posts . '.ID';
-
         return $clauses;
     }
 
@@ -418,4 +417,17 @@ class CustomTableManager {
         return in_array($meta_key, $sensitive, true)
             || in_array($meta_key, self::$multipleSimpleKeys, true);
     }    
+
+    public static function preGetPostsHandler(WP_Query $query): void {
+        if (is_admin()) return;
+        $post_type = $query->get('post_type');
+        if (is_array($post_type)) $post_type = $post_type[0] ?? '';
+        if (!$post_type || !in_array($post_type, self::$registered)) return;
+
+        $meta_query = $query->get('meta_query');
+        if (!empty($meta_query)) {
+            $query->set('custom_meta_query', $meta_query);   // lưu riêng
+            $query->set('meta_query', null);                 // NGĂN WP join wp_postmeta
+        }
+    }
 }
