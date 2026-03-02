@@ -430,4 +430,12 @@ class CustomTableManager {
             $query->set('meta_query', null);                 // NGĂN WP join wp_postmeta
         }
     }
+
+    /**
+     * PUBLIC CHECK – Dùng cho ViewCounter và các class khác
+     */
+    public static function isHandledPost(int $post_id): bool {
+        if ($post_id <= 0) return false;
+        return in_array(get_post_type($post_id), self::$registered ?? []);
+    }    
 }

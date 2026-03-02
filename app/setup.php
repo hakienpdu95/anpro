@@ -351,6 +351,10 @@ add_action('admin_enqueue_scripts', function () {
 require_once get_theme_file_path('app/Search/SearchManager.php');
 \App\Search\SearchManager::init();
 
+// === VIEW COUNTER 10/10 ===
+require_once get_theme_file_path('app/Helpers/ViewCounter.php');
+\App\Helpers\ViewCounter::init();
+
 // === CMB2 MODULE ===
 require_once get_theme_file_path('app/CMB2/Registrar.php');
 \App\CMB2\Registrar::init();

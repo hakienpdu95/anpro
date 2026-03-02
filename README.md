@@ -208,3 +208,12 @@ Muốn nhiều danh mục cùng lúc?
 Ví dụ: 'event-categories' => ['medical-device', 'first-aid']
 Muốn dùng tax_query cũ (nếu cần phức tạp hơn)?
 Vẫn giữ nguyên như trước: 'tax_query' => [ ['taxonomy' => 'event-categories', 'field' => 'slug', 'terms' => 'medical-device'] ]
+
+## Hiển thị số view (dùng ở bất kỳ đâu)
+@php
+$views = \App\Helpers\ViewCounter::getViews(get_the_ID());
+@endphp
+
+<span class="text-gray-500 text-sm">
+    👁️ {{ number_format($views) }} lượt xem
+</span>
