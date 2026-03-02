@@ -441,4 +441,21 @@ if (!function_exists('sage_social_icons')) {
             return $badges[$flag] ?? '';
         }
     }    
+    
+    if (!function_exists('sage_views')) {
+        function sage_views($post = null) {
+            $id = $post ? (is_object($post) ? $post->ID : $post) : get_the_ID();
+            return number_format(\App\Helpers\ViewCounter::getViews($id));
+        }
+    }
+
+    if (!function_exists('sage_hot_badge')) {
+        function sage_hot_badge($post = null) {
+            $id = $post ? (is_object($post) ? $post->ID : $post) : get_the_ID();
+            if (\App\Helpers\ViewCounter::isHot($id)) {
+                return '<span class="absolute top-3 right-3 bg-red-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">🔥 ĐANG HOT</span>';
+            }
+            return '';
+        }
+    }
 }

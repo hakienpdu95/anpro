@@ -167,20 +167,12 @@ ALTER TABLE `wp_post_custom_meta`
 ADD INDEX `idx_search_meta` (`meta_key`(50), `meta_value`(191)),
 ADD INDEX `idx_search_post` (`post_id`, `meta_key`(50));
 
--- ================================================
--- INDEX TỐI ƯU CHO CẢ PINNED + SEARCH (11/10)
--- ================================================
+ALTER TABLE `wp_event_meta` 
+  ADD INDEX `idx_post_views` (`meta_key`(20), `meta_value`(20), `post_id`);
 
--- Cho bảng event
-ALTER TABLE `wp_event_meta`
-    ADD INDEX IF NOT EXISTS `idx_meta_composite` (`meta_key`(50), `meta_value`(191), `post_id`),
-    ADD INDEX IF NOT EXISTS `idx_post_meta` (`post_id`, `meta_key`(50));
+ALTER TABLE `wp_post_custom_meta` 
+  ADD INDEX `idx_post_views` (`meta_key`(20), `meta_value`(20), `post_id`);
 
--- Cho bảng post mặc định
-ALTER TABLE `wp_post_custom_meta`
-    ADD INDEX IF NOT EXISTS `idx_meta_composite` (`meta_key`(50), `meta_value`(191), `post_id`),
-    ADD INDEX IF NOT EXISTS `idx_post_meta` (`post_id`, `meta_key`(50));
-    
 
 ## Cách dùng mới (khuyến nghị – ngắn gọn nhất)
 'slide' => [
@@ -210,10 +202,5 @@ Muốn dùng tax_query cũ (nếu cần phức tạp hơn)?
 Vẫn giữ nguyên như trước: 'tax_query' => [ ['taxonomy' => 'event-categories', 'field' => 'slug', 'terms' => 'medical-device'] ]
 
 ## Hiển thị số view (dùng ở bất kỳ đâu)
-@php
-$views = \App\Helpers\ViewCounter::getViews(get_the_ID());
-@endphp
-
-<span class="text-gray-500 text-sm">
-    👁️ {{ number_format($views) }} lượt xem
-</span>
+{!! sage_hot_badge($post) !!}
+<span class="text-sm text-gray-500">👁️ {{ sage_views($post) }} lượt xem</span>

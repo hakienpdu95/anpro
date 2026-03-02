@@ -21,6 +21,10 @@
                                 @php $primary_flag = sage_get_primary_flag($post); @endphp
                                 {!! sage_flag_badge($primary_flag) !!}
 
+                                <!-- Views -->
+                                <div class="absolute bottom-3 right-3 bg-black/70 text-white text-xs px-2.5 py-1 rounded-full flex items-center gap-1">
+                                    👁️ {{ sage_views($post) }}
+                                </div>
                                 {!! sage_post_link_open($post, 'block w-full h-full', 'featured') !!}
                                     {!! get_the_post_thumbnail($post->ID, 'medium_large', ['class' => 'w-full h-full object-cover transition-transform duration-300']) !!}
                                 {!! sage_post_link_close() !!}
