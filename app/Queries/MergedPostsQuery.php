@@ -235,56 +235,83 @@ class MergedPostsQuery
     }
 
     /** ====================== HELPER ====================== */
-    /**
-     * LẤY BÀI CÓ FLAG 'breaking' TỪ NHIỀU CPT (post + event + ...)
-     * Trả về WP_Query chuẩn để dùng loop trong Blade
-     */
-    public static function breaking(int $limit = 6, array $post_types = ['post', 'event']): WP_Query
+
+    public static function latest(int $limit = 6, array $post_types = ['post', 'event']): WP_Query
     {
-        if (empty($post_types)) {
-            return new WP_Query(['post__in' => [0]]); // empty query
+        return \App\Database\CustomTableManager::query([
+            'post_type'              => $post_types,
+            'posts_per_page'         => $limit,
+            'orderby'                => 'date',
+            'order'                  => 'DESC',
+            'post_status'            => 'publish',
+            'no_found_rows'          => true,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+            'suppress_filters'       => false,
+        ]);
+    }
+
+    /**
+     * HÀM CORE TỐI ƯU 12/10 – Hỗ trợ pinned_first cho NHIỀU CPT (post + event + ...)
+     */
+    private static function getByFlags(array $flags, int $limit = 5, array $post_types = ['post', 'event'], bool $pinned_first = false): WP_Query
+    {
+        if (empty($flags) || empty($post_types)) {
+            return new WP_Query(['post__in' => [0]]);
         }
 
         $all_post_ids = [];
 
         foreach ($post_types as $post_type) {
-            $posts = \App\Helpers\QueryHelper::getPostsWithAllFlags(
-                $post_type,
-                ['breaking'],
-                $limit * 3   // lấy dư để sort chính xác
-            );
+            // Bỏ qua CPT chưa register
+            if (!in_array($post_type, \App\Database\CustomTableManager::$registered ?? [])) {
+                continue;
+            }
 
-            $all_post_ids = array_merge($all_post_ids, wp_list_pluck($posts, 'ID'));
+            if ($pinned_first) {
+                // === PINNED_FIRST: Query riêng từng CPT để join đúng bảng meta ===
+                $meta_query = [
+                    ['key' => 'flags',   'value' => $flags, 'compare' => 'IN'],
+                    ['key' => 'is_pinned', 'value' => '1', 'compare' => '='],
+                ];
+
+                $query = \App\Database\CustomTableManager::query([
+                    'post_type'              => $post_type,
+                    'posts_per_page'         => $limit * 4,
+                    'meta_query'             => $meta_query,
+                    'orderby'                => ['meta_value_num' => 'DESC', 'date' => 'DESC'],
+                    'post_status'            => 'publish',
+                    'no_found_rows'          => true,
+                    'update_post_meta_cache' => false,
+                    'update_post_term_cache' => false,
+                    'suppress_filters'       => false,
+                ]);
+
+                $posts = $query->posts ?? [];
+            } else {
+                // Flags bình thường – dùng raw SQL nhanh nhất
+                $posts = \App\Helpers\QueryHelper::getPostsWithAllFlags(
+                    $post_type,
+                    $flags,
+                    $limit * 4
+                );
+            }
+
+            if (!empty($posts)) {
+                $all_post_ids = array_merge($all_post_ids, wp_list_pluck($posts, 'ID'));
+            }
         }
 
-        $all_post_ids = array_unique($all_post_ids);
+        $all_post_ids = array_unique(array_filter($all_post_ids));
 
-        // Nếu không có bài nào
         if (empty($all_post_ids)) {
             return new WP_Query(['post__in' => [0]]);
         }
 
-        // Tạo WP_Query chuẩn, sort theo ngày mới nhất
-        return new WP_Query([
+        // Final query – sort theo ngày mới nhất
+        return \App\Database\CustomTableManager::query([
             'post_type'              => $post_types,
             'post__in'               => $all_post_ids,
-            'posts_per_page'         => $limit,
-            'orderby'                => 'date',
-            'order'                  => 'DESC',
-            'suppress_filters'       => false,
-            'no_found_rows'          => true,
-            'update_post_meta_cache' => false,
-            'update_post_term_cache' => false,
-        ]);
-    }
-
-    /**
-     * BÀI MỚI NHẤT (latest) – Từ nhiều CPT, sắp xếp theo ngày đăng
-     */
-    public static function latest(int $limit = 6, array $post_types = ['post', 'event']): WP_Query
-    {
-        return new WP_Query([
-            'post_type'              => $post_types,
             'posts_per_page'         => $limit,
             'orderby'                => 'date',
             'order'                  => 'DESC',
@@ -296,56 +323,20 @@ class MergedPostsQuery
         ]);
     }
 
-    /**
-     * BÀI HOT – Flag 'hot' từ nhiều CPT
-     */
+    /* ================== HÀM PUBLIC ================== */
+
+    public static function breaking(int $limit = 6, array $post_types = ['post', 'event']): WP_Query
+    {
+        return self::getByFlags(['breaking'], $limit, $post_types, true);   // ưu tiên pinned
+    }
+
     public static function hot(int $limit = 5, array $post_types = ['post', 'event']): WP_Query
     {
         return self::getByFlags(['hot'], $limit, $post_types);
     }
 
-    /**
-     * BÀI FEATURED – Flag 'featured' từ nhiều CPT
-     */
     public static function featured(int $limit = 5, array $post_types = ['post', 'event']): WP_Query
     {
         return self::getByFlags(['featured'], $limit, $post_types);
-    }
-
-    /**
-     * HÀM CHUNG TỐI ƯU – Lấy theo flags từ nhiều CPT (dùng chung cho hot, featured, breaking...)
-     */
-    private static function getByFlags(array $flags, int $limit = 5, array $post_types = ['post', 'event']): WP_Query
-    {
-        $all_post_ids = [];
-
-        foreach ($post_types as $post_type) {
-            $posts = \App\Helpers\QueryHelper::getPostsWithAllFlags(
-                $post_type,
-                $flags,
-                $limit * 3   // lấy dư để sort chính xác sau khi merge
-            );
-
-            $all_post_ids = array_merge($all_post_ids, wp_list_pluck($posts, 'ID'));
-        }
-
-        $all_post_ids = array_unique($all_post_ids);
-
-        if (empty($all_post_ids)) {
-            return new WP_Query(['post__in' => [0]]); // empty query
-        }
-
-        return new WP_Query([
-            'post_type'              => $post_types,
-            'post__in'               => $all_post_ids,
-            'posts_per_page'         => $limit,
-            'orderby'                => 'date',
-            'order'                  => 'DESC',
-            'post_status'            => 'publish',
-            'suppress_filters'       => false,
-            'no_found_rows'          => true,
-            'update_post_meta_cache' => false,
-            'update_post_term_cache' => false,
-        ]);
     }
 }
