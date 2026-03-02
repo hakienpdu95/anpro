@@ -157,26 +157,35 @@ class QueryHelper
     }
 
     /**
-     * QUERY SIÊU LINH HOẠT - Hỗ trợ flags + tax_query + meta_query phức tạp (pinned, redirect, date...)
-     * Tự động dùng CustomTableManager → meta_query cực nhanh
+     * QUERY 10/10 – SIÊU NHANH (Raw SQL khi cần + pinned ưu tiên riêng)
      */
     public static function getAdvancedPosts(array $config = [], int $ttl = 300): array
     {
         $defaults = [
             'post_type'      => 'post',
             'posts_per_page' => 8,
-            'flags'          => [],           // AND flags
+            'flags'          => [],
             'tax_query'      => [],
             'meta_query'     => [],
-            'orderby'        => 'date DESC',
-            'pinned_first'   => false,        // tự động ưu tiên pinned
+            'pinned_first'   => false,
             'post_status'    => 'publish',
         ];
 
         $config = wp_parse_args($config, $defaults);
+        $post_type = $config['post_type'];
 
+        // === 10/10: Nếu bật pinned_first → dùng raw pinned query siêu nhanh ===
+        if ($config['pinned_first'] && !empty($config['flags'])) {
+            return self::getPinnedPostsWithFlags(
+                $post_type,
+                $config['flags'],
+                $config['posts_per_page']
+            );
+        }
+
+        // === Trường hợp bình thường (không pinned hoặc không flags) ===
         $args = [
-            'post_type'              => $config['post_type'],
+            'post_type'              => $post_type,
             'posts_per_page'         => $config['posts_per_page'],
             'post_status'            => $config['post_status'],
             'no_found_rows'          => true,
@@ -185,49 +194,65 @@ class QueryHelper
             'suppress_filters'       => false,
         ];
 
-        // === FLAGS (AND logic) ===
         if (!empty($config['flags'])) {
             if (count($config['flags']) === 1) {
-                $args['meta_query'][] = [
-                    'key'     => 'flags',
-                    'value'   => $config['flags'][0],
-                    'compare' => '=',
-                ];
+                $args['meta_query'][] = ['key' => 'flags', 'value' => $config['flags'][0]];
             } else {
-                // Nhiều flags → dùng hàm raw cũ của bạn (đã tối ưu)
-                return self::getPostsWithAllFlags(
-                    $config['post_type'],
-                    $config['flags'],
-                    $config['posts_per_page']
-                );
+                return self::getPostsWithAllFlags($post_type, $config['flags'], $config['posts_per_page']);
             }
         }
 
-        // === TAX QUERY ===
         if (!empty($config['tax_query'])) {
             $args['tax_query'] = $config['tax_query'];
-            $args['tax_query']['relation'] = 'AND';
         }
-
-        // === META QUERY (is_pinned, pinned_until, is_redirect, event_start...) ===
         if (!empty($config['meta_query'])) {
             $args['meta_query'] = array_merge($args['meta_query'] ?? [], $config['meta_query']);
-            $args['meta_query']['relation'] = 'AND';
         }
 
-        // === ƯU TIÊN PINNED POSTS ===
-        if ($config['pinned_first']) {
-            $args['meta_query'][] = [
-                'key'     => 'is_pinned',
-                'value'   => '1',
-                'compare' => '=',
-            ];
-            $args['orderby'] = 'date DESC';   // pinned_first giờ dùng meta_query (không gây join wp_postmeta)
-        } else {
-            $args['orderby'] = $config['orderby'];
-        }
-
-        $query = \App\Database\CustomTableManager::query($args);
+        $query = CustomTableManager::query($args);
         return $query->posts ?? [];
-    }    
+    }
+
+    /**
+     * PINNED + FLAGS 10/10 – Raw SQL cực nhanh (không đi qua WP_Query)
+     */
+    private static function getPinnedPostsWithFlags(
+        string $post_type,
+        array $flags,
+        int $limit = 8
+    ): array {
+        if (empty($flags)) return [];
+
+        global $wpdb;
+        $table = CustomTableManager::getTableName($post_type);
+        $now   = current_time('mysql');
+        $placeholders = str_repeat('%s,', count($flags) - 1) . '%s';
+
+        $sql = $wpdb->prepare(
+            "SELECT DISTINCT m1.post_id 
+             FROM `$table` m1
+             INNER JOIN `$table` m2 ON m1.post_id = m2.post_id
+             INNER JOIN `$table` m3 ON m1.post_id = m3.post_id
+             INNER JOIN `$wpdb->posts` p ON m1.post_id = p.ID
+             WHERE m1.meta_key = 'flags' 
+               AND m1.meta_value IN ($placeholders)
+               AND m2.meta_key = 'is_pinned' AND m2.meta_value = '1'
+               AND m3.meta_key = 'pinned_until' AND m3.meta_value >= %s
+               AND p.post_status = 'publish'
+             ORDER BY p.post_date DESC
+             LIMIT %d",
+            array_merge($flags, [$now, $limit])
+        );
+
+        $post_ids = $wpdb->get_col($sql);
+        if (empty($post_ids)) return [];
+
+        return get_posts([
+            'post_type'        => $post_type,
+            'post__in'         => $post_ids,
+            'posts_per_page'   => $limit,
+            'orderby'          => 'post__in',
+            'suppress_filters' => false,
+        ]);
+    }  
 }

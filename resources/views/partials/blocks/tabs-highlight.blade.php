@@ -71,8 +71,8 @@
 			            'pinned_first'   => true,
 			        ],
 			        'grid' => [
-			            'post_type'      => 'event',
-			            'flags'          => ['first-aid', 'hot'],
+			            'post_type'      => 'post',
+			            'flags'          => ['editors_pick', 'hot'],
 			            'posts_per_page' => 4,
 			        ],
 			        'link_type' => 'first-aid'
