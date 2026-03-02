@@ -365,4 +365,80 @@ if (!function_exists('sage_social_icons')) {
             return '</a>';
         }
     }
+
+    /**
+     * LẤY FLAGS (giữ nguyên)
+     */
+    if (!function_exists('sage_get_flags')) {
+        function sage_get_flags($post): array
+        {
+            $post_id = is_object($post) ? $post->ID : (int) $post;
+            return $post_id > 0 
+                ? \App\Database\CustomTableManager::getMeta($post_id, 'flags', false) 
+                : [];
+        }
+    }
+
+    /**
+     * LẤY FLAG ƯU TIÊN NHẤT (chỉ 1 flag) – SIÊU NHANH
+     */
+    if (!function_exists('sage_get_primary_flag')) {
+        function sage_get_primary_flag($post): string
+        {
+            $flags = sage_get_flags($post);
+            if (empty($flags)) return '';
+
+            // Kiểm tra field is_pinned trước (ưu tiên tuyệt đối)
+            $is_pinned = \App\Database\CustomTableManager::getMeta($post->ID ?? $post, 'is_pinned');
+            if ($is_pinned === '1' || $is_pinned === 1) {
+                return 'pinned';
+            }
+
+            // Thang điểm ưu tiên
+            $priority = [
+                'pinned'         => 100,
+                'breaking'       => 90,
+                'hot'            => 80,
+                'featured'       => 70,
+                'sponsored'      => 60,
+                'first-aid'      => 50,
+                'diabetic'       => 45,
+                'medical-device' => 40,
+            ];
+
+            $best_flag = '';
+            $best_score = -1;
+
+            foreach ($flags as $flag) {
+                $score = $priority[$flag] ?? 10;   // flag lạ = 10 điểm
+                if ($score > $best_score) {
+                    $best_score = $score;
+                    $best_flag  = $flag;
+                }
+            }
+
+            return $best_flag;
+        }
+    }
+
+    /**
+     * BADGE (chỉ hiển thị 1 cái)
+     */
+    if (!function_exists('sage_flag_badge')) {
+        function sage_flag_badge(string $flag): string
+        {
+            $badges = [
+                'pinned'         => '<span class="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">📌 PINNED</span>',
+                'breaking'       => '<span class="absolute top-3 left-3 bg-orange-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">🚨 BREAKING</span>',
+                'hot'            => '<span class="absolute top-3 left-3 bg-red-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">🔥 HOT</span>',
+                'featured'       => '<span class="absolute top-3 left-3 bg-purple-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">⭐ FEATURED</span>',
+                'sponsored'      => '<span class="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">💰 SPONSORED</span>',
+                'first-aid'      => '<span class="absolute top-3 left-3 bg-green-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">🩹 FIRST AID</span>',
+                'diabetic'       => '<span class="absolute top-3 left-3 bg-amber-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">🩸 DIABETIC</span>',
+                'medical-device' => '<span class="absolute top-3 left-3 bg-cyan-600 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-full shadow">🩺 MEDICAL</span>',
+            ];
+
+            return $badges[$flag] ?? '';
+        }
+    }    
 }

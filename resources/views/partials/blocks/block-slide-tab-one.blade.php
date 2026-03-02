@@ -18,6 +18,9 @@
                         <div class="w-full article-content">
                             <!-- Thumbnail + link -->
                             <div class="w-full h-[350px] overflow-hidden rounded-2xl">
+                                @php $primary_flag = sage_get_primary_flag($post); @endphp
+                                {!! sage_flag_badge($primary_flag) !!}
+
                                 {!! sage_post_link_open($post, 'block w-full h-full', 'featured') !!}
                                     {!! get_the_post_thumbnail($post->ID, 'medium_large', ['class' => 'w-full h-full object-cover transition-transform duration-300']) !!}
                                 {!! sage_post_link_close() !!}
