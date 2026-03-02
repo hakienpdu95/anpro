@@ -39,9 +39,9 @@ class PlaceholderHandler
             return self::$urlCache[$post_id];
         }
 
-        $post_type = get_post_type($post_id);
+        $post_type = get_post_type($post_id) ?: 'post';
 
-        // 1. Ưu tiên Media Library (khuyến nghị mạnh nhất)
+        // 1. Ưu tiên Media Library (tốt nhất cho production)
         if (!empty(self::$config['media_id'])) {
             $url = wp_get_attachment_url(self::$config['media_id']);
             if ($url) {
@@ -49,19 +49,23 @@ class PlaceholderHandler
             }
         }
 
-        // 2. Random nếu bật
+        // 2. Xác định file
         if (self::$config['random_mode'] && !empty(self::$config['random_files'])) {
             $file = self::$config['random_files'][array_rand(self::$config['random_files'])];
         } else {
             $file = self::$postTypeMap[$post_type] ?? self::$config['default_file'];
         }
 
-        // 3. Vite asset với cache
-        if (!isset(self::$viteCache[$file])) {
-            self::$viteCache[$file] = Vite::asset("resources/images/{$file}");
+        // 3. Xử lý URL theo môi trường (DEV vs PRODUCTION)
+        if (app()->environment(['local', 'development']) || (defined('WP_DEBUG') && WP_DEBUG)) {
+            // Development (npm run dev)
+            $url = Vite::asset("resources/images/{$file}");
+        } else {
+            // Production (sau npm run build)
+            $url = get_theme_file_uri("public/images/{$file}");
         }
 
-        return self::$urlCache[$post_id] = self::$viteCache[$file];
+        return self::$urlCache[$post_id] = $url;
     }
 
     public static function replaceWithPlaceholder(string $html, int $post_id, $thumb_id, $size, $attr): string
