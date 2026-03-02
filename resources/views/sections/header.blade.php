@@ -45,13 +45,24 @@
 	<!-- Mobile Menu End -->
 
 	<div class="border border-gray-300 hidden xl:flex header-middle sticky-header border-r-0 border-l-0">
-		<div class="container">
+		<div class="w-full items-center flex justify-between">
 			@if (has_nav_menu('primary_navigation'))
 			<nav class="main-menu">
 				{!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'nav', 'echo' => false]) !!}
 			</nav>
 			@endif
-			<div></div>
+			<div class="search-bar-wrapper xl:block hidden h-full relative px-3">
+			    <button type="button" class="w-full h-full flex justify-center items-center">
+			        <span class="text-primary-900">
+			            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+			                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path>
+			            </svg>
+			        </span>
+			    </button>
+			    <div class="search-form w-[400px] p-5 bg-white shadow-2xl absolute -left-[300px] top-full z-30">
+			        @include('partials.search-form')
+			    </div>
+			</div>
 		</div>
 	</div>
 </header>

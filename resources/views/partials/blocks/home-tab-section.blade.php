@@ -16,7 +16,7 @@
     ], 300)
 
     {{-- GRID --}}
-    @include('partials.blocks/article-thumb-grid', [
+    @include('partials.blocks.article-thumb-grid', [
         'posts'     => $grid_posts,
         'link_type' => $link_type
     ])
