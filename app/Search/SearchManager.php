@@ -10,7 +10,9 @@ class SearchManager {
         add_filter('posts_join', [self::class, 'joinCustomMeta'], 999, 2);
         add_filter('posts_search', [self::class, 'buildOptimizedSearch'], 999, 2);
         add_filter('posts_orderby', [self::class, 'relevanceOrderBy'], 999, 2);
-        add_filter('posts_clauses', [self::class, 'addGroupByToSearch'], 999, 2); // ← FIX DUPLICATE
+        add_filter('posts_clauses', [self::class, 'addGroupByToSearch'], 999, 2);
+        add_filter('posts_distinct', [self::class, 'searchDistinct'], 999, 2);   // ← Thêm an toàn duplicate
+
         add_action('the_posts', [self::class, 'preloadSearchMeta'], 10, 2);
 
         // TẮT CACHE HOÀN TOÀN CHO SEARCH
@@ -19,7 +21,7 @@ class SearchManager {
 
     public static function disableCacheForSearch(): void {
         if (is_search()) {
-            nocache_headers(); // Chống cache browser, CDN, Varnish...
+            nocache_headers();
         }
     }
 
@@ -32,7 +34,7 @@ class SearchManager {
         $query->set('update_post_meta_cache', false);
         $query->set('update_post_term_cache', false);
         $query->set('suppress_filters', false);
-        $query->set('cache_results', false); // Tắt cache WP hoàn toàn
+        $query->set('cache_results', false);           // Tắt cache WP
     }
 
     public static function joinCustomMeta(string $join, \WP_Query $query): string {
@@ -74,24 +76,29 @@ class SearchManager {
 
         global $wpdb;
         $term = trim($query->query_vars['s']);
+        $like1 = '%' . $wpdb->esc_like($term) . '%';
+        $like2 = '%' . $wpdb->esc_like($term);
 
-        return "
-            (CASE 
-                WHEN {$wpdb->posts}.post_title LIKE '%{$term}%' THEN 1 
-                WHEN {$wpdb->posts}.post_title LIKE '%{$term}' THEN 2 
+        return $wpdb->prepare(
+            "(CASE 
+                WHEN {$wpdb->posts}.post_title LIKE %s THEN 1 
+                WHEN {$wpdb->posts}.post_title LIKE %s THEN 2 
                 ELSE 3 
-            END), 
-            {$wpdb->posts}.post_date DESC
-        ";
+            END), {$wpdb->posts}.post_date DESC",
+            $like1, $like2
+        );
     }
 
-    // FIX DUPLICATE CHÍNH – GROUP BY wp_posts.ID
     public static function addGroupByToSearch(array $clauses, \WP_Query $query): array {
         if ($query->is_search() && !is_admin()) {
             global $wpdb;
             $clauses['groupby'] = "{$wpdb->posts}.ID";
         }
         return $clauses;
+    }
+
+    public static function searchDistinct(string $distinct, \WP_Query $query): string {
+        return $query->is_search() ? 'DISTINCT' : $distinct;
     }
 
     public static function preloadSearchMeta(array $posts, \WP_Query $query): array {
