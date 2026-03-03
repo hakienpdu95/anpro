@@ -2,10 +2,10 @@
 	<div class="container">
 		<div class="mb-5 flex xl:flex-row flex-col gap-y-3 items-center xl:justify-between">
 		    <div class="flex gap-x-0 overflow-x-scroll lg:overflow-x-visible home-one-product-filter max-w-full">
-		        <button data-tab="all-products" class="btn btn-large py-1  px-[12px] btn-primary"> All Products </button>
-		        <button data-tab="medical-device" class="btn btn-large py-1  px-[12px] btn-default outline shadow-none"> Medical Device </button>
-		        <button data-tab="first-aid" class="btn btn-large py-1  px-[12px] btn-default outline shadow-none"> First Aid </button>
-		        <button data-tab="diabetic-care" class="btn btn-large py-1  px-[12px] btn-default outline shadow-none"> Diabetic Care </button>
+		        <button data-tab="all-products" class="btn btn-large py-1  px-[12px] btn-primary"> Bài viết gợi ý </button>
+		        <button data-tab="medical-device" class="btn btn-large py-1  px-[12px] btn-default outline shadow-none"> Mẹ chia sẻ kinh nghiệm </button>
+		        <button data-tab="first-aid" class="btn btn-large py-1  px-[12px] btn-default outline shadow-none"> Tư vấn cho con bú </button>
+		        <button data-tab="diabetic-care" class="btn btn-large py-1  px-[12px] btn-default outline shadow-none"> Thực đơn cho bé yêu </button>
 		    </div>
 		</div>
 

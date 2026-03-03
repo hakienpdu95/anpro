@@ -1,13 +1,12 @@
-<footer id="footer" class="bg-[#6697a1] text-white px-3 py-10 border-t border-zinc-800">
+<footer id="footer" class="bg-[#6697a1] text-white px-3 py-10 mt-10">
     <div class="container">
         <div class="grid grid-cols-12 gap-5">
 
             {{-- CỘT 1: Info + Social (rộng hơn) --}}
             <div class="col-span-4">
-                <h3 class="text-white text-2xl font-semibold tracking-tight mb-4">MamaExpert</h3>
+                <h3 class="text-white text-2xl font-semibold tracking-tight mb-4">Vì Gia Đình</h3>
                 <p class="text-sm leading-relaxed mb-8 max-w-md">
-                    เป็นทีมเขียนบทความที่มีความรู้ความชำนาญและประสบการณ์มากกว่า 10 ปี 
-                    เกี่ยวกับการตั้งครรภ์ การคลอด ทารกแรกเกิด การเลี้ยงลูก การเลี้ยงลูกด้วยนมแม่ จิตวิทยาเด็ก
+                    Chúng tôi là những bậc phụ huynh bình thường, đang cùng nhau xây dựng và gìn giữ hạnh phúc gia đình. Chúng tôi không phải là chuyên gia, mà chỉ là những người đi sưu tầm, chọn lọc và chia sẻ những bài viết thực tế, hữu ích nhất về mang thai, sinh nở, chăm sóc trẻ sơ sinh, nuôi dạy con cái, cho con bú, tâm lý trẻ em và những khoảnh khắc đẹp trong cuộc sống gia đình.
                 </p>
 
                 <div>
@@ -43,16 +42,10 @@
         </div>
 
         {{-- BOTTOM BAR --}}
-        <div class="mt-16 pt-8 border-t border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-zinc-500">
+        <div class="mt-16 pt-8 border-t border-zinc-800 flex flex-col md:flex-row items-end justify-between gap-4 text-xs text-zinc-500">
             <div>
-                สงวนลิขสิทธิ์ © 2558 mamaexpert.com
+                © 2015 vigiadinh.com.vn - Bản quyền được bảo lưu.
             </div>
-            <a href="#" 
-               onclick="window.scrollTo({ top: 0, behavior: 'smooth' })"
-               class="flex items-center gap-2 hover:text-white transition-colors group">
-                <span>Back to top</span>
-                <span class="text-lg leading-none group-hover:-translate-y-0.5 transition-transform">↑</span>
-            </a>
         </div>
     </div>
 </footer>
