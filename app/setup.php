@@ -362,7 +362,7 @@ require_once get_theme_file_path('app/CMB2/Registrar.php');
 // === MERGED POSTS QUERY MODULE 10/10 TỐI ƯU ===
 require_once get_theme_file_path('app/Queries/MergedPostsQuery.php');
 // Homepage (merge post + event)
-\App\Queries\MergedPostsQuery::initHomepage(['posts_per_page' => 1]);
+\App\Queries\MergedPostsQuery::initHomepage(['posts_per_page' => 3]);
 // Archive CPT (thêm bao nhiêu CPT cũng được)
 \App\Queries\MergedPostsQuery::initArchive('event',   ['posts_per_page' => 2]);
 // \App\Queries\MergedPostsQuery::initArchive('project', ['posts_per_page' => 9]);
