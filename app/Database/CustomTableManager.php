@@ -51,8 +51,6 @@ class CustomTableManager {
     }
 
     public static function init(): void {
-        add_action('admin_init', [self::class, 'createMissingTables'], 5);
-
         // Meta CRUD + Cache
         add_filter('get_post_metadata', [self::class, 'filterGetPostMetadata'], 999, 4);
         add_filter('add_post_metadata', [self::class, 'filterUpdatePostMetadata'], 999, 5);
@@ -74,6 +72,12 @@ class CustomTableManager {
         add_filter('the_posts', [self::class, 'preloadThePostsMeta'], 10, 2);
 
         add_action('pre_get_posts', [self::class, 'preGetPostsHandler'], 5);
+
+        // === TẠO BẢNG CHỈ KHI THEME ĐƯỢC ACTIVATE / SWITCH THEME ===
+        add_action('after_switch_theme', [self::class, 'createMissingTablesOnActivation'], 5);
+
+        // Backup nhẹ (chỉ chạy nếu chưa có option)
+        add_action('admin_init', [self::class, 'createMissingTablesIfNeeded'], 10);
     }
 
     private static function shouldHandle(int $post_id): bool {
@@ -438,4 +442,26 @@ class CustomTableManager {
         if ($post_id <= 0) return false;
         return in_array(get_post_type($post_id), self::$registered ?? []);
     }    
+
+    /**
+     * TẠO BẢNG KHI THEME ĐƯỢC ACTIVATE / SWITCH THEME
+     */
+    public static function createMissingTablesOnActivation(): void {
+        self::createMissingTables();
+        update_option('sage_custom_tables_created', true, true); // autoload = true
+
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log('✅ [CustomTableManager] Bảng custom meta đã được tạo khi activate theme');
+        }
+    }
+
+    /**
+     * Backup: Chỉ tạo nếu chưa có (chạy 1 lần trong admin)
+     */
+    public static function createMissingTablesIfNeeded(): void {
+        if (get_option('sage_custom_tables_created') !== true) {
+            self::createMissingTables();
+            update_option('sage_custom_tables_created', true, true);
+        }
+    }
 }
