@@ -44,7 +44,7 @@
         {{-- BOTTOM BAR --}}
         <div class="mt-16 pt-8 border-t border-zinc-800 flex flex-col md:flex-row items-end justify-between gap-4 text-xs text-zinc-500">
             <div>
-                © 2015 vigiadinh.com.vn - Bản quyền được bảo lưu.
+                © 2015 vigiadinh.vn - Bản quyền được bảo lưu.
             </div>
         </div>
     </div>

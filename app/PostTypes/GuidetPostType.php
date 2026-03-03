@@ -2,17 +2,17 @@
 
 namespace App\PostTypes;
 
-class EventPostType extends BasePostType
+class GuidetPostType extends BasePostType
 {
-    protected function getPostTypeKey(): string { return 'event'; }
-    protected function getSingular(): string    { return 'Sự kiện'; }
-    protected function getPlural(): string      { return 'Sự kiện'; }
+    protected function getPostTypeKey(): string { return 'guide'; }
+    protected function getSingular(): string    { return 'Hướng dẫn'; }
+    protected function getPlural(): string      { return 'Hướng dẫn'; }
 
     protected function getArgs(): array
     {
         return array_merge(parent::getArgs(), [
             'menu_icon'     => 'dashicons-megaphone',
-            'menu_position' => 9,
+            'menu_position' => 6,
             'supports'      => ['title', 'editor', 'thumbnail', 'excerpt', 'author', 'comments'],
         ]);
     }

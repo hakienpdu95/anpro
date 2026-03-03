@@ -239,6 +239,15 @@ require_once get_theme_file_path('app/Database/CustomTableManager.php');
     'organizer', 'ticket_link', 'ticket_price', 'is_redirect', 'redirect_url', 
     '*'
 ]);
+\App\Database\CustomTableManager::register('guide', [
+    '*'
+]);
+\App\Database\CustomTableManager::register('review', [
+    '*'
+]);
+\App\Database\CustomTableManager::register('recipe', [
+    '*'
+]);
 // \App\Database\CustomTableManager::register('project', ['flags', 'budget', 'deadline', 'project_phase', 'client']);
 // \App\Database\CustomTableManager::register('news', ['flags', 'hot', 'trending', 'author_custom']);
 
