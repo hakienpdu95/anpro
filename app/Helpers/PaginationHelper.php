@@ -1,9 +1,9 @@
-<?php
-namespace App\Helpers;
+<?php namespace App\Helpers;
 
 class PaginationHelper {
+
     /**
-     * Number pagination - ĐÃ FIX 404 CHO HOMEPAGE + CUSTOM QUERY
+     * Number pagination - Class "current" nằm trực tiếp trong thẻ <li>
      */
     public static function numberPagination(?\WP_Query $query = null): string
     {
@@ -18,7 +18,7 @@ class PaginationHelper {
 
         $big = 999999999;
 
-        // === FIX ĐẶC BIỆT CHO HOMEPAGE ===
+        // Fix đặc biệt cho homepage
         if (is_front_page() || is_home()) {
             $base   = trailingslashit(home_url()) . 'page/%#%/';
             $format = '';
@@ -27,17 +27,38 @@ class PaginationHelper {
             $format = '';
         }
 
-        return paginate_links([
-            'base'      => $base,
-            'format'    => $format,
-            'current'   => max(1, $query->get('paged')),
-            'total'     => $query->max_num_pages,
-            'mid_size'  => 3,
-            'end_size'  => 1,
-            'prev_text' => '‹ Trước',
-            'next_text' => 'Sau ›',
-            'type'      => 'list',
+        // Lấy links dưới dạng array để tùy chỉnh
+        $links = paginate_links([
+            'base'               => $base,
+            'format'             => $format,
+            'current'            => max(1, $query->get('paged')),
+            'total'              => $query->max_num_pages,
+            'mid_size'           => 3,
+            'end_size'           => 1,
+            'prev_text'          => '‹ Trước',
+            'next_text'          => 'Sau ›',
+            'type'               => 'array',        
             'before_page_number' => '<span class="sr-only">Trang </span>',
         ]);
+
+        if (empty($links)) {
+            return '';
+        }
+
+        $output = '<div class="pagerblock flex justify-center mt-3">';
+        $output .= '<ul class="page-numbers">';
+
+        foreach ($links as $link) {
+            if (strpos($link, 'aria-current="page"') !== false || strpos($link, 'current') !== false) {
+                $output .= '<li class="current">' . $link . '</li>';
+            } else {
+                $output .= '<li>' . $link . '</li>';
+            }
+        }
+
+        $output .= '</ul>';
+        $output .= '</div>';
+
+        return $output;
     }
 }
