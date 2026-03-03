@@ -9,26 +9,41 @@
 
     /*------ Product Filter Buttons ------*/
     const productFilterButtons = $(".home-one-product-filter button");
-    if (productFilterButtons.length) {
-        $(".home-one-product-filter button:nth-child(1)")
-            .addClass("btn-primary")
-            .removeClass("btn-default outline shadow-none")
-            .siblings()
-            .removeClass("btn-primary")
-            .addClass("btn-default outline  shadow-none");
-        $tabPanes.hide();
 
-        $(".tab-pane:nth-child(1)").addClass("active").show();
-        $(".home-one-product-filter button").on("click.sellzy", function() {
-            $(this)
-                .removeClass("btn-default outline shadow-none")
-                .addClass("btn-primary")
-                .siblings()
-                .removeClass("btn-primary")
-                .addClass("btn-default outline  shadow-none");
-            $tabPanes.removeClass("active fade").hide();
-            let activeTab = $(this).attr("data-tab");
-            $(`#${activeTab}`).addClass("active fade").fadeIn();
+    if (productFilterButtons.length) {
+
+        // === KHỞI TẠO TAB ĐẦU TIÊN ACTIVE ===
+        productFilterButtons.first()
+            .addClass("bg-[#d46563]")
+            .removeClass("bg-[#ebebeb]");
+
+        productFilterButtons.not(":first")
+            .addClass("bg-[#ebebeb]")
+            .removeClass("bg-[#d46563]");
+
+        // Ẩn tất cả tab-pane, hiện tab đầu tiên
+        $tabPanes.hide();
+        $(".tab-pane:first").addClass("active").show();
+
+        // === XỬ LÝ CLICK TAB ===
+        productFilterButtons.on("click.sellzy", function() {
+            const $this = $(this);
+            const activeTab = $this.attr("data-tab");
+
+            // Reset tất cả về màu xám
+            productFilterButtons
+                .removeClass("bg-[#d46563]")
+                .addClass("bg-[#ebebeb]");
+
+            // Active tab được click
+            $this
+                .removeClass("bg-[#ebebeb]")
+                .addClass("bg-[#d46563]");
+
+            // Chuyển nội dung tab
+            $tabPanes.removeClass("active").hide();
+            $("#" + activeTab).addClass("active").fadeIn(300);
+
             return false;
         });
     }
