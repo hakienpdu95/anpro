@@ -9,6 +9,10 @@
       padding-inline: 0;
     }
 
+    @include mq-max(sm) {
+      padding-inline: 0;
+    }
+
     @include mq('2xl') {
       max-width: 1160px !important;
       width: 100%;
