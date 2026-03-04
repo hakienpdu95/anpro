@@ -498,8 +498,7 @@ if (!function_exists('sage_social_icons')) {
     }
 
     /**
-     * SAGE THUMBNAIL – TỐI ƯU NHẤT
-     * Tự động srcset + sizes + lazy + placeholder seamless
+     * SAGE THUMBNAIL – SRCSET HOÀN HẢO + RESPONSIVE THỰC SỰ (v2)
      */
     if (!function_exists('sage_thumbnail')) {
         function sage_thumbnail(string $size = 'thumb-medium', array $attr = [], $post = null): string
@@ -509,9 +508,8 @@ if (!function_exists('sage_social_icons')) {
 
             $thumb_id = get_post_thumbnail_id($post);
 
-            // Default attributes (Tailwind + performance)
             $defaults = [
-                'class'    => 'w-full h-full object-cover group-hover:scale-105 transition-transform',
+                'class'    => 'w-full h-full object-cover transition-transform duration-300',
                 'loading'  => 'lazy',
                 'decoding' => 'async',
                 'alt'      => get_the_title($post),
@@ -519,21 +517,23 @@ if (!function_exists('sage_social_icons')) {
 
             $attr = wp_parse_args($attr, $defaults);
 
-            // Tự động sizes attribute theo container thực tế của bạn
+            // Tự động sizes attribute theo loại size (rất quan trọng)
             if (empty($attr['sizes'])) {
-                $attr['sizes'] = '(max-width: 768px) 315px, (max-width: 1024px) 50vw, 750px';
+                if (str_contains($size, 'large') || str_contains($size, 'xl')) {
+                    $attr['sizes'] = '(max-width: 768px) 100vw, 1200px';   // Slide lớn
+                } elseif (str_contains($size, 'small')) {
+                    $attr['sizes'] = '(max-width: 640px) 100vw, 300px';    // Grid nhỏ
+                } else {
+                    $attr['sizes'] = '(max-width: 640px) 315px, (max-width: 1024px) 750px, 1200px';
+                }
             }
 
-            $html = wp_get_attachment_image($thumb_id, $size, false, $attr);
-
-            // Nếu không có thumbnail → dùng PlaceholderHandler (giữ nguyên logic cũ)
-            if (!$html && class_exists('\App\Placeholders\PlaceholderHandler')) {
-                return \App\Placeholders\PlaceholderHandler::replaceWithPlaceholder(
-                    '', $post->ID, 0, $size, $attr
-                );
+            // Placeholder fallback (giữ nguyên logic cũ của bạn)
+            if (!$thumb_id && class_exists('\App\Placeholders\PlaceholderHandler')) {
+                return \App\Placeholders\PlaceholderHandler::replaceWithPlaceholder('', $post->ID, 0, $size, $attr);
             }
 
-            return $html;
+            return wp_get_attachment_image($thumb_id, $size, false, $attr);
         }
-    }    
+    }   
 }

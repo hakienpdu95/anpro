@@ -136,10 +136,15 @@ add_action('after_setup_theme', function () {
     add_theme_support('customize-selective-refresh-widgets');
 
     // === CUSTOM IMAGE SIZES – TỐI ƯU RESPONSIVE ===
-    add_image_size('thumb-small',  400, 300, true);   // Mobile
+    add_image_size('thumb-small',  400, 225, true);   // Mobile (16:9)
     add_image_size('thumb-medium', 750, 422, true);   // Desktop thường (16:9)
     add_image_size('thumb-large',  1200, 675, true);  // Large desktop
-    add_image_size('thumb-xl',     1600, 900, true);  // Hero / full width
+    add_image_size('thumb-xl',     1600, 900, true);  // Hero
+
+    // === FORCE SRCSET BAO GỒM TẤT CẢ SIZE (rất quan trọng) ===
+    add_filter('max_srcset_image_width', function () {
+        return 2000; // Cho phép thumb-xl luôn được thêm vào srcset
+    });
 
     add_filter('intermediate_image_sizes_advanced', function ($sizes) {
         unset($sizes['medium']);
