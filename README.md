@@ -204,3 +204,6 @@ Vẫn giữ nguyên như trước: 'tax_query' => [ ['taxonomy' => 'event-catego
 ## Hiển thị số view (dùng ở bất kỳ đâu)
 {!! sage_hot_badge($post) !!}
 <span class="text-sm text-gray-500">👁️ {{ sage_views($post) }} lượt xem</span>
+
+## File: partials/content.blade.php (nếu bạn có hiển thị tác giả ở đây)
+<li>{!! sage_post_author_link($post, 'text-sm') !!}</li>

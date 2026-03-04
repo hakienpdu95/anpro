@@ -13,17 +13,13 @@
             <!-- 2. NỘI DUNG BÊN PHẢI -->
             <div class="flex flex-col gap-y-1 flex-1">
 
-                <span class="w-fit text-warning-dark bg-[rgba(255,193,7,0.16)] px-2 py-px mb-1 inline-flex rounded-full text-xs leading-[18px] blog-single-item-category">
-                    Category Name
-                </span>
-
                 <!-- Meta -->
                 <div class="flex flex-col gap-y-3 md:flex-row divide-x-0 md:divide-x divide-[rgba(145,158,171,0.24)]">
                     <p class="text-light-secondary-text text-sm leading-[22px] inline-flex items-center pr-0 md:pr-3 blog-single-item-post-time">
                         <span class="inline-flex items-center justify-center">
                             <i class="hgi hgi-stroke hgi-calendar-03 text-base leading-4 text-light-secondary-text"></i>
                         </span>
-                        <span>12:40 PM, 09 Feb 2027</span>
+                        <span>{!! sage_post_date($post, false, true) !!}</span>
                     </p>
                 </div>
 

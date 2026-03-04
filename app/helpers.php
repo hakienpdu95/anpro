@@ -529,4 +529,75 @@ if (!function_exists('sage_social_icons')) {
             return wp_get_attachment_image($thumb_id, $size, false, $attr);
         }
     }   
+
+    /**
+     * SAGE AUTHOR LINK – Hiển thị tên tác giả + link đến author archive
+     * Ưu tiên field 'custom_author' (từ CustomTableManager)
+     * Fallback về tác giả WP mặc định
+     */
+    if (!function_exists('sage_post_author_link')) {
+        function sage_post_author_link($post = null, string $extra_class = ''): string
+        {
+            $post = get_post($post);
+            if (!$post) {
+                return '<span class="text-primary-100">By Admin</span>';
+            }
+
+            // Ưu tiên custom_author (nếu có)
+            $custom_author = cmeta('custom_author', $post->ID);
+            if ($custom_author && is_string($custom_author) && trim($custom_author) !== '') {
+                $author_name = trim($custom_author);
+                $author_id   = $post->post_author; // vẫn dùng ID gốc để lấy link archive
+            } else {
+                $author_id   = $post->post_author;
+                $author_name = get_the_author_meta('display_name', $author_id) ?: 'By Admin';
+            }
+
+            $author_url = get_author_posts_url($author_id);
+
+            $class = $extra_class ? ' ' . trim($extra_class) : '';
+
+            return sprintf(
+                '<a href="%s" class="text-primary-100 hover:text-primary transition-colors%s">%s</a>',
+                esc_url($author_url),
+                esc_attr($class),
+                esc_html($author_name)
+            );
+        }
+    }    
+
+    /**
+     * SAGE POST DATE – Linh hoạt cho mọi vị trí (slide, grid, content.blade.php)
+     */
+    if (!function_exists('sage_post_date')) {
+        function sage_post_date($post = null, bool $use_modified = false, bool $raw = false, string $extra_class = ''): string
+        {
+            $post = get_post($post);
+            if (!$post) {
+                return $raw ? 'Không có ngày' : '<span class="text-light-secondary-text">Không có ngày</span>';
+            }
+
+            $format = 'd M Y'; // Giữ nguyên format bạn đang dùng: 12:40 PM, 09 Feb 2027
+
+            $date = $use_modified
+                ? get_the_modified_date($format, $post)
+                : get_the_date($format, $post);
+
+            $prefix = $use_modified ? '' : '';
+
+            if ($raw) {
+                // Trả về chỉ text (dùng cho content.blade.php)
+                return $prefix . $date;
+            }
+
+            // Trả về <span> đầy đủ (dùng cho slide & grid)
+            $class = $extra_class ? ' ' . trim($extra_class) : '';
+            return sprintf(
+                '<span class="sm:text-base sm:leading-[27px] text-sm text-primary-100%s">%s%s</span>',
+                esc_attr($class),
+                $prefix,
+                esc_html($date)
+            );
+        }
+    }
 }
