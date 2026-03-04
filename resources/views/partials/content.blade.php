@@ -6,7 +6,9 @@
             <!-- 1. THUMBNAIL – link riêng -->
             <div class="w-[315px] h-[165px] blog-single-item-thumbnail overflow-hidden">
                 {!! sage_post_link_open(get_post(), 'block w-full h-full', 'listing') !!}
-                    {!! get_the_post_thumbnail($post->ID, 'medium_large', ['class' => 'w-full h-full object-cover']) !!}
+                    {!! sage_thumbnail('thumb-medium', [
+                        'class' => 'w-full h-full object-cover group-hover:scale-105 transition-transform'
+                    ]) !!}
                 {!! sage_post_link_close() !!}
             </div>
 

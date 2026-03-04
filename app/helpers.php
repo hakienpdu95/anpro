@@ -496,4 +496,44 @@ if (!function_exists('sage_social_icons')) {
             return $output;
         }
     }
+
+    /**
+     * SAGE THUMBNAIL – TỐI ƯU NHẤT
+     * Tự động srcset + sizes + lazy + placeholder seamless
+     */
+    if (!function_exists('sage_thumbnail')) {
+        function sage_thumbnail(string $size = 'thumb-medium', array $attr = [], $post = null): string
+        {
+            $post = get_post($post ?? get_the_ID());
+            if (!$post) return '';
+
+            $thumb_id = get_post_thumbnail_id($post);
+
+            // Default attributes (Tailwind + performance)
+            $defaults = [
+                'class'    => 'w-full h-full object-cover group-hover:scale-105 transition-transform',
+                'loading'  => 'lazy',
+                'decoding' => 'async',
+                'alt'      => get_the_title($post),
+            ];
+
+            $attr = wp_parse_args($attr, $defaults);
+
+            // Tự động sizes attribute theo container thực tế của bạn
+            if (empty($attr['sizes'])) {
+                $attr['sizes'] = '(max-width: 768px) 315px, (max-width: 1024px) 50vw, 750px';
+            }
+
+            $html = wp_get_attachment_image($thumb_id, $size, false, $attr);
+
+            // Nếu không có thumbnail → dùng PlaceholderHandler (giữ nguyên logic cũ)
+            if (!$html && class_exists('\App\Placeholders\PlaceholderHandler')) {
+                return \App\Placeholders\PlaceholderHandler::replaceWithPlaceholder(
+                    '', $post->ID, 0, $size, $attr
+                );
+            }
+
+            return $html;
+        }
+    }    
 }

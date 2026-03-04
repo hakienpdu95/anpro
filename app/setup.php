@@ -134,6 +134,12 @@ add_action('after_setup_theme', function () {
      * @link https://developer.wordpress.org/reference/functions/add_theme_support/#customize-selective-refresh-widgets
      */
     add_theme_support('customize-selective-refresh-widgets');
+
+    // === CUSTOM IMAGE SIZES – TỐI ƯU RESPONSIVE ===
+    add_image_size('thumb-small',  400, 300, true);   // Mobile
+    add_image_size('thumb-medium', 750, 422, true);   // Desktop thường (16:9)
+    add_image_size('thumb-large',  1200, 675, true);  // Large desktop
+    add_image_size('thumb-xl',     1600, 900, true);  // Hero / full width
 }, 20);
 
 /**
@@ -412,3 +418,12 @@ add_filter('redirect_canonical', function ($redirect_url) {
     }
     return $redirect_url;
 }, 10);
+
+add_filter('image_size_names_choose', function ($sizes) {
+    return array_merge($sizes, [
+        'thumb-small'  => __('Thumb Small', 'sage'),
+        'thumb-medium' => __('Thumb Medium', 'sage'),
+        'thumb-large'  => __('Thumb Large', 'sage'),
+        'thumb-xl'     => __('Thumb XL', 'sage'),
+    ]);
+});
