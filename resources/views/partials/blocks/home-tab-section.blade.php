@@ -8,12 +8,12 @@
 
 <div class="w-full flex flex-col">
     {{-- SLIDE --}}
-    @includeCached('partials.blocks.block-slide-tab-one', [
+    @include('partials.blocks.block-slide-tab-one', [
         'posts'     => $slide_posts,
         'perPage'   => 1,
         'autoplay'  => $autoplay,
         'interval'  => $interval,
-    ], 300)
+    ])
 
     {{-- GRID --}}
     @include('partials.blocks.article-thumb-grid', [

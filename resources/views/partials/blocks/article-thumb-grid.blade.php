@@ -20,7 +20,7 @@
                         {!! sage_post_link_open($post, 'block w-full h-full', $link_type) !!}
                             {!! sage_thumbnail('thumb-small', [
                                 'class' => 'w-full h-full object-cover transition-transform duration-300'
-                            ]) !!}
+                            ], $post) !!}
                         {!! sage_post_link_close() !!}
                     </div>
 

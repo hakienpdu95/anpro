@@ -498,15 +498,16 @@ if (!function_exists('sage_social_icons')) {
     }
 
     /**
-     * SAGE THUMBNAIL – SRCSET HOÀN HẢO + RESPONSIVE THỰC SỰ (v2)
+     * SAGE THUMBNAIL – SRCSET + PLACEHOLDER CHẮC CHẮN 100% (v3)
+     * Fix lỗi ảnh ghost + placeholder không hiện trong custom loop
      */
     if (!function_exists('sage_thumbnail')) {
         function sage_thumbnail(string $size = 'thumb-medium', array $attr = [], $post = null): string
         {
-            $post = get_post($post ?? get_the_ID());
+            $post = get_post($post);
             if (!$post) return '';
 
-            $thumb_id = get_post_thumbnail_id($post);
+            $thumb_id = get_post_thumbnail_id($post->ID);
 
             $defaults = [
                 'class'    => 'w-full h-full object-cover transition-transform duration-300',
@@ -517,22 +518,14 @@ if (!function_exists('sage_social_icons')) {
 
             $attr = wp_parse_args($attr, $defaults);
 
-            // Tự động sizes attribute theo loại size (rất quan trọng)
-            if (empty($attr['sizes'])) {
-                if (str_contains($size, 'large') || str_contains($size, 'xl')) {
-                    $attr['sizes'] = '(max-width: 768px) 100vw, 1200px';   // Slide lớn
-                } elseif (str_contains($size, 'small')) {
-                    $attr['sizes'] = '(max-width: 640px) 100vw, 300px';    // Grid nhỏ
-                } else {
-                    $attr['sizes'] = '(max-width: 640px) 315px, (max-width: 1024px) 750px, 1200px';
-                }
-            }
-
-            // Placeholder fallback (giữ nguyên logic cũ của bạn)
+            // === FORCE PLACEHOLDER khi không có ảnh thật ===
             if (!$thumb_id && class_exists('\App\Placeholders\PlaceholderHandler')) {
-                return \App\Placeholders\PlaceholderHandler::replaceWithPlaceholder('', $post->ID, 0, $size, $attr);
+                return \App\Placeholders\PlaceholderHandler::replaceWithPlaceholder(
+                    '', $post->ID, 0, $size, $attr
+                );
             }
 
+            // Có ảnh thật → trả về wp_get_attachment_image (có srcset đầy đủ)
             return wp_get_attachment_image($thumb_id, $size, false, $attr);
         }
     }   
