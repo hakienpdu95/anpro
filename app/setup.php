@@ -140,6 +140,35 @@ add_action('after_setup_theme', function () {
     add_image_size('thumb-medium', 750, 422, true);   // Desktop thường (16:9)
     add_image_size('thumb-large',  1200, 675, true);  // Large desktop
     add_image_size('thumb-xl',     1600, 900, true);  // Hero / full width
+
+    add_filter('intermediate_image_sizes_advanced', function ($sizes) {
+        unset($sizes['medium']);
+        unset($sizes['medium_large']);
+        unset($sizes['large']);
+        unset($sizes['1536x1536']);
+        unset($sizes['2048x2048']);
+        return $sizes;
+    });
+
+    add_filter('intermediate_image_sizes', function ($sizes) {
+        return [
+            'thumbnail',
+            'thumb-small',
+            'thumb-medium',
+            'thumb-large',
+            'thumb-xl',
+        ];
+    });
+
+    add_filter('big_image_size_threshold', '__return_false');
+
+    add_action('admin_init', function () {
+        update_option('medium_size_w', 0);
+        update_option('medium_size_h', 0);
+        update_option('large_size_w', 0);
+        update_option('large_size_h', 0);
+        update_option('medium_large_size_w', 0);
+    });
 }, 20);
 
 /**
@@ -420,10 +449,11 @@ add_filter('redirect_canonical', function ($redirect_url) {
 }, 10);
 
 add_filter('image_size_names_choose', function ($sizes) {
-    return array_merge($sizes, [
-        'thumb-small'  => __('Thumb Small', 'sage'),
-        'thumb-medium' => __('Thumb Medium', 'sage'),
-        'thumb-large'  => __('Thumb Large', 'sage'),
-        'thumb-xl'     => __('Thumb XL', 'sage'),
-    ]);
+    return [
+        'thumbnail'    => __('Thumbnail (Admin)', 'sage'),
+        'thumb-small'  => __('Thumb Small – Mobile', 'sage'),
+        'thumb-medium' => __('Thumb Medium – Default', 'sage'),
+        'thumb-large'  => __('Thumb Large – Desktop', 'sage'),
+        'thumb-xl'     => __('Thumb XL – Hero', 'sage'),
+    ];
 });
