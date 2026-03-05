@@ -12,8 +12,6 @@
             {!! sage_hot_badge() !!}
         </div>
         @include('partials.entry-meta')
-        @include('partials.entry-content')
+        @include('partials.content-single')
     </div>
-
-    @include('partials.related-posts')
 @endsection
