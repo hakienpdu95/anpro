@@ -45,7 +45,7 @@
 
                                 @php $excerpt = get_the_excerpt($post); @endphp
                                 @if (trim($excerpt))
-                                    <p class="sm:text-sm">
+                                    <p class="text-sm">
                                         {{ $excerpt }}
                                     </p>
                                 @endif

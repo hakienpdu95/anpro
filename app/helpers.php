@@ -154,51 +154,7 @@ if (!function_exists('sage_social_icons')) {
         $output = '<ul class="' . esc_attr($wrapper_class) . '">';
 
         foreach ($items as $item) {
-            $url   = $item->url;
-            $title = $item->title ?: $item->post_title;
-            $classes = (array) $item->classes;
 
-            $icon_key = '';
-            $icon_svg = '';
-
-            // Ưu tiên 1: CSS class (social-facebook, social-zalo...)
-            foreach ($classes as $class) {
-                if (str_starts_with($class, 'social-')) {
-                    $icon_key = substr($class, 7);
-                    break;
-                }
-            }
-
-            // Ưu tiên 2: Domain
-            if (!$icon_key) {
-                $host = parse_url($url, PHP_URL_HOST) ?? '';
-                foreach (array_keys($icon_map) as $key) {
-                    if (stripos($host, $key) !== false) {
-                        $icon_key = $key;
-                        break;
-                    }
-                }
-            }
-
-            // Ưu tiên 3: Tiêu đề
-            if (!$icon_key) {
-                foreach (array_keys($icon_map) as $key) {
-                    if (stripos($title, $key) !== false) {
-                        $icon_key = $key;
-                        break;
-                    }
-                }
-            }
-
-            $icon_svg = $icon_map[$icon_key] ?? '<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>';
-
-            $output .= sprintf(
-                '<li><a href="%s" target="_blank" rel="noopener noreferrer" class="hover:scale-110 transition-transform" title="%s" aria-label="%s">%s</a></li>',
-                esc_url($url),
-                esc_attr($title),
-                esc_attr($title),
-                $icon_svg
-            );
         }
 
         $output .= '</ul>';
@@ -461,15 +417,20 @@ if (!function_exists('sage_social_icons')) {
 
     /**
      * RENDER 1 CỘT FOOTER MENU – Tự động lấy tên menu làm tiêu đề
+     * ĐÃ FIX: wp_get_nav_menu_locations() → get_nav_menu_locations()
      */
     if (!function_exists('sage_footer_column')) {
-        function sage_footer_column(string $location, string $fallback_title = ''): string
-        {
+        function sage_footer_column(string $location, string $fallback_title = ''): string {
+            // Kiểm tra menu có tồn tại không
             if (!has_nav_menu($location)) {
                 return '';
             }
 
-            $menu = wp_get_nav_menu_object(wp_get_nav_menu_locations()[$location] ?? 0);
+            // Lấy menu locations một cách an toàn
+            $locations = get_nav_menu_locations();
+            $menu_id   = $locations[$location] ?? 0;
+
+            $menu = wp_get_nav_menu_object($menu_id);
             $title = $menu ? $menu->name : $fallback_title;
 
             $output = '<div class="col-span-2">';
@@ -477,22 +438,22 @@ if (!function_exists('sage_social_icons')) {
             // Tiêu đề cột
             if ($title) {
                 $output .= '<a href="#" class="block text-white font-semibold hover:text-emerald-400 mb-4">' 
-                        . esc_html($title) . '</a>';
+                         . esc_html($title) 
+                         . '</a>';
             }
 
             // Render menu
             $output .= wp_nav_menu([
-                'theme_location'  => $location,
-                'container'       => false,
-                'menu_class'      => 'space-y-2.5 text-sm footer-menu',
-                'items_wrap'      => '<ul class="%2$s">%3$s</ul>',
-                'echo'            => false,
-                'fallback_cb'     => false,
-                'depth'           => 1,           // chỉ hiển thị cấp 1
+                'theme_location' => $location,
+                'container'      => false,
+                'menu_class'     => 'space-y-2.5 text-sm footer-menu',
+                'items_wrap'     => '<ul class="%2$s">%3$s</ul>',
+                'echo'           => false,
+                'fallback_cb'    => false,
+                'depth'          => 1,
             ]);
 
             $output .= '</div>';
-
             return $output;
         }
     }
