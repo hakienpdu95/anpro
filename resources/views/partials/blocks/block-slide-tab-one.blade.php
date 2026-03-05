@@ -10,14 +10,14 @@
         <p class="text-red-600">Không tìm thấy bài viết nào phù hợp.</p>
     </div>
 @else
-    <div class="splide" data-splide-config='{ "type": "loop", "perPage": {{ $perPage }}, "autoplay": {{ $autoplay ? 'true' : 'false' }}, "interval": {{ $interval }}, "arrows": true, "pagination": true, "gap": "1.5rem", "lazyLoad": "nearby" }'>
+    <div class="splide article-content mb-6" data-splide-config='{ "type": "loop", "perPage": {{ $perPage }}, "autoplay": {{ $autoplay ? 'true' : 'false' }}, "interval": {{ $interval }}, "arrows": true, "pagination": true, "gap": "1.5rem", "lazyLoad": "nearby" }'>
         <div class="splide__track">
             <ul class="splide__list">
                 @foreach ($posts as $post)
                     <li class="splide__slide">
                         <div class="w-full article-content">
                             <!-- Thumbnail + link -->
-                            <div class="w-full overflow-hidden">
+                            <div class="w-full overflow-hidden mb-3">
                                 @php $primary_flag = sage_get_primary_flag($post); @endphp
                                 {!! sage_flag_badge($primary_flag) !!}
 
@@ -31,13 +31,13 @@
                             <!-- Nội dung -->
                             <div class="w-full relative z-10">
                                 {!! sage_post_link_open($post, 'no-underline!', 'featured') !!}
-                                    <p class="font-semibold spline-sans text-primary-900 mb-2">
+                                    <p class="font-medium mb-1">
                                         {!! get_the_title($post) !!}
                                     </p>
                                 {!! sage_post_link_close() !!}
 
-                                <ul class="flex space-x-5 items-center mb-5">
-                                    <li>{!! sage_post_author_link($post, 'sm:text-base sm:leading-[27px] text-sm') !!}</li>
+                                <ul class="flex space-x-2.5 items-center mb-5 info">
+                                    <li>{!! sage_post_author_link($post, 'no-underline!') !!}</li>
                                     <li class="flex sm:space-x-2.5 space-x-2.5 items-center">
                                         {!! sage_post_date($post, true) !!}
                                     </li>
@@ -45,7 +45,7 @@
 
                                 @php $excerpt = get_the_excerpt($post); @endphp
                                 @if (trim($excerpt))
-                                    <p class="sm:text-base text-primary-100 text-sm sm:leading-[27px] mb-[30px]">
+                                    <p class="sm:text-sm">
                                         {{ $excerpt }}
                                     </p>
                                 @endif

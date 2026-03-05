@@ -1,5 +1,5 @@
 <header>
-	<div class="py-4 border border-gray-300 xl:border-0 hidden xl:block header-top">
+	<div class="py-4 xl:border-0 hidden xl:block header-top">
 		<div class="container">
 			<div class="xl:flex items-center hidden">
 				<div>
@@ -12,7 +12,7 @@
 	</div>
 
 	<!-- Mobile Menu Start -->
-	<div class="border border-gray-300 xl:border-0 sticky-header">
+	<div class="xl:border-0 sticky-header">
 		<div class="pb-4 pt-3 block xl:hidden">
 			<div class="container">
 				<div class="flex justify-between items-center">
@@ -44,7 +44,7 @@
 	</div>
 	<!-- Mobile Menu End -->
 
-	<div class="border border-gray-300 hidden xl:flex header-middle sticky-header border-r-0 border-l-0 bg-[#6697a1]">
+	<div class="hidden xl:flex header-middle sticky-header border-r-0 border-l-0 bg-[#6697a1]">
 		<div class="w-full items-center flex justify-between">
 			@if (has_nav_menu('primary_navigation'))
 			<nav class="main-menu">
@@ -53,7 +53,7 @@
 			@endif
 			<div class="search-bar-wrapper xl:block hidden h-full relative px-3">
 			    <button type="button" class="w-full h-full flex justify-center items-center">
-			        <span class="text-primary-900">
+			        <span class="text-white">
 			            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
 			                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path>
 			            </svg>

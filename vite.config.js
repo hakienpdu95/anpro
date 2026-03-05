@@ -3,9 +3,15 @@ import tailwindcss from '@tailwindcss/vite';
 import laravel from 'laravel-vite-plugin';
 import { wordpressPlugin, wordpressThemeJson } from '@roots/vite-plugin';
 import { viteStaticCopy } from 'vite-plugin-static-copy';
+import path from 'path';
 
 export default defineConfig({
   base: '/wp-content/themes/anpro/public/build/',
+  resolve: {
+      alias: {
+          '@': path.resolve(__dirname, 'resources'),
+      },
+  },
   plugins: [
     tailwindcss(),
     laravel({
@@ -25,7 +31,10 @@ export default defineConfig({
       disableTailwindFonts: false,
       disableTailwindFontSizes: false,
     }),
-    viteStaticCopy({ targets: [{ src: 'resources/images/*', dest: 'images' }] })
+    viteStaticCopy({ targets: [
+      { src: 'resources/images/*', dest: 'images' },
+      { src: 'resources/fonts/*', dest: 'fonts' }
+    ] })
   ],
 
   css: {

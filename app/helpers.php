@@ -558,7 +558,7 @@ if (!function_exists('sage_social_icons')) {
             $class = $extra_class ? ' ' . trim($extra_class) : '';
 
             return sprintf(
-                '<a href="%s" class="text-primary-100 hover:text-primary transition-colors%s">%s</a>',
+                '<a href="%s" class="%s">%s</a>',
                 esc_url($author_url),
                 esc_attr($class),
                 esc_html($author_name)

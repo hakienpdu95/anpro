@@ -22,10 +22,13 @@ class PreloadOptimizer
         // ====================================================================================
 
         'preload_fonts' => [
-            // 'public/build/fonts/Inter-Regular.woff2' => 'font/woff2',
+            'public/build/fonts/Roboto-Regular.woff2' => 'font/woff2',
+            'public/build/fonts/Roboto-Medium.woff2'  => 'font/woff2',
+            'public/build/fonts/Roboto-Bold.woff2'    => 'font/woff2',
+            // 'public/build/fonts/Roboto-Italic.woff2' => 'font/woff2',
         ],
         'google_font_urls' => [
-            'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
+            // 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
         ],
         'preconnect' => [
             'https://fonts.googleapis.com',
@@ -118,7 +121,11 @@ class PreloadOptimizer
         foreach (self::config('preload_fonts') as $fontPath => $fontType) {
             try {
                 $url = get_theme_file_uri($fontPath);
-                $preload .= sprintf('<link rel="preload" href="%s" as="font" type="%s" crossorigin>', esc_url($url), esc_attr($fontType));
+                $preload .= sprintf(
+                    '<link rel="preload" href="%s" as="font" type="%s" crossorigin="anonymous" fetchpriority="high">',
+                    esc_url($url),
+                    esc_attr($fontType)
+                );
             } catch (\Exception $e) {}
         }
 

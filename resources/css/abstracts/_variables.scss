@@ -1,4 +1,4 @@
-$font-family-base: 'Inter', system-ui, sans-serif;
+$font-family-base: 'Roboto-Regular', system-ui, sans-serif;
 
 $breakpoints: (
   sm:   40rem,    // 640px
@@ -9,13 +9,15 @@ $breakpoints: (
 );
 
 $css-vars: (
-  main-color: #eeead8,
+  main-color: #d46563,
   header-light-color: #fff,
   header-light-hover-color: #fff,
   header-dark-color: #000,
   header-dark-hover-color: #000,
-  text-primary: #222222,
+  text-primary: #252525,
+  bg-primary: #eeead8,
   body-bg: #ffffff,
+  text-body: #7D7D7D,
   border-color: #e5e5e5,
   spacing: 0.25rem,
   text-xs: 0.75rem,

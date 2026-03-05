@@ -3,6 +3,7 @@
         {!! __('Không tìm thấy bài viết nào.', 'sage') !!}
     </x-alert>
 @else
+    <h2>{!! __('Bài viết mới nhất', 'sage') !!}</h2>
     <div class="grid grid-cols-1 gap-y-3 pb-6">
         @while ($query->have_posts())
             @php

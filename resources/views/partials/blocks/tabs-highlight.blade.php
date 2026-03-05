@@ -1,4 +1,4 @@
-<section class="pb-[70px]">
+<section class="mb-10">
 	<div class="container">
 		<div class="mb-5 flex xl:flex-row flex-col gap-y-3 items-center xl:justify-between border-b-2 border-b-[#d46563] head-tab">
 		    <div class="flex gap-x-0 overflow-x-scroll lg:overflow-x-visible home-one-product-filter max-w-full">
