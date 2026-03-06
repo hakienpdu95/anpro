@@ -207,3 +207,18 @@ Vẫn giữ nguyên như trước: 'tax_query' => [ ['taxonomy' => 'event-catego
 
 ## File: partials/content.blade.php (nếu bạn có hiển thị tác giả ở đây)
 <li>{!! sage_post_author_link($post, 'text-sm') !!}</li>
+
+## Cách sử dụng gọi khối data từ theme-options
+@php
+$block1 = theme_option('widget_block_1');
+$block2 = theme_option('widget_block_2');
+@endphp
+
+<!-- Khối 1 -->
+@if (!empty($block1['image']))
+    <a href="{{ $block1['link'] ?? '#' }}" {{ !empty($block1['new_tab']) ? 'target="_blank"' : '' }}>
+        <img src="{{ wp_get_attachment_url($block1['image']) }}" alt="{{ $block1['title'] ?? '' }}">
+    </a>
+@endif
+
+<!-- Khối 2 tương tự -->
