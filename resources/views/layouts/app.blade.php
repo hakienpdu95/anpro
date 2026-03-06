@@ -23,12 +23,13 @@
 
       <main id="main" class="main">
         <div class="container">
-          <div class="grid grid-cols-12 gap-6 px-3 pt-8">
-              <div class="xl:col-span-8 col-span-12">
+          <div class="max-w-[1060px] mx-auto flex items-start justify-between gap-5 flex-col-reverse lg:flex-row relative pt-8">
+
+              <div class="max-w-[740px] w-full">
                   @yield('content')
               </div>
 
-              <div class="xl:col-span-4 col-span-12">
+              <div class="w-full lg:w-75 flex-none grid gap-[15px] sm:grid-cols-2 lg:grid-cols-1 top-5">
                   @hasSection('sidebar')
                     <aside class="sidebar">
                       @yield('sidebar')
