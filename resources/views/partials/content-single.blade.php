@@ -1,8 +1,6 @@
-<article @php(post_class('h-entry'))>
+<article @php(post_class('arti-deta-info'))>
 
-  <div class="e-content">
-    @php(the_content())
-  </div>
+  @php(the_content())
 
   @if ($pagination())
     <footer>

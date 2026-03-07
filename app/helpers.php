@@ -639,9 +639,9 @@ if (!function_exists('sage_social_icons')) {
             $new_tab = !empty($data['new_tab']) ? ' target="_blank" rel="noopener"' : '';
 
             return sprintf(
-                '<div class="widget-banner mb-8">
+                '<div class="widget-banner mb-5">
                     <a href="%s"%s>
-                        <img src="%s" alt="%s" class="w-full rounded">
+                        <img src="%s" alt="%s" class="w-full">
                     </a>
                 </div>',
                 esc_url($link),

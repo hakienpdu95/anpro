@@ -24,12 +24,10 @@ class PreloadOptimizer
         'preload_fonts' => [
             'public/build/fonts/Roboto-Regular.woff2' => 'font/woff2',
             'public/build/fonts/Roboto-Medium.woff2'  => 'font/woff2',
-            'public/build/fonts/Roboto-Bold.woff2'    => 'font/woff2',
+            // 'public/build/fonts/Roboto-Bold.woff2'    => 'font/woff2',
             // 'public/build/fonts/Roboto-Italic.woff2' => 'font/woff2',
         ],
-        'google_font_urls' => [
-            // 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-        ],
+        'google_font_urls' => [],
         'preconnect' => [
             'https://fonts.googleapis.com',
             'https://fonts.gstatic.com',
@@ -71,15 +69,15 @@ class PreloadOptimizer
         $preload = '';
 
         // 1. Preload CSS
-        foreach (self::config('preload_css') as $entry) {
-            try {
-                $url = Vite::asset($entry);
-                $preload .= sprintf(
-                    '<link rel="preload" href="%s" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" crossorigin="%s" fetchpriority="%s">',
-                    esc_url($url), esc_attr(self::config('crossorigin')), esc_attr(self::config('fetchpriority'))
-                );
-            } catch (\Exception $e) {}
-        }
+        try {
+            $css_url = Vite::asset('resources/css/main.scss');
+            $preload .= sprintf(
+                '<link rel="preload" href="%s" as="style" onload="this.onload=null;this.rel=\'stylesheet\'" crossorigin="%s" fetchpriority="%s">',
+                esc_url($css_url),
+                esc_attr(self::config('crossorigin')),
+                esc_attr(self::config('fetchpriority'))
+            );
+        } catch (\Exception $e) {}
 
         // 2. Preload JS
         foreach (self::config('preload_js') as $entry) {
@@ -87,7 +85,9 @@ class PreloadOptimizer
                 $url = Vite::asset($entry);
                 $preload .= sprintf(
                     '<link rel="modulepreload" href="%s" crossorigin="%s" fetchpriority="%s">',
-                    esc_url($url), esc_attr(self::config('crossorigin')), esc_attr(self::config('fetchpriority'))
+                    esc_url($url),
+                    esc_attr(self::config('crossorigin')),
+                    esc_attr(self::config('fetchpriority'))
                 );
             } catch (\Exception $e) {}
         }

@@ -302,6 +302,17 @@ body {
   }
 }
 
+.h1,.h2,.h3,.h4,.h5,.h6,h1,h2,h3,h4,h5,h6 {
+  font-family: $font-bold;
+  margin-top: calc(var(--spacing) * 0);
+  margin-bottom: calc(var(--spacing) * 2);
+  --tw-leading: 1.3;
+  line-height: 1.3;
+  --tw-font-weight: var(--font-weight-bold);
+  font-weight: var(--font-weight-bold);
+  word-spacing: 0.1rem;
+}
+
 .head-tab {
     button {
         font-size: var(--text-sm);
