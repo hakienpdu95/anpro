@@ -1,11 +1,17 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-4 py-12">
-    <h1 class="text-4xl font-bold text-center mb-12">{{ get_the_title() }}</h1>
-    
-    <div class="prose prose-lg max-w-none">
-        @php the_content(); @endphp
-    </div>
-</div>
+    @include('partials.entry-header')
+
+    @if (has_post_thumbnail())
+        <div class="overflow-hidden shadow-xl mb-8">
+            {!! get_the_post_thumbnail(null, 'large', ['class' => 'w-full']) !!}
+        </div>
+    @endif
+
+    @include('partials.content-single')
+@endsection
+
+@section('sidebar')
+    @include('sections.sidebar')
 @endsection
