@@ -563,49 +563,38 @@ if (!function_exists('sage_social_icons')) {
     }
 
     /**
-     * LẤY BANNER SIDEBAR WIDGET – ĐÃ FIX ARCHIVE CATEGORY (CMB2 serialized)
-     * Gọi độc lập: sage_get_sidebar_banner(1) hoặc sage_get_sidebar_banner(2)
+     * LẤY BANNER SIDEBAR WIDGET – ĐÃ CHỈNH SỬA THEO YÊU CẦU MỚI
+     * - Trang chủ          → Luôn Theme Options
+     * - Single Post/Event  → Taxonomy của bài viết → Theme Options
+     * - Archive Category   → Taxonomy → Theme Options
      */
     if (!function_exists('sage_get_sidebar_banner')) {
         function sage_get_sidebar_banner(int $block = 1): string
         {
             if (!in_array($block, [1, 2])) return '';
 
-            $option_key      = 'widget_block_' . $block;
-            $single_meta_key = 'sidebar_banner_' . $block;
-            $tax_meta_key    = 'banner_' . $block;
+            $option_key   = 'widget_block_' . $block;
+            $tax_meta_key = 'banner_' . $block;
 
             $data = null;
 
             // ==================== 1. SINGLE POST / EVENT ====================
             if (is_singular(['post', 'event'])) {
-                $post_id = get_the_ID();
+                // Lấy taxonomy tương ứng của bài viết
+                $taxonomy = (get_post_type() === 'post') ? 'category' : 'event-categories';
+                $terms    = get_the_terms(get_the_ID(), $taxonomy);
+                $term     = (!empty($terms) && !is_wp_error($terms)) ? reset($terms) : null;
 
-                $single = get_post_meta($post_id, $single_meta_key, true);
-                $single = maybe_unserialize($single);
+                if ($term) {
+                    $tax = get_term_meta($term->term_id, $tax_meta_key, true);
+                    $tax = maybe_unserialize($tax);
 
-                if (isset($single[0]) && is_array($single[0])) {
-                    $single = $single[0];
-                }
+                    if (isset($tax[0]) && is_array($tax[0])) {
+                        $tax = $tax[0];
+                    }
 
-                if (!empty($single['image_id']) || !empty($single['image'])) {
-                    $data = $single;
-                }
-
-                // Nếu single chưa có thì lấy Taxonomy của bài viết
-                if (empty($data['image_id']) && empty($data['image'])) {
-                    $taxonomy = (get_post_type() === 'post') ? 'category' : 'event-categories';
-                    $terms    = get_the_terms($post_id, $taxonomy);
-                    $term     = (!empty($terms) && !is_wp_error($terms)) ? reset($terms) : null;
-
-                    if ($term) {
-                        $tax = get_term_meta($term->term_id, $tax_meta_key, true);
-                        $tax = maybe_unserialize($tax);
-                        if (isset($tax[0]) && is_array($tax[0])) $tax = $tax[0];
-
-                        if (!empty($tax['image_id']) || !empty($tax['image'])) {
-                            $data = $tax;
-                        }
+                    if (!empty($tax['image_id']) || !empty($tax['image'])) {
+                        $data = $tax;
                     }
                 }
             }
