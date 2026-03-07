@@ -51,16 +51,23 @@
 				{!! wp_nav_menu(['theme_location' => 'primary_navigation', 'menu_class' => 'nav', 'echo' => false]) !!}
 			</nav>
 			@endif
-			<div class="search-bar-wrapper xl:block hidden h-full relative px-3">
-			    <button type="button" class="w-full h-full flex justify-center items-center">
-			        <span class="text-white">
-			            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-			                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z"></path>
-			            </svg>
-			        </span>
-			    </button>
-			    <div class="search-form w-[400px] p-5 bg-white shadow-2xl absolute -left-[300px] top-full z-30">
-			        @include('partials.search-form')
+			<div class="search-bar-wrapper relative inline-flex items-center h-full px-2" x-data="{ open: false }">
+			    <!-- Search Icon Link -->
+			    <a href="#!" @click.prevent="open = true">
+			        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" class="lucide lucide-search w-5 h-5 stroke-2 transition-colors duration-300">
+			            <circle cx="11" cy="11" r="8"></circle>
+			            <path d="m21 21-4.3-4.3"></path>
+			        </svg>
+			    </a>
+			    <!-- Search Modal -->
+			    <div x-show="open" class="absolute top-full right-0 w-full z-30" x-transition="" style="display: none;">
+			        <div class="bg-white dark:bg-black rounded-lg p-6 w-[400px] relative" style="left: calc(100% - 400px);">
+			            <h2 class="text-lg text-black dark:text-white font-bold mb-4">Tìm kiếm</h2>
+			            @include('partials.search-form')
+			            <div class="flex justify-end mt-4">
+			                <button @click="open = false" class=" bg-black text-white dark:bg-white dark:text-black px-4 py-2 absolute top-0 rtl:left-0 ltr:right-0">x</button>
+			            </div>
+			        </div>
 			    </div>
 			</div>
 		</div>
