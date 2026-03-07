@@ -1,60 +1,69 @@
 @extends('layouts.app')
 
 @section('content')
-<section class="py-12">
-    <div class="container max-w-6xl mx-auto px-4">
-        @php
-            global $wp_query;    
-            nocache_headers();            
-            $keyword = get_search_query();
-            $time    = \App\Search\SearchManager::getQueryTime();
-            $total   = $wp_query->found_posts ?? 0;
-        @endphp
+<section>
+    @php
+        global $wp_query;    
+        nocache_headers();            
+        $keyword = get_search_query();
+        $time    = \App\Search\SearchManager::getQueryTime();
+        $total   = $wp_query->found_posts ?? 0;
+    @endphp    
+    <header class="entry-header">
+      <h1 class="entry-title" itemprop="headline">Kết quả tìm kiếm cho: {{ esc_html($keyword) }}</h1>
+    </header>
 
-        <!-- Header -->
-        <div class="mb-12 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold text-primary-900 mb-4">
-                Kết quả tìm kiếm cho: 
-                <span class="text-primary-600">"{{ esc_html($keyword) }}"</span>
-            </h1>
-            <p class="text-xl text-gray-600">
-                Khoảng <strong class="text-primary-700">{{ number_format($total) }}</strong> kết quả 
-                <span class="text-sm font-medium text-gray-500">({{ $time }} giây)</span>
-            </p>
+    <div class="entry-content">
+        @if (have_posts())
+        <div id="search-content">
+            <div class="search-stats">Có {{ number_format($total) }} kết quả. ({{ $time }} seconds)</div>
+        </div>
+        
+        @while (have_posts())
+            @php the_post(); @endphp
+            <div class="pst-srch">
+                <h2>
+                    {!! sage_post_link_open(get_post(), 'no-underline!', 'search-type') !!}
+                        {!! get_the_title(get_post()) !!}
+                    {!! sage_post_link_close() !!}
+                </h2>
+                @php
+                    $link = sage_post_link(get_post(), 'search');
+                @endphp
+                <a href="{{ $link['url'] }}" 
+                   class="text-sm text-blue-600 hover:text-blue-700 break-all block mt-2">
+                    {{ $link['url'] }}
+                </a>
+                @if (trim(get_the_excerpt()))
+                    <p class="entry-meta">
+                        {{ get_the_excerpt() }}
+                    </p>
+                @endif
+            </div>
+        @endwhile
+
+        <div class="search-pagin">
+            {!! \App\Helpers\PaginationHelper::numberPagination($wp_query) !!}
         </div>
 
-        @if (have_posts())
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                @while (have_posts())
-                    @php 
-                      the_post(); 
-                      $primary_flag = sage_get_primary_flag(get_post());
-                    @endphp
-                    
-                    @include('partials.blocks.article-thumb-grid', [
-                        'posts' => [get_post()]
-                    ])
-                @endwhile
-            </div>
-
-            <!-- Pagination -->
-            <div class="mt-16 flex justify-center">
-                {!! \App\Helpers\PaginationHelper::numberPagination($wp_query) !!}
-            </div>
-
         @else
-            <!-- No results -->
-            <div class="text-center py-24 bg-gray-50 rounded-3xl border border-gray-100">
-                <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
-                    <span class="text-5xl">🔍</span>
-                </div>
-                <p class="text-2xl font-semibold text-gray-700 mb-3">Không tìm thấy kết quả nào</p>
-                <p class="text-gray-500 max-w-md mx-auto">
-                    Không có bài viết nào khớp với từ khóa "<strong>{{ esc_html($keyword) }}</strong>". 
-                    Hãy thử từ khóa khác hoặc xem các bài viết nổi bật bên dưới.
-                </p>
+
+        <!-- No results -->
+        <div class="text-center py-24 bg-gray-50 rounded-3xl border border-gray-100">
+            <div class="mx-auto w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mb-6">
+                <span class="text-5xl">🔍</span>
             </div>
+            <p class="text-2xl font-semibold text-gray-700 mb-3">Không tìm thấy kết quả nào</p>
+            <p class="text-gray-500 max-w-md mx-auto">
+                Không có bài viết nào khớp với từ khóa "<strong>{{ esc_html($keyword) }}</strong>". 
+                Hãy thử từ khóa khác hoặc xem các bài viết nổi bật bên dưới.
+            </p>
+        </div>
         @endif
     </div>
 </section>
+@endsection
+
+@section('sidebar')
+    @include('sections.sidebar')
 @endsection
