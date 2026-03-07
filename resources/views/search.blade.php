@@ -14,33 +14,33 @@
     </header>
 
     <div class="entry-content">
+        @include('partials.search-form')
         @if (have_posts())
         <div id="search-content">
             <div class="search-stats">Có {{ number_format($total) }} kết quả. ({{ $time }} seconds)</div>
+            @while (have_posts())
+                @php the_post(); @endphp
+                <div class="pst-srch">
+                    <h2>
+                        {!! sage_post_link_open(get_post(), 'no-underline!', 'search-type') !!}
+                            {!! get_the_title(get_post()) !!}
+                        {!! sage_post_link_close() !!}
+                    </h2>
+                    @php
+                        $link = sage_post_link(get_post(), 'search');
+                    @endphp
+                    <a href="{{ $link['url'] }}" 
+                       class="text-sm text-blue-600 hover:text-blue-700 break-all block mt-2">
+                        {{ $link['url'] }}
+                    </a>
+                    @if (trim(get_the_excerpt()))
+                        <p class="entry-meta">
+                            {{ get_the_excerpt() }}
+                        </p>
+                    @endif
+                </div>
+            @endwhile            
         </div>
-        
-        @while (have_posts())
-            @php the_post(); @endphp
-            <div class="pst-srch">
-                <h2>
-                    {!! sage_post_link_open(get_post(), 'no-underline!', 'search-type') !!}
-                        {!! get_the_title(get_post()) !!}
-                    {!! sage_post_link_close() !!}
-                </h2>
-                @php
-                    $link = sage_post_link(get_post(), 'search');
-                @endphp
-                <a href="{{ $link['url'] }}" 
-                   class="text-sm text-blue-600 hover:text-blue-700 break-all block mt-2">
-                    {{ $link['url'] }}
-                </a>
-                @if (trim(get_the_excerpt()))
-                    <p class="entry-meta">
-                        {{ get_the_excerpt() }}
-                    </p>
-                @endif
-            </div>
-        @endwhile
 
         <div class="search-pagin">
             {!! \App\Helpers\PaginationHelper::numberPagination($wp_query) !!}

@@ -1,0 +1,36 @@
+#search-content {
+	.search-stats {
+		color: grey;
+    	margin-top: 10px;
+	}
+
+	.pst-srch {
+	    padding: 10px 0 25px;
+
+	    h2,
+	    h2 a {
+	    	color: #00c;
+		    font-size: 18px;
+		    font-weight: 400;
+		    line-height: 20px;
+		    margin-bottom: 0;
+	    }
+
+	    > a {
+		    color: green;
+		    display: block;
+		    font-size: 15px;
+		    line-height: 16px;
+		    margin: 8px 0;
+		    overflow: hidden;
+		    text-decoration: none;
+		    text-overflow: ellipsis;
+		    white-space: nowrap;
+		}
+
+		.entry-meta {
+		    color: #555;
+		    font-size: 15px;
+		}
+	}
+}
