@@ -91,3 +91,7 @@
     @php wp_reset_postdata(); @endphp
 </div>
 @endsection
+
+@section('sidebar')
+    @include('sections.sidebar')
+@endsection

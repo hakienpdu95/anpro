@@ -561,4 +561,105 @@ if (!function_exists('sage_social_icons')) {
             );
         }
     }
+
+    /**
+     * LẤY BANNER SIDEBAR WIDGET – ĐÃ FIX ARCHIVE CATEGORY (CMB2 serialized)
+     * Gọi độc lập: sage_get_sidebar_banner(1) hoặc sage_get_sidebar_banner(2)
+     */
+    if (!function_exists('sage_get_sidebar_banner')) {
+        function sage_get_sidebar_banner(int $block = 1): string
+        {
+            if (!in_array($block, [1, 2])) return '';
+
+            $option_key      = 'widget_block_' . $block;
+            $single_meta_key = 'sidebar_banner_' . $block;
+            $tax_meta_key    = 'banner_' . $block;
+
+            $data = null;
+
+            // ==================== 1. SINGLE POST / EVENT ====================
+            if (is_singular(['post', 'event'])) {
+                $post_id = get_the_ID();
+
+                $single = get_post_meta($post_id, $single_meta_key, true);
+                $single = maybe_unserialize($single);
+
+                if (isset($single[0]) && is_array($single[0])) {
+                    $single = $single[0];
+                }
+
+                if (!empty($single['image_id']) || !empty($single['image'])) {
+                    $data = $single;
+                }
+
+                // Nếu single chưa có thì lấy Taxonomy của bài viết
+                if (empty($data['image_id']) && empty($data['image'])) {
+                    $taxonomy = (get_post_type() === 'post') ? 'category' : 'event-categories';
+                    $terms    = get_the_terms($post_id, $taxonomy);
+                    $term     = (!empty($terms) && !is_wp_error($terms)) ? reset($terms) : null;
+
+                    if ($term) {
+                        $tax = get_term_meta($term->term_id, $tax_meta_key, true);
+                        $tax = maybe_unserialize($tax);
+                        if (isset($tax[0]) && is_array($tax[0])) $tax = $tax[0];
+
+                        if (!empty($tax['image_id']) || !empty($tax['image'])) {
+                            $data = $tax;
+                        }
+                    }
+                }
+            }
+
+            // ==================== 2. ARCHIVE CATEGORY / TAXONOMY ====================
+            elseif (is_category() || is_tax('event-categories')) {
+                $term = get_queried_object();
+                if ($term && !is_wp_error($term)) {
+                    $tax = get_term_meta($term->term_id, $tax_meta_key, true);
+                    $tax = maybe_unserialize($tax);
+
+                    if (isset($tax[0]) && is_array($tax[0])) {
+                        $tax = $tax[0];
+                    }
+
+                    if (!empty($tax['image_id']) || !empty($tax['image'])) {
+                        $data = $tax;
+                    }
+                }
+            }
+
+            // ==================== 3. TRANG CHỦ + FALLBACK ====================
+            if (empty($data['image_id']) && empty($data['image'])) {
+                $options = get_option('theme_options', []);
+                $data    = $options[$option_key] ?? null;
+
+                if (isset($data[0]) && is_array($data[0])) {
+                    $data = $data[0];
+                }
+            }
+
+            // ==================== XỬ LÝ ẢNH & TRẢ VỀ HTML ====================
+            $image_id  = $data['image_id'] ?? 0;
+            $image_url = $image_id ? wp_get_attachment_url($image_id) : ($data['image'] ?? '');
+
+            if (empty($image_url)) {
+                return '';
+            }
+
+            $title   = $data['title'] ?? '';
+            $link    = $data['link'] ?? '#';
+            $new_tab = !empty($data['new_tab']) ? ' target="_blank" rel="noopener"' : '';
+
+            return sprintf(
+                '<div class="widget-banner mb-8">
+                    <a href="%s"%s>
+                        <img src="%s" alt="%s" class="w-full rounded">
+                    </a>
+                </div>',
+                esc_url($link),
+                $new_tab,
+                esc_url($image_url),
+                esc_attr($title)
+            );
+        }
+    }
 }

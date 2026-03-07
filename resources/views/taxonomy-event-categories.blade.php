@@ -22,3 +22,7 @@
     @endif
 </div>
 @endsection
+
+@section('sidebar')
+    @include('sections.sidebar')
+@endsection

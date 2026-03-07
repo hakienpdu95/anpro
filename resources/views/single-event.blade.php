@@ -38,3 +38,7 @@
     @include('partials.related-posts')
 </div>
 @endsection
+
+@section('sidebar')
+    @include('sections.sidebar')
+@endsection

@@ -11,3 +11,7 @@
 
     @include('partials.content-single')
 @endsection
+
+@section('sidebar')
+    @include('sections.sidebar')
+@endsection
