@@ -433,7 +433,7 @@ if (!function_exists('sage_social_icons')) {
             $menu = wp_get_nav_menu_object($menu_id);
             $title = $menu ? $menu->name : $fallback_title;
 
-            $output = '<div class="col-span-2">';
+            $output = '<div class="col-span-12 sm:col-span-2">';
 
             // Tiêu đề cột
             if ($title) {

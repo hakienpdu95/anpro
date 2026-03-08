@@ -2,7 +2,7 @@
     <div class="container">
         <div class="grid grid-cols-12 gap-5">
 
-            <div class="col-span-4">
+            <div class="col-span-12 sm:col-span-4">
                 <h3 class="text-white text-2xl font-semibold tracking-tight mb-4">Vì Gia Đình</h3>
                 <p class="text-sm leading-relaxed mb-8 max-w-md">
                     Chúng tôi là những bậc phụ huynh bình thường, đang cùng nhau xây dựng và gìn giữ hạnh phúc gia đình. Chúng tôi không phải là chuyên gia, mà chỉ là những người đi sưu tầm, chọn lọc và chia sẻ những bài viết thực tế, hữu ích nhất về mang thai, sinh nở, chăm sóc trẻ sơ sinh, nuôi dạy con cái, cho con bú, tâm lý trẻ em và những khoảnh khắc đẹp trong cuộc sống gia đình.

@@ -3,7 +3,7 @@
 
         <div class="flex items-start flex-col lg:flex-row gap-3">
 
-            <div class="w-[315px] h-[165px] blog-single-item-thumbnail overflow-hidden">
+            <div class="sm:w-[315px] w-full sm:h-[165px] h-[205px] blog-single-item-thumbnail overflow-hidden">
                 {!! sage_post_link_open(get_post(), 'block w-full h-full', 'listing') !!}
                     {!! sage_thumbnail('thumb-medium') !!}
                 {!! sage_post_link_close() !!}

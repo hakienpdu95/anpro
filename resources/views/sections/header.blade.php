@@ -30,7 +30,25 @@
 					        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-[120px] md:w-[150px]">
 					    </a>
 					</div>
-					<div class="xl:hidden flex items-center gap-x-4">ICON</div>
+					<div class="search-bar-wrapper relative inline-flex items-center h-full px-2" x-data="{ open: false }">
+					    <!-- Search Icon Link -->
+					    <a href="#!" @click.prevent="open = true">
+					        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" class="text-dark lucide lucide-search w-5 h-5 stroke-2 transition-colors duration-300">
+					            <circle cx="11" cy="11" r="8"></circle>
+					            <path d="m21 21-4.3-4.3"></path>
+					        </svg>
+					    </a>
+					    <!-- Search Modal -->
+					    <div x-show="open" class="absolute top-full right-0 w-full z-30" x-transition="" style="display: none;">
+					        <div class="bg-white rounded-xs p-3 w-[400px] relative" style="left: calc(100% - 400px); box-shadow: 0px 30px 50px -10px rgba(0, 0, 0, 0.15);">
+					            <h2 class="text-lg text-black dark:text-white font-bold mb-4">Tìm kiếm</h2>
+					            @include('partials.search-form')
+					            <div class="flex justify-end mt-2">
+					                <button @click="open = false" class=" bg-black text-white px-4 py-2 absolute top-0 rtl:left-0 ltr:right-0">x</button>
+					            </div>
+					        </div>
+					    </div>
+					</div>
 				</div>
 			</div>
 		</div>
@@ -54,18 +72,18 @@
 			<div class="search-bar-wrapper relative inline-flex items-center h-full px-2" x-data="{ open: false }">
 			    <!-- Search Icon Link -->
 			    <a href="#!" @click.prevent="open = true">
-			        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" class="lucide lucide-search w-5 h-5 stroke-2 transition-colors duration-300">
+			        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" class="text-white lucide lucide-search w-5 h-5 stroke-2 transition-colors duration-300">
 			            <circle cx="11" cy="11" r="8"></circle>
 			            <path d="m21 21-4.3-4.3"></path>
 			        </svg>
 			    </a>
 			    <!-- Search Modal -->
 			    <div x-show="open" class="absolute top-full right-0 w-full z-30" x-transition="" style="display: none;">
-			        <div class="bg-white dark:bg-black rounded-lg p-6 w-[400px] relative" style="left: calc(100% - 400px);">
+			        <div class="bg-white rounded-xs p-3 w-[400px] relative" style="left: calc(100% - 400px); box-shadow: 0px 30px 50px -10px rgba(0, 0, 0, 0.15);">
 			            <h2 class="text-lg text-black dark:text-white font-bold mb-4">Tìm kiếm</h2>
 			            @include('partials.search-form')
-			            <div class="flex justify-end mt-4">
-			                <button @click="open = false" class=" bg-black text-white dark:bg-white dark:text-black px-4 py-2 absolute top-0 rtl:left-0 ltr:right-0">x</button>
+			            <div class="flex justify-end mt-2">
+			                <button @click="open = false" class=" bg-black text-white px-4 py-2 absolute top-0 rtl:left-0 ltr:right-0">x</button>
 			            </div>
 			        </div>
 			    </div>
