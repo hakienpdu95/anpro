@@ -24,12 +24,11 @@
                     </li>
                 </ul>
 
-                @if (trim(get_the_excerpt()))
+                @if (sage_excerpt(get_post()))
                     <p class="text-sm">
-                        {{ get_the_excerpt() }}
+                        {!! sage_excerpt(get_post()) !!}
                     </p>
                 @endif
-
             </div>
         </div>
     </div>

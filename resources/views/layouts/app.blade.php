@@ -23,7 +23,7 @@
 
       <main id="main" class="main">
         <div class="container">
-          <div class="max-w-[1060px] mx-auto sm:px-0 px-3 flex items-start justify-between gap-5 flex-col lg:flex-row relative md:pt-8 pt-0">
+          <div class="max-w-[1060px] mx-auto sm:px-0 px-3 flex items-start justify-between gap-5 flex-col lg:flex-row relative md:pt-8 pt-5">
 
               <div class="max-w-[740px] w-full">
                   @yield('content')

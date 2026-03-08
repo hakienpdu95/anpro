@@ -43,10 +43,9 @@
                                     </li>
                                 </ul>
 
-                                @php $excerpt = get_the_excerpt($post); @endphp
-                                @if (trim($excerpt))
+                                @if (sage_excerpt($post))
                                     <p class="text-sm">
-                                        {{ $excerpt }}
+                                        {!! sage_excerpt($post) !!}
                                     </p>
                                 @endif
                             </div>

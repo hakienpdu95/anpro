@@ -651,4 +651,36 @@ if (!function_exists('sage_social_icons')) {
             );
         }
     }
+
+    /**
+     * LẤY CHÍNH XÁC TRƯỜNG EXCERPT THỦ CÔNG
+     * Hỗ trợ truyền: không truyền, ID, hoặc WP_Post object
+     */
+    if (!function_exists('sage_excerpt')) {
+        function sage_excerpt($post = null, bool $fallback_to_content = false, int $words = 55): string
+        {
+            $post = get_post($post); // Hỗ trợ cả ID, WP_Post, hoặc null (current post)
+
+            if (!$post) {
+                return '';
+            }
+
+            // Lấy Excerpt thủ công (post_excerpt)
+            $excerpt = trim($post->post_excerpt ?? '');
+
+            // Nếu có excerpt thủ công → trả về luôn (ưu tiên cao nhất)
+            if (!empty($excerpt)) {
+                return $excerpt;
+            }
+
+            // Nếu không có excerpt và bạn cho phép fallback
+            if ($fallback_to_content) {
+                $content = get_the_content(null, false, $post);
+                return wp_trim_words($content, $words, '...');
+            }
+
+            // Mặc định: không có excerpt thủ công thì trả về rỗng
+            return '';
+        }
+    }
 }

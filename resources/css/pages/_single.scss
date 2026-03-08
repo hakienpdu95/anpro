@@ -1,12 +1,20 @@
+@use '../abstracts' as *;
+
 .single-post {
 	color: var(--text-primary);
 	line-height: 24px;
-	
+
 	.arti-deta-info {
+		font-size: 15px;
+	    
+	    @include mq-max(sm) {
+			font-size: 22px;
+	    	line-height: 32px;
+		}
+
 		p {
 			margin: 15px 0;
 			color: var(--text-primary);
-		    font-size: 15px;
 		}
 	}
 }

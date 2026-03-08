@@ -33,9 +33,10 @@
                        class="text-sm text-blue-600 hover:text-blue-700 break-all block mt-2">
                         {{ $link['url'] }}
                     </a>
-                    @if (trim(get_the_excerpt()))
+
+                    @if (sage_excerpt(get_post()))
                         <p class="entry-meta">
-                            {{ get_the_excerpt() }}
+                            {!! sage_excerpt(get_post()) !!}
                         </p>
                     @endif
                 </div>

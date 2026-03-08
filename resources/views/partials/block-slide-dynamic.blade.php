@@ -31,7 +31,7 @@
                                         <a href="{{ get_permalink($post) }}" class="hover:text-blue-600">{{ get_the_title($post) }}</a>
                                     </h4>
                                     <p class="text-gray-600 text-sm line-clamp-3 mb-4">
-                                        {{ cmeta('subtitle', $post->ID) ?: wp_trim_words(get_the_excerpt($post), 25) }}
+                                        {{ cmeta('subtitle', $post->ID) ?: wp_trim_words(sage_excerpt($post, false, 25)) }}
                                     </p>
                                     <div class="flex justify-between text-xs text-gray-500">
                                         <span>⏱️ {{ (int) cmeta('reading_time', $post->ID) }} phút</span>
