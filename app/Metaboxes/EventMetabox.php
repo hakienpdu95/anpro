@@ -93,12 +93,12 @@ class EventMetabox extends BaseMetabox
                 'id'      => 'flags',
                 'type'    => 'checkbox_list',
                 'options' => [
-                    'hot'       => '🔥 Sự kiện hot',
-                    'featured'  => '⭐ Nổi bật',
-                    'breaking'  => '🚨 Quan trọng',
-                    'trending'  => '📈 Đang quan tâm',
-                    'live'      => '🔴 Live',
-                    'exclusive' => '🔒 Độc quyền',
+                    'featured'     => 'Nổi bật',
+                    'latest'       => 'Mới nhất',
+                    'live'         => 'Live',
+                    'exclusive'    => 'Độc quyền',
+                    'editors_pick' => 'Biên tập chọn',
+                    'sponsored'    => 'Tài trợ',
                 ],
             ],
             [

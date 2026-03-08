@@ -28,16 +28,19 @@
 			}
 		}
 
+		&.nav {
+			> li {
+				&.current-menu-item {
+	    			background-color: var(--main-color);
+	    			
+	    			> a {
+	    				color: #fff;
+	    			}
+	    		}
+			}
+		}
+
     	li {
-
-    		&.current-menu-item {
-    			background-color: var(--main-color);
-    			
-    			> a {
-    				color: #fff;
-    			}
-    		}
-
     		&.menu-item-has-children {
 			    position: relative;
 
