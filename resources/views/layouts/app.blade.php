@@ -7,6 +7,7 @@
     @php(wp_head())
 
     @vite([
+      'resources/css/hgi-stroke-rounded.css',
       'resources/css/app.css',
       'resources/css/main.scss',
       'resources/js/jquery.js',

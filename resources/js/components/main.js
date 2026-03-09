@@ -104,7 +104,7 @@
         mainMenu
             .find("ul li.has-sub-item > a")
             .append(
-                '<i class="hgi hgi-stroke hgi-arrow-down-01 text-xl text-light-primary-text"></i>'
+                '<i class="hgi hgi-stroke hgi-arrow-down-01 text-md text-light-primary-text"></i>'
             );
     }
 

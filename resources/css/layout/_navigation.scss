@@ -74,12 +74,88 @@
 			    transition-duration: var(--tw-duration, var(--default-transition-duration));
 			    --tw-duration: 300ms;
 			    transition-duration: 300ms;
+			    flex-flow: column;
+    			align-items: flex-start;
+			}
+    	}
+	}
+}
+
+.mobile-menu > ul {
+  display: flex;
+  flex-direction: column;
+  :where(& > :not(:last-child)) {
+    --tw-divide-y-reverse: 0;
+    border-bottom-style: var(--tw-border-style);
+    border-top-style: var(--tw-border-style);
+    border-top-width: calc(1px * var(--tw-divide-y-reverse));
+    border-bottom-width: calc(1px * calc(1 - var(--tw-divide-y-reverse)));
+  }
+  :where(& > :not(:last-child)) {
+    border-color: rgba(145,158,171,0.21);
+  }
+  padding-inline: calc(var(--spacing) * 2);
+}
+
+.mobile-menu {
+	ul {
+		li {
+			padding-block: calc(var(--spacing) * 2);
+
+			&.has-sub-item {
+			  position: relative;
 			}
 
-    		a {
+			a {
+				  font-size: var(--text-sm);
+				  line-height: var(--tw-leading, var(--text-sm--line-height));
+				  --tw-leading: 22px;
+				  line-height: 22px;
 
-    		}
-    	}
+				&.active {
+					  color: var(--color-primary);
+				}
+			}
+
+			.submenu-button {
+			  position: absolute;
+			  top: calc(var(--spacing) * 0);
+			  right: calc(var(--spacing) * 0);
+			  display: inline-flex;
+			  width: calc(var(--spacing) * 10);
+			  height: calc(var(--spacing) * 10);
+			  cursor: pointer;
+			  align-items: center;
+			  justify-content: center;
+
+			  &:not(.submenu-opened)::before {
+				  font-family: "hgi-stroke-rounded";
+				  font-size: 16px;
+				  line-height: 22px;
+				  color: #919eab;
+				  content: "㭚";
+				  transform: rotate(0deg);
+				  transition: transform 0.3s ease-in-out;
+				}
+
+				&.submenu-opened::after {
+				  font-family: "hgi-stroke-rounded";
+				  font-size: 16px;
+				  line-height: 22px;
+				  color: #919eab;
+				  content: "㭚";
+				  transform: rotate(-180deg);
+				  transition: transform 0.3s ease-in-out;
+				}
+			}
+
+			ul {
+			  display: none;
+			  flex-direction: column;
+			  padding-top: calc(var(--spacing) * 2);
+			  padding-left: calc(var(--spacing) * 2);
+			}
+		}
 	}
 }
 

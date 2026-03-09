@@ -17,7 +17,7 @@
 			<div class="container">
 				<div class="flex justify-between items-center">
 					<div>
-						<button class="btn btn-default border-1 border-[#fff] inline-flex items-center justify-center outline size-12 rounded-[50px]" id="sidebar-menu-btn">
+						<button class="btn btn-default border-1 border-[#fff] inline-flex items-center justify-center size-12 rounded-[50px]" id="sidebar-menu-btn">
 						    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
 						        <path d="M20 12L10 12" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
 						        <path d="M20 5L4 5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
