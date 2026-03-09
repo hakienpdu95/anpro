@@ -30,28 +30,6 @@ class NewsPostMetabox extends BaseMetabox
                 'rows' => 3,
                 'desc' => 'In đậm đầu bài – tăng thời gian đọc & SEO',
             ],
-            [
-                'name' => 'Thời gian đọc (phút)',
-                'id'   => 'reading_time',
-                'type' => 'number',
-                'min'  => 1,
-                'std'  => 5,
-            ],
-            [
-                'name'    => 'Loại bài viết',
-                'id'      => 'article_type',
-                'type'    => 'select',
-                'options' => [
-                    'standard'   => 'Tin thường',
-                    'review'     => 'Review / Đánh giá',
-                    'live'       => 'Live blog',
-                    'opinion'    => 'Ý kiến / Bình luận',
-                    'interview'  => 'Phỏng vấn',
-                    'infographic'=> 'Infographic',
-                    'video'      => 'Video chính',
-                ],
-                'std' => 'standard',
-            ],
 
             // 3. ĐÁNH DẤU & ƯU TIÊN (QUAN TRỌNG NHẤT CHO LỌC)
             [

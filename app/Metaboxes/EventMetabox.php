@@ -29,13 +29,6 @@ class EventMetabox extends BaseMetabox
                 'type' => 'textarea',
                 'rows' => 3,
             ],
-            [
-                'name' => 'Thời gian đọc (phút)',
-                'id'   => 'reading_time',
-                'type' => 'number',
-                'min'  => 1,
-                'std'  => 5,
-            ],
 
             // 2. THÔNG TIN SỰ KIỆN CHÍNH (đặc thù Event)
             [
@@ -52,18 +45,6 @@ class EventMetabox extends BaseMetabox
                 'name' => 'Thời gian kết thúc',
                 'id'   => 'event_end',
                 'type' => 'datetime',
-            ],
-            [
-                'name' => 'Trạng thái sự kiện',
-                'id'   => 'event_status',
-                'type' => 'select',
-                'options' => [
-                    'upcoming'  => 'Sắp diễn ra',
-                    'ongoing'   => 'Đang diễn ra',
-                    'ended'     => 'Đã kết thúc',
-                    'cancelled' => 'Đã hủy',
-                ],
-                'std' => 'upcoming',
             ],
 
             // 3. ĐỊA ĐIỂM & BẢN ĐỒ
@@ -118,28 +99,6 @@ class EventMetabox extends BaseMetabox
                 'name' => 'Ghim đến ngày',
                 'id'   => 'pinned_until',
                 'type' => 'date',
-            ],
-
-            // 5. TỔ CHỨC & ĐĂNG KÝ
-            [
-                'type' => 'heading',
-                'name' => 'Tổ chức & Đăng ký',
-            ],
-            [
-                'name' => 'Ban tổ chức / Người phụ trách',
-                'id'   => 'organizer',
-                'type' => 'text',
-            ],
-            [
-                'name' => 'Link đăng ký / Mua vé',
-                'id'   => 'ticket_link',
-                'type' => 'url',
-            ],
-            [
-                'name' => 'Giá vé (nếu có)',
-                'id'   => 'ticket_price',
-                'type' => 'text',
-                'placeholder' => 'Miễn phí hoặc 500.000 VNĐ',
             ],
 
             // ====================== CHUYỂN HƯỚNG ======================
