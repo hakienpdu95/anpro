@@ -42,12 +42,23 @@ class CustomTableManager {
         );
     }
 
-    public static function getTableName(string $post_type): string {
+    public static function getTableName(string $post_type): string
+    {
         global $wpdb;
-        $slug = sanitize_key($post_type);
-        return ($slug === 'post') 
-            ? $wpdb->prefix . 'post_custom_meta' 
-            : $wpdb->prefix . $slug . '_meta';
+
+        // Xử lý riêng cho post mặc định
+        if ($post_type === 'post') {
+            return $wpdb->prefix . 'post_custom_meta';
+        }
+
+        $slug = self::sanitizeTableName($post_type);
+
+        return $wpdb->prefix . $slug . '_meta';
+    }
+
+    private static function sanitizeTableName(string $post_type): string
+    {
+        return str_replace('-', '_', sanitize_key($post_type));
     }
 
     public static function init(): void {
