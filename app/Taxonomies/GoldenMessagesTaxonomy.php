@@ -1,32 +1,32 @@
 <?php namespace App\Taxonomies;
 
-class SeriesTaxonomy extends BaseTaxonomy
+class GoldenMessagesTaxonomy extends BaseTaxonomy
 {
     protected function getTaxonomyKey(): string
     {
-        return 'series';
+        return 'golden-messages';
     }
 
     protected function getSingular(): string
     {
-        return 'Chuỗi series';
+        return 'Thông điệp vàng';
     }
 
     protected function getPlural(): string
     {
-        return 'Chuỗi series';
+        return 'Thông điệp vàng';
     }
 
     protected function getPostTypes(): array
     {
-        return ['happy-family', 'violence-prevention', 'event'];
+        return ['happy-family', 'violence-prevention', 'family-values'];
     }
 
     protected function getArgs(): array
     {
         $args = parent::getArgs();
-        $args['hierarchical'] = true;     
-        $args['rewrite'] = ['slug' => 'chuoi-series'];
+        $args['hierarchical'] = true;          
+        $args['rewrite'] = ['slug' => 'thong-diep-vang'];
         return $args;
     }
 }

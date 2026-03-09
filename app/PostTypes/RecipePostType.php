@@ -12,7 +12,7 @@ class RecipePostType extends BasePostType
     {
         return array_merge(parent::getArgs(), [
             'menu_icon'     => 'dashicons-megaphone',
-            'menu_position' => 8,
+            'menu_position' => 10,
             'supports'      => ['title', 'editor', 'thumbnail', 'excerpt', 'author', 'comments'],
         ]);
     }

@@ -1,32 +1,32 @@
 <?php namespace App\Taxonomies;
 
-class SeriesTaxonomy extends BaseTaxonomy
+class PlanTasksTaxonomy extends BaseTaxonomy
 {
     protected function getTaxonomyKey(): string
     {
-        return 'series';
+        return 'plan-tasks';
     }
 
     protected function getSingular(): string
     {
-        return 'Chuỗi series';
+        return 'Nhiệm vụ kế hoạch';
     }
 
     protected function getPlural(): string
     {
-        return 'Chuỗi series';
+        return 'Nhiệm vụ kế hoạch';
     }
 
     protected function getPostTypes(): array
     {
-        return ['happy-family', 'violence-prevention', 'event'];
+        return ['happy-family', 'violence-prevention', 'family-values', 'event'];
     }
 
     protected function getArgs(): array
     {
         $args = parent::getArgs();
-        $args['hierarchical'] = true;     
-        $args['rewrite'] = ['slug' => 'chuoi-series'];
+        $args['hierarchical'] = true;          
+        $args['rewrite'] = ['slug' => 'nhiem-vu-ke-hoach'];
         return $args;
     }
 }

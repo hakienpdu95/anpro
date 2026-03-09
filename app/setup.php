@@ -291,6 +291,12 @@ require_once get_theme_file_path('app/Database/CustomTableManager.php');
 \App\Database\CustomTableManager::register('happy-family', [
     '*'
 ]);
+\App\Database\CustomTableManager::register('violence-prevention', [
+    '*'
+]);
+\App\Database\CustomTableManager::register('family-values', [
+    '*'
+]);
 // \App\Database\CustomTableManager::register('project', ['flags', 'budget', 'deadline', 'project_phase', 'client']);
 // \App\Database\CustomTableManager::register('news', ['flags', 'hot', 'trending', 'author_custom']);
 

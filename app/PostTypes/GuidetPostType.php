@@ -12,7 +12,7 @@ class GuidetPostType extends BasePostType
     {
         return array_merge(parent::getArgs(), [
             'menu_icon'     => 'dashicons-megaphone',
-            'menu_position' => 6,
+            'menu_position' => 8,
             'supports'      => ['title', 'editor', 'thumbnail', 'excerpt', 'author', 'comments'],
         ]);
     }

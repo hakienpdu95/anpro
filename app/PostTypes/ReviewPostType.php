@@ -12,7 +12,7 @@ class ReviewPostType extends BasePostType
     {
         return array_merge(parent::getArgs(), [
             'menu_icon'     => 'dashicons-megaphone',
-            'menu_position' => 7,
+            'menu_position' => 9,
             'supports'      => ['title', 'editor', 'thumbnail', 'excerpt', 'author', 'comments'],
         ]);
     }
