@@ -90,7 +90,7 @@ class CacheHelper
         }
 
         // === BUMP CHO DANH SÁCH MERGED (post + event) ===
-        if (in_array($post_type, ['post', 'event'])) {
+        if (in_array($post_type, ['post', 'event', 'happy-family'])) {
             self::bumpDataVersion('content_list');
         }
         
