@@ -424,6 +424,8 @@ require_once get_theme_file_path('app/Queries/MergedPostsQuery.php');
 // Archive CPT (thêm bao nhiêu CPT cũng được)
 \App\Queries\MergedPostsQuery::initArchive('event',   ['posts_per_page' => 2]);
 \App\Queries\MergedPostsQuery::initArchive('happy-family',   ['posts_per_page' => 2]);
+\App\Queries\MergedPostsQuery::initArchive('family-values',   ['posts_per_page' => 2]);
+\App\Queries\MergedPostsQuery::initArchive('violence-prevention',   ['posts_per_page' => 2]);
 // \App\Queries\MergedPostsQuery::initArchive('project', ['posts_per_page' => 9]);
 // \App\Queries\MergedPostsQuery::initArchive('news',    ['posts_per_page' => 15]);
 
