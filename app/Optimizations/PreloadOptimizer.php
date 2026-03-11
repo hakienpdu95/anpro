@@ -24,8 +24,6 @@ class PreloadOptimizer
         'preload_fonts' => [
             'public/build/fonts/Roboto-Regular.woff2' => 'font/woff2',
             'public/build/fonts/Roboto-Medium.woff2'  => 'font/woff2',
-            // 'public/build/fonts/Roboto-Bold.woff2'    => 'font/woff2',
-            // 'public/build/fonts/Roboto-Italic.woff2' => 'font/woff2',
         ],
         'google_font_urls' => [],
         'preconnect' => [
