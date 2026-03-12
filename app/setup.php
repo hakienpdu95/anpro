@@ -174,6 +174,29 @@ add_action('after_setup_theme', function () {
         update_option('large_size_h', 0);
         update_option('medium_large_size_w', 0);
     });
+
+
+    $table_url = get_theme_file_uri('/plugins/table/plugin.min.js');
+
+    add_filter('mce_external_plugins', function ($plugins) use ($table_url) {
+        $plugins['table'] = $table_url;
+        return $plugins;
+    }, 999);
+
+    add_filter('mce_buttons_2', function ($buttons) {
+        $buttons[] = 'table';
+        $buttons[] = 'tableprops';
+        $buttons[] = 'tabledelete';
+        $buttons[] = '|';
+        $buttons[] = 'tableinsertrowbefore';
+        $buttons[] = 'tableinsertrowafter';
+        $buttons[] = 'tabledeleterow';
+        $buttons[] = '|';
+        $buttons[] = 'tableinsertcolbefore';
+        $buttons[] = 'tableinsertcolafter';
+        $buttons[] = 'tabledeletecol';
+        return $buttons;
+    }, 999);
 }, 20);
 
 /**
