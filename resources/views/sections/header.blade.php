@@ -1,11 +1,28 @@
 <header>
 	<div class="py-4 xl:border-0 hidden xl:block header-top">
 		<div class="container">
-			<div class="xl:flex items-center hidden">
-				<div>
-				    <a href="{{ home_url('/') }}">
-				        <img src="{{ asset('images/logo.png') }}" alt="Logo">
-				    </a>
+			<div class="relative flex flex-row flex-nowrap justify-between items-stretch w-full p-0">
+				<div class="flex justify-start items-center overflow-hidden header-logo">
+					<a title="Logo" href="{{ home_url('/') }}">
+					    <img id="logo-img" alt="Logo" src="{{ asset('images/logo.png') }}" loading="lazy" class="img-fluid">
+					</a>
+					<div class="flex flex-col" style="margin-top:-15px">
+					    <a class="logo" href="{{ home_url('/') }}">
+					        <strong class="brand-name relative">
+					            <span class="br-1">Vì</span>
+					            <span class="br-2">Gia đình</span>
+					            <span class="br-3 absolute">.vn</span>
+					        </strong>
+					    </a>
+					    <div href="{{ home_url('/') }}" class="logo">
+					        <strong class="brand-name p-0">
+					            <span class="br-">Trang thông tin điện tử tổng hợp</span>
+					        </strong>
+					    </div>
+					    <div href="{{ home_url('/') }}" class="logo slg-actd absolute" style="bottom: 8px">
+					        <span class="slogan-actd">...đơn giản, hướng về gia đình...</span>
+					    </div>
+					</div>					
 				</div>
 			</div>
 		</div>

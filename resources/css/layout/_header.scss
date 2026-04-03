@@ -1,0 +1,67 @@
+.header-logo {
+    padding-left: 15px;
+    font-family: 'EB Garamond';
+
+    a {
+        text-decoration: unset !important;
+
+        &.logo {
+            margin-right: 10px;
+            margin-left: 5px;
+        }
+    }
+
+    .brand-name {
+        font-size: 23px;
+        padding-top: 20px;
+        font-weight: bold;
+
+        .br-1 {
+            color: #003366;
+        }
+
+        .br-2 {
+            color: #4CAF50;
+        }
+
+        .br-3 {
+            top: 9px;
+            right: 0px;
+            color: #003366;
+            font-size: 0.6em;
+        }
+    }
+
+    div.logo {
+        margin-top: -5px;
+        margin-bottom: 5px;
+
+        > .brand-name {
+            > span {
+                margin-left: 8px;
+                font-size: 12px;
+                font-weight: 400;
+                opacity: 0.6;
+            }
+        }
+    }
+
+    div.slg-actd {
+        bottom: 0;
+
+        > span.slogan-actd {
+            font-size: 16px;
+            float: left;
+            text-transform: none;
+            font-style: italic;
+            font-weight: normal;
+            color: red;
+        }
+    }
+
+    #logo-img {
+        width: 100px;
+        height: 100px;
+        transition: all 0.2s ease;
+    }
+}

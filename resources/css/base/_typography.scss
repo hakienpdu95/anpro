@@ -1,17 +1,2 @@
-@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 400;
-  src: url('@/fonts/Roboto-Regular.woff2') format('woff2'),
-       url('@/fonts/Roboto-Regular.woff') format('woff');
-  font-display: swap;
-}
-
-@font-face {
-  font-family: 'Roboto';
-  font-style: normal;
-  font-weight: 500;
-  src: url('@/fonts/Roboto-Medium.woff2') format('woff2'),
-       url('@/fonts/Roboto-Medium.woff') format('woff');
-  font-display: swap;
-}
+@import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&display=swap');
