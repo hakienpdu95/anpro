@@ -20,7 +20,7 @@
 					        </strong>
 					    </div>
 					    <div href="{{ home_url('/') }}" class="logo slg-actd absolute" style="bottom: 8px">
-					        <span class="slogan-actd">...đơn giản, hướng về gia đình...</span>
+					        <span class="slogan-actd">Hạnh phúc cho mọi gia đình...</span>
 					    </div>
 					</div>					
 				</div>
