@@ -44,12 +44,10 @@ class PlaceholderHandler
 
         $post_type = get_post_type($post_id) ?: 'post';
 
-        // 1. Ưu tiên Media Library (tốt nhất cho production)
+        // 1. Ưu tiên Media Library
         if (!empty(self::$config['media_id'])) {
             $url = wp_get_attachment_url(self::$config['media_id']);
-            if ($url) {
-                return self::$urlCache[$post_id] = $url;
-            }
+            if ($url) return self::$urlCache[$post_id] = $url;
         }
 
         // 2. Xác định file
@@ -59,12 +57,14 @@ class PlaceholderHandler
             $file = self::$postTypeMap[$post_type] ?? self::$config['default_file'];
         }
 
-        // 3. Xử lý URL theo môi trường (DEV vs PRODUCTION)
+        // 3. Cache Vite::asset (quan trọng nhất trong dev mode)
         if (app()->environment(['local', 'development']) || (defined('WP_DEBUG') && WP_DEBUG)) {
-            // Development (npm run dev)
-            $url = Vite::asset("resources/images/{$file}");
+            $viteKey = "vite_{$file}";
+            if (!isset(self::$viteCache[$viteKey])) {
+                self::$viteCache[$viteKey] = Vite::asset("resources/images/{$file}");
+            }
+            $url = self::$viteCache[$viteKey];
         } else {
-            // Production (sau npm run build)
             $url = get_theme_file_uri("public/images/{$file}");
         }
 
