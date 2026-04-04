@@ -385,6 +385,10 @@ add_filter('default_hidden_meta_boxes', function ($hidden, $screen) {
     return $hidden;
 }, 10, 2);
 
+// === LOAD MORE AJAX ===
+require_once get_theme_file_path('app/Ajax/LoadMore.php');
+\App\Ajax\LoadMore::init();
+
 /** === QUERY HELPER === */
 require_once get_theme_file_path('app/Helpers/QueryHelper.php');
 
@@ -442,22 +446,12 @@ require_once get_theme_file_path('app/CMB2/Registrar.php');
 
 // === MERGED POSTS QUERY MODULE 10/10 TỐI ƯU ===
 require_once get_theme_file_path('app/Queries/MergedPostsQuery.php');
-// Homepage (merge post + event)
 \App\Queries\MergedPostsQuery::initHomepage(['posts_per_page' => 3]);
-// Archive CPT (thêm bao nhiêu CPT cũng được)
 \App\Queries\MergedPostsQuery::initArchive('event',   ['posts_per_page' => 2]);
 \App\Queries\MergedPostsQuery::initArchive('happy-family',   ['posts_per_page' => 2]);
 \App\Queries\MergedPostsQuery::initArchive('family-values',   ['posts_per_page' => 2]);
 \App\Queries\MergedPostsQuery::initArchive('violence-prevention',   ['posts_per_page' => 2]);
-// \App\Queries\MergedPostsQuery::initArchive('project', ['posts_per_page' => 9]);
-// \App\Queries\MergedPostsQuery::initArchive('news',    ['posts_per_page' => 15]);
 
-/**
- * ===============================================
- * HOMEPAGE MERGE 'post' + 'event' - PAGINATION 404 FIX
- * Cách WordPress chuẩn nhất (không override object, không bị redirect_canonical)
- * ===============================================
- */
 add_action('pre_get_posts', function ($query) {
     if (is_admin() || !$query->is_main_query() || !(is_home() || is_front_page())) {
         return;

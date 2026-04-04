@@ -58,4 +58,62 @@ class QueryCache
         }
         return $result;
     }    
+
+    public static function getCachedLoadMoreChunk(int $paged, int $posts_per_page = 3): array
+    {
+        $version = CacheHelper::getDataVersion('content_list');
+        $key     = "loadmore_p{$paged}_pp{$posts_per_page}_v{$version}";
+
+        return DataCache::remember($key, 3600, function () use ($paged, $posts_per_page) { // 1 giờ
+            $start = microtime(true);
+
+            $query = new \WP_Query([
+                'post_type'              => ['post', 'event'],
+                'posts_per_page'         => $posts_per_page,
+                'paged'                  => $paged,
+                'orderby'                => 'date',
+                'order'                  => 'DESC',
+                'post_status'            => 'publish',
+                'no_found_rows'          => true,
+                'update_post_meta_cache' => false,
+                'update_post_term_cache' => false,
+                'cache_results'          => false,
+                'ignore_sticky_posts'    => true,
+                'suppress_filters'       => false,   // giữ CustomTableManager
+            ]);
+
+            $html = '';
+            if ($query->have_posts()) {
+                ob_start();
+                while ($query->have_posts()) {
+                    $query->the_post();
+                    echo view('partials.content')->render();
+                }
+                wp_reset_postdata();
+                $html = ob_get_clean();
+            }
+
+            // Test nhanh có còn trang sau không (rất nhẹ, chỉ fields=ids)
+            $test_query = new \WP_Query([
+                'post_type'      => ['post', 'event'],
+                'posts_per_page' => 1,
+                'paged'          => $paged + 1,
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+                'cache_results'  => false,
+            ]);
+
+            $has_more = $test_query->have_posts();
+
+            $time = round((microtime(true) - $start) * 1000, 2);
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("[LOADMORE CACHE] p{$paged} | {$time}ms | has_more: " . ($has_more ? 'true' : 'false'));
+            }
+
+            return [
+                'html'     => $html,
+                'has_more' => $has_more,
+            ];
+        });
+    }
 }

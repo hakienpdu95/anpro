@@ -8,3 +8,4 @@ Alpine.start();
 // === COMPONENTS AUTO-INIT ===
 import './components/init.js';
 import './components/main.js';
+import './components/load-more.js';
