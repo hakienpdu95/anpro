@@ -10,16 +10,14 @@ class LoadMore {
     public static function handle() {
         check_ajax_referer('load_more_nonce', 'nonce');
 
-        // === TẮT TOÀN BỘ BUFFER + MINIFIER ===
-        while (ob_get_level() > 0) {
-            ob_end_clean();
-        }
+        // Tắt buffer + header tối ưu
+        while (ob_get_level() > 0) ob_end_clean();
         header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, must-revalidate');
 
         $offset = max(6, (int) ($_POST['offset'] ?? 6));
 
-        // Sử dụng hàm bump key hash theo mỗi lần click
-        $chunk = \App\Helpers\QueryCache::getLoadMoreChunkDynamic($offset, 3);
+        $chunk = \App\Helpers\QueryCache::getCachedLoadMoreChunk($offset, 3);
 
         wp_send_json_success($chunk);
     }

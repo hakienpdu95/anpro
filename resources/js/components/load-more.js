@@ -25,29 +25,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
         try {
             const res = await fetch(btn.dataset.ajaxurl, { method: 'POST', body: formData });
-            
-            // === DEBUG RAW RESPONSE ===
-            const rawText = await res.text();
-            console.log('📥 Raw AJAX Response:', rawText.substring(0, 300)); // chỉ 300 ký tự đầu
+            const data = await res.json();
 
-            const data = JSON.parse(rawText);
+            if (data.success && data.data.html) {
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = data.data.html;
+                const newItems = tempDiv.children;
 
-            if (data.success) {
-                if (data.data.html && data.data.html.trim() !== '') {
-                    grid.insertAdjacentHTML('beforeend', data.data.html);
-                }
+                // Fade-in mượt
+                Array.from(newItems).forEach((item, i) => {
+                    item.style.opacity = '0';
+                    item.style.transform = 'translateY(20px)';
+                    grid.appendChild(item);
+                    
+                    setTimeout(() => {
+                        item.style.transition = 'all 0.4s ease';
+                        item.style.opacity = '1';
+                        item.style.transform = 'translateY(0)';
+                    }, i * 80);
+                });
 
                 currentOffset += 3;
                 btn.dataset.offset = currentOffset;
 
-                // === ẨN BUTTON KHI HẾT BÀI (đã fix chắc chắn) ===
                 if (data.data.has_more === false) {
                     btn.style.display = 'none';
-                    console.log('✅ HẾT BÀI – Button đã ẩn hoàn toàn');
+                    console.log('✅ HẾT BÀI – Button ẩn');
                 }
             }
         } catch (err) {
-            console.error('Load more error:', err);
+            console.error(err);
         } finally {
             console.timeEnd('🚀 Load More AJAX');
             btn.disabled = false;

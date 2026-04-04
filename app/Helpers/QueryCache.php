@@ -59,53 +59,59 @@ class QueryCache
         return $result;
     }    
 
-    public static function getLoadMoreChunkDynamic(int $offset, int $posts_per_page = 3): array
+    public static function getCachedLoadMoreChunk(int $offset, int $posts_per_page = 3): array
     {
-        $start = microtime(true);
+        $version = CacheHelper::getDataVersion('content_list');
+        $key     = "loadmore_offset_{$offset}_pp{$posts_per_page}_v{$version}";
 
-        $posts = get_posts([
-            'post_type'              => ['post', 'event'],
-            'posts_per_page'         => $posts_per_page,
-            'offset'                 => $offset,
-            'orderby'                => 'date',
-            'order'                  => 'DESC',
-            'post_status'            => 'publish',
-            'no_found_rows'          => true,
-            'cache_results'          => false,
-            'update_post_meta_cache' => false,
-            'update_post_term_cache' => false,
-            'suppress_filters'       => false,
-        ]);
+        return DataCache::remember($key, 1800, function () use ($offset, $posts_per_page) { // 30 phút
+            $start = microtime(true);
 
-        $html = '';
-        $count = count($posts);
+            $posts = get_posts([
+                'post_type'              => ['post', 'event'],
+                'posts_per_page'         => $posts_per_page,
+                'offset'                 => $offset,
+                'orderby'                => 'date',
+                'order'                  => 'DESC',
+                'post_status'            => 'publish',
+                'no_found_rows'          => true,
+                'cache_results'          => false,
+                'update_post_meta_cache' => false,
+                'update_post_term_cache' => false,
+                'suppress_filters'       => false,
+                'ignore_sticky_posts'    => true,
+            ]);
 
-        if ($count > 0) {
-            global $post;
-            ob_start();
-            foreach ($posts as $post) {
-                setup_postdata($post);
-                $html .= view('partials.content-loadmore')->render();   // ← Blade Sage
+            $html = '';
+            if (!empty($posts)) {
+                global $post;
+                ob_start();
+                foreach ($posts as $post) {
+                    setup_postdata($post);
+                    $html .= view('partials.content-loadmore')->render();
+                }
+                wp_reset_postdata();
             }
-            wp_reset_postdata();
-        }
 
-        $has_more = !empty(get_posts([
-            'post_type'      => ['post', 'event'],
-            'posts_per_page' => 1,
-            'offset'         => $offset + $posts_per_page,
-            'fields'         => 'ids',
-            'no_found_rows'  => true,
-        ]));
+            // Kiểm tra has_more (rất nhẹ)
+            $has_more = !empty(get_posts([
+                'post_type'      => ['post', 'event'],
+                'posts_per_page' => 1,
+                'offset'         => $offset + $posts_per_page,
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+            ]));
 
-        $total_time = round((microtime(true) - $start) * 1000, 2);
-        $html_length = strlen($html);
+            $time = round((microtime(true) - $start) * 1000, 2);
 
-        error_log("[LOADMORE BLADE] offset={$offset} | Found {$count} posts | HTML length={$html_length} | Tổng {$total_time}ms | has_more=" . ($has_more ? 'true' : 'false'));
+            if (defined('WP_DEBUG') && WP_DEBUG) {
+                error_log("[LOADMORE 10/10] offset={$offset} | Cache hit | Tổng {$time}ms | HTML=" . (strlen($html) > 100 ? 'OK' : 'RỖNG'));
+            }
 
-        return [
-            'html'      => $html,
-            'has_more'  => $has_more,
-        ];
+            return [
+                'html'      => $html,
+                'has_more'  => $has_more,
+            ];
+        });
     }
 }
