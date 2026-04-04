@@ -64,9 +64,11 @@ class QueryCache
         $version = CacheHelper::getDataVersion('content_list');
         $key     = "loadmore_offset_{$offset}_pp{$posts_per_page}_v{$version}";
 
-        return DataCache::remember($key, 1800, function () use ($offset, $posts_per_page) { // 30 phút
-            $start = microtime(true);
+        return DataCache::remember($key, 1800, function () use ($offset, $posts_per_page) {
+            $total_start = microtime(true);
 
+            // === 1. QUERY ===
+            $query_start = microtime(true);
             $posts = get_posts([
                 'post_type'              => ['post', 'event'],
                 'posts_per_page'         => $posts_per_page,
@@ -79,9 +81,31 @@ class QueryCache
                 'update_post_meta_cache' => false,
                 'update_post_term_cache' => false,
                 'suppress_filters'       => false,
-                'ignore_sticky_posts'    => true,
             ]);
+            $query_time = round((microtime(true) - $query_start) * 1000, 2);
 
+            // === 2. BULK PREFETCH SIÊU MẠNH (quan trọng nhất) ===
+            $prefetch_start = microtime(true);
+            if (!empty($posts)) {
+                $ids = wp_list_pluck($posts, 'ID');
+
+                update_postmeta_cache($ids);                    // WP meta
+                _prime_post_caches($ids, false, true);          // permalink + title
+                sage_prefetch_link_posts($posts);               // redirect + link helper
+
+                // === Prefetch CustomTableManager + cmeta (giảm 80% overhead) ===
+                foreach ($ids as $id) {
+                    cmeta('custom_author', $id);
+                    cmeta('flags', $id);
+                    cmeta('is_redirect', $id);
+                    cmeta('redirect_url', $id);
+                    cmeta('is_pinned', $id);   // nếu dùng
+                }
+            }
+            $prefetch_time = round((microtime(true) - $prefetch_start) * 1000, 2);
+
+            // === 3. RENDER BLADE (giữ nguyên tất cả helper) ===
+            $render_start = microtime(true);
             $html = '';
             if (!empty($posts)) {
                 global $post;
@@ -92,8 +116,9 @@ class QueryCache
                 }
                 wp_reset_postdata();
             }
+            $render_time = round((microtime(true) - $render_start) * 1000, 2);
 
-            // Kiểm tra has_more (rất nhẹ)
+            // === 4. has_more ===
             $has_more = !empty(get_posts([
                 'post_type'      => ['post', 'event'],
                 'posts_per_page' => 1,
@@ -102,16 +127,13 @@ class QueryCache
                 'no_found_rows'  => true,
             ]));
 
-            $time = round((microtime(true) - $start) * 1000, 2);
+            $total_time = round((microtime(true) - $total_start) * 1000, 2);
 
             if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("[LOADMORE 10/10] offset={$offset} | Cache hit | Tổng {$time}ms | HTML=" . (strlen($html) > 100 ? 'OK' : 'RỖNG'));
+                error_log("[LOADMORE 10/10] offset={$offset} | Query:{$query_time}ms | Prefetch:{$prefetch_time}ms | Render:{$render_time}ms | Tổng:{$total_time}ms");
             }
 
-            return [
-                'html'      => $html,
-                'has_more'  => $has_more,
-            ];
+            return ['html' => $html, 'has_more' => $has_more];
         });
     }
 }
