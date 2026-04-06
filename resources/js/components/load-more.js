@@ -27,23 +27,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 body: formData
             });
 
-            const data = await res.json();
+            const html = await res.text();
+            const hasMore = res.headers.get('X-Has-More') === '1';
 
-            if (data.success && data.data.html) {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = data.data.html;
+            // Insert HTML thuần (nhanh nhất)
+            grid.insertAdjacentHTML('beforeend', html);
 
-                const fragment = document.createDocumentFragment();
-                Array.from(tempDiv.children).forEach(item => fragment.appendChild(item));
+            currentOffset += 3;
+            btn.dataset.offset = currentOffset;
 
-                grid.appendChild(fragment);
-
-                currentOffset += 3;
-                btn.dataset.offset = currentOffset;
-
-                if (data.data.has_more === false) {
-                    btn.style.display = 'none';
-                }
+            if (!hasMore) {
+                btn.style.display = 'none';
             }
         } catch (err) {
             console.error(err);
