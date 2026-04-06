@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const btn = document.getElementById('load-more-btn');
     if (!btn) return;
 
-    let currentOffset = parseInt(btn.dataset.offset || 6);
+    let currentOffset = parseInt(btn.dataset.offset || 3);
     const grid = document.getElementById('posts-grid');
 
     btn.addEventListener('click', async () => {

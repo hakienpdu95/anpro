@@ -17,7 +17,7 @@
         <div class="text-center mt-12">
             <button id="load-more-btn"
                     class="px-12 py-4 bg-[#6697a1] hover:bg-[#55868f] text-white font-medium rounded-2xl transition-all flex items-center gap-3 mx-auto disabled:opacity-70"
-                    data-offset="6"
+                    data-offset="3"
                     data-ajaxurl="{{ admin_url('admin-ajax.php') }}"
                     data-nonce="{{ wp_create_nonce('load_more_nonce') }}">
                 <span class="btn-text">Xem thêm 3 bài viết</span>

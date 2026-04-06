@@ -19,7 +19,7 @@ class LoadMore {
         header('Pragma: no-cache');
         header('Expires: 0');
 
-        $offset = max(6, (int) ($_POST['offset'] ?? 6));
+        $offset = max(3, (int) ($_POST['offset'] ?? 3));
 
         $chunk = \App\Helpers\QueryCache::getLoadMoreChunk($offset, 3);
 
