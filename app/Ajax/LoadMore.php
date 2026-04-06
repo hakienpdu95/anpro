@@ -10,23 +10,20 @@ class LoadMore {
     public static function handle() {
         check_ajax_referer('load_more_nonce', 'nonce');
 
-        // === TẮT TẤT CẢ FILTER NẶNG TẠM THỜI (giảm mạnh độ trễ) ===
-        remove_filter('post_thumbnail_html', [\App\Placeholders\PlaceholderHandler::class, 'replaceWithPlaceholder'], 999);
-        remove_filter('post_thumbnail_url', [\App\Placeholders\PlaceholderHandler::class, 'replaceThumbnailUrl'], 999);
-        
-        // Tắt thêm các hook nặng khác nếu anh có
-        remove_action('save_post', [\App\Helpers\CacheHelper::class, 'flushOnPostSave']); // ví dụ
-        // ... có thể tắt thêm ViewCounter, Watermark, v.v.
+        // TẮT BUFFER + MINIFIER TRIỆT ĐỂ (fix chậm 1.5s)
+        while (ob_get_level() > 0) {
+            ob_end_clean();
+        }
 
-        while (ob_get_level() > 0) ob_end_clean();
+        // Header tối ưu tốc độ
+        header('Content-Type: application/json; charset=utf-8');
+        header('Cache-Control: no-cache, no-store, must-revalidate');
+        header('Pragma: no-cache');
+        header('Expires: 0');
 
         $offset = max(6, (int) ($_POST['offset'] ?? 6));
 
         $chunk = \App\Helpers\QueryCache::getLoadMoreChunk($offset, 3);
-
-        // Bật lại filter
-        add_filter('post_thumbnail_html', [\App\Placeholders\PlaceholderHandler::class, 'replaceWithPlaceholder'], 999, 5);
-        add_filter('post_thumbnail_url', [\App\Placeholders\PlaceholderHandler::class, 'replaceThumbnailUrl'], 999, 3);
 
         wp_send_json_success($chunk);
     }

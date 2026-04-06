@@ -8,11 +8,9 @@ document.addEventListener('DOMContentLoaded', () => {
     btn.addEventListener('click', async () => {
         const textSpan = btn.querySelector('.btn-text');
         const loadingSpan = btn.querySelector('.loading');
-        if (!textSpan || !loadingSpan) return;
-
         const originalText = textSpan.innerHTML;
 
-        console.time('🚀 Load More AJAX');
+        const startTotal = performance.now();
 
         btn.disabled = true;
         textSpan.classList.add('hidden');
@@ -24,39 +22,35 @@ document.addEventListener('DOMContentLoaded', () => {
         formData.append('nonce', btn.dataset.nonce);
 
         try {
-            const res = await fetch(btn.dataset.ajaxurl, { method: 'POST', body: formData });
+            const res = await fetch(btn.dataset.ajaxurl, {
+                method: 'POST',
+                body: formData
+            });
+
             const data = await res.json();
 
             if (data.success && data.data.html) {
                 const tempDiv = document.createElement('div');
                 tempDiv.innerHTML = data.data.html;
-                const newItems = tempDiv.children;
 
-                // Fade-in mượt
-                Array.from(newItems).forEach((item, i) => {
-                    item.style.opacity = '0';
-                    item.style.transform = 'translateY(20px)';
-                    grid.appendChild(item);
-                    
-                    setTimeout(() => {
-                        item.style.transition = 'all 0.4s ease';
-                        item.style.opacity = '1';
-                        item.style.transform = 'translateY(0)';
-                    }, i * 80);
-                });
+                const fragment = document.createDocumentFragment();
+                Array.from(tempDiv.children).forEach(item => fragment.appendChild(item));
+
+                grid.appendChild(fragment);
 
                 currentOffset += 3;
                 btn.dataset.offset = currentOffset;
 
                 if (data.data.has_more === false) {
                     btn.style.display = 'none';
-                    console.log('✅ HẾT BÀI – Button ẩn');
                 }
             }
         } catch (err) {
             console.error(err);
         } finally {
-            console.timeEnd('🚀 Load More AJAX');
+            const totalTime = (performance.now() - startTotal).toFixed(2);
+            console.log(`🚀 Load More FULL: ${totalTime}ms`);
+
             btn.disabled = false;
             textSpan.classList.remove('hidden');
             loadingSpan.classList.add('hidden');
