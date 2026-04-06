@@ -59,89 +59,88 @@ class QueryCache
         return $result;
     }    
 
-    public static function getCachedLoadMoreChunk(int $offset, int $posts_per_page = 3): array
+    public static function getLoadMoreChunk(int $offset, int $posts_per_page = 3): array
     {
-        $version = CacheHelper::getDataVersion('content_list');
-        $key     = "loadmore_offset_{$offset}_pp{$posts_per_page}_v{$version}";
+        $total_start = microtime(true);
 
-        return DataCache::remember($key, 1800, function () use ($offset, $posts_per_page) {
-            $total_start = microtime(true);
+        $post_types = ['post', 'event', 'viet-heritage', 'viet-product', 'viet-travel'];
 
-            // === 1. QUERY SIÊU NHẸ ===
-            $query_start = microtime(true);
-            $posts = get_posts([
-                'post_type'              => ['post', 'event'],
-                'posts_per_page'         => $posts_per_page,
-                'offset'                 => $offset,
-                'orderby'                => 'date',
-                'order'                  => 'DESC',
-                'post_status'            => 'publish',
-                'no_found_rows'          => true,
-                'cache_results'          => false,
-                'update_post_meta_cache' => false,
-                'update_post_term_cache' => false,
-                'suppress_filters'       => false,
-                'ignore_sticky_posts'    => true,
-            ]);
-            $query_time = round((microtime(true) - $query_start) * 1000, 2);
+        // === 1. QUERY (siêu nhẹ) ===
+        $query_start = microtime(true);
+        $query = new \WP_Query([
+            'post_type'              => $post_types,
+            'posts_per_page'         => $posts_per_page,
+            'offset'                 => $offset,
+            'orderby'                => 'date',
+            'order'                  => 'DESC',
+            'post_status'            => 'publish',
+            'no_found_rows'          => true,
+            'cache_results'          => false,
+            'update_post_meta_cache' => false,
+            'update_post_term_cache' => false,
+            'suppress_filters'       => false,
+            'ignore_sticky_posts'    => true,
+            'lazy_load_term_meta'    => false,
+        ]);
+        $posts = $query->posts;
+        $query_time = round((microtime(true) - $query_start) * 1000, 2);
 
-            // === 2. BULK PREFETCH SIÊU MẠNH (giảm 80-90% overhead) ===
-            $prefetch_start = microtime(true);
-            if (!empty($posts)) {
-                $ids = wp_list_pluck($posts, 'ID');
+        // === 2. PREFETCH SIÊU SÂU ===
+        $prefetch_start = microtime(true);
+        if (!empty($posts)) {
+            $ids = wp_list_pluck($posts, 'ID');
+            update_postmeta_cache($ids);
+            _prime_post_caches($ids, false, true);
+            sage_prefetch_link_posts($posts);
 
-                // Prefetch WP core
-                update_postmeta_cache($ids);
-                _prime_post_caches($ids, false, true);
-
-                // Prefetch sage helper
-                sage_prefetch_link_posts($posts);
-
-                // === PREFETCH PLACEHOLDER + THUMBNAIL META (rất quan trọng) ===
-                foreach ($ids as $id) {
-                    get_post_meta($id, '_thumbnail_id', true);                    // warm meta thumbnail
-                    \App\Placeholders\PlaceholderHandler::getUrl($id);            // warm placeholder cache (Vite + media_id)
-                    cmeta('custom_author', $id);
-                    cmeta('flags', $id);
-                    cmeta('is_redirect', $id);
-                    cmeta('redirect_url', $id);
-                }
+            foreach ($ids as $id) {
+                get_post_meta($id, '_thumbnail_id', true);
+                \App\Placeholders\PlaceholderHandler::getUrl($id);
+                cmeta('custom_author', $id);
+                cmeta('flags', $id);
+                cmeta('is_redirect', $id);
+                cmeta('redirect_url', $id);
             }
-            $prefetch_time = round((microtime(true) - $prefetch_start) * 1000, 2);
+        }
+        $prefetch_time = round((microtime(true) - $prefetch_start) * 1000, 2);
 
-            // === 3. RENDER BLADE (giữ nguyên 100% helper của anh) ===
-            $render_start = microtime(true);
-            $html = '';
-            if (!empty($posts)) {
-                global $post;
-                ob_start();
-                foreach ($posts as $post) {
-                    setup_postdata($post);
-                    $html .= view('partials.content-loadmore')->render();
-                }
-                wp_reset_postdata();
+        // === 3. RENDER BLADE ===
+        $render_start = microtime(true);
+        $html = '';
+        if (!empty($posts)) {
+            global $post;
+            ob_start();
+            foreach ($posts as $post) {
+                setup_postdata($post);
+                $html .= view('partials.content-loadmore')->render();
             }
-            $render_time = round((microtime(true) - $render_start) * 1000, 2);
+            wp_reset_postdata();
+        }
+        $render_time = round((microtime(true) - $render_start) * 1000, 2);
 
-            // === 4. KIỂM TRA CÒN BÀI ===
-            $has_more = !empty(get_posts([
-                'post_type'      => ['post', 'event'],
+        // === LOGIC ẨN BUTTON ===
+        $count = count($posts);
+        $has_more = false;
+        if ($count === $posts_per_page) {
+            $next = new \WP_Query([
+                'post_type'      => $post_types,
                 'posts_per_page' => 1,
                 'offset'         => $offset + $posts_per_page,
                 'fields'         => 'ids',
                 'no_found_rows'  => true,
-            ]));
+            ]);
+            $has_more = $next->have_posts();
+        }
 
-            $total_time = round((microtime(true) - $total_start) * 1000, 2);
+        $total_time = round((microtime(true) - $total_start) * 1000, 2);
 
-            if (defined('WP_DEBUG') && WP_DEBUG) {
-                error_log("[LOADMORE RENDER 10/10] offset={$offset} | Query:{$query_time}ms | Prefetch:{$prefetch_time}ms | Render:{$render_time}ms | Tổng:{$total_time}ms");
-            }
+        if (defined('WP_DEBUG') && WP_DEBUG) {
+            error_log("[LOADMORE TIMING 10/10] offset={$offset} | Query:{$query_time}ms | Prefetch:{$prefetch_time}ms | Render:{$render_time}ms | Tổng:{$total_time}ms | has_more=" . ($has_more ? 'true' : 'false'));
+        }
 
-            return [
-                'html'      => $html,
-                'has_more'  => $has_more,
-            ];
-        });
+        return [
+            'html'      => $html,
+            'has_more'  => $has_more,
+        ];
     }
 }
