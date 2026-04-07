@@ -26,6 +26,10 @@ a:not([href]):not([class]),a:not([href]):not([class]):hover {
   text-decoration-line: none;
 }
 
+a:where(:not(.wp-element-button)) {
+    text-decoration: none !important;
+}
+
 pre {
     max-width: 100%;
     margin: 15px 0;
@@ -326,6 +330,11 @@ h6 {
     --tw-font-weight: var(--font-weight-medium);
     font-weight: var(--font-weight-medium);
     word-spacing: 0.1rem;
+}
+
+.img-fluid {
+    max-width: 100%;
+    height: auto;
 }
 
 .head-tab {

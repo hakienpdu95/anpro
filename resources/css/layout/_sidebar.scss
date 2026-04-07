@@ -1,0 +1,29 @@
+@use '../abstracts' as *;
+
+.widget {
+	.guideicons {
+		a.pp-btn-icon-category {
+		    background-color: #fff;
+		    border: 1px solid #793651;
+		    border-radius: .5rem;
+		    padding: 8px;
+		    color: #444;
+
+		    .badge-icon {
+			    width: 60px;
+			    height: 60px;
+			    margin-right: 10px;
+			}
+
+			div.category-title {
+				font-size: 15px;
+			    line-height: 1.4;
+			    font-weight: 500;
+
+			    @include mq(lg) {
+			    	width: 62%;
+			    }
+			}
+		}
+	}
+}
