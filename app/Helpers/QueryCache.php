@@ -65,11 +65,10 @@ class QueryCache
 
         $post_types = ['post', 'event', 'viet-heritage', 'viet-product', 'viet-travel'];
 
-        // === 1. QUERY (siêu nhẹ) ===
         $query_start = microtime(true);
         $query = new \WP_Query([
             'post_type'              => $post_types,
-            'posts_per_page'         => $posts_per_page,
+            'posts_per_page'         => $posts_per_page + 1,  
             'offset'                 => $offset,
             'orderby'                => 'date',
             'order'                  => 'DESC',
@@ -82,10 +81,15 @@ class QueryCache
             'ignore_sticky_posts'    => true,
             'lazy_load_term_meta'    => false,
         ]);
-        $posts = $query->posts;
+
+        $all_posts = $query->posts;
+        $has_more  = count($all_posts) > $posts_per_page;
+
+        // Chỉ render đúng 3 bài (bỏ bài thừa nếu có)
+        $posts = $has_more ? array_slice($all_posts, 0, $posts_per_page) : $all_posts;
         $query_time = round((microtime(true) - $query_start) * 1000, 2);
 
-        // === 2. PREFETCH SIÊU SÂU ===
+        // === 2. PREFETCH (giữ nguyên) ===
         $prefetch_start = microtime(true);
         if (!empty($posts)) {
             $ids = wp_list_pluck($posts, 'ID');
@@ -118,24 +122,10 @@ class QueryCache
         }
         $render_time = round((microtime(true) - $render_start) * 1000, 2);
 
-        // === LOGIC ẨN BUTTON ===
-        $count = count($posts);
-        $has_more = false;
-        if ($count === $posts_per_page) {
-            $next = new \WP_Query([
-                'post_type'      => $post_types,
-                'posts_per_page' => 1,
-                'offset'         => $offset + $posts_per_page,
-                'fields'         => 'ids',
-                'no_found_rows'  => true,
-            ]);
-            $has_more = $next->have_posts();
-        }
-
         $total_time = round((microtime(true) - $total_start) * 1000, 2);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("[LOADMORE TIMING 10/10] offset={$offset} | Query:{$query_time}ms | Prefetch:{$prefetch_time}ms | Render:{$render_time}ms | Tổng:{$total_time}ms | has_more=" . ($has_more ? 'true' : 'false'));
+            error_log("[LOADMORE FINAL 10/10] offset={$offset} | Rendered " . count($posts) . " posts | has_more=" . ($has_more ? 'true' : 'false') . " | Tổng {$total_time}ms");
         }
 
         return [
