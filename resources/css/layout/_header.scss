@@ -61,7 +61,22 @@
 
     #logo-img {
         width: 100px;
-        height: 100px;
         transition: all 0.2s ease;
+    }
+}
+
+.header-mobile,
+.header-sidebar-mobile {
+    #logo-img {
+      width: 60px;
+    }
+
+    a.logo-link {
+      margin-right: 2px;
+    }
+
+    .brand-name {
+      font-size: 18px;
+      font-weight: 500;
     }
 }

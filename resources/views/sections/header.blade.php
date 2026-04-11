@@ -29,28 +29,37 @@
 	</div>
 
 	<!-- Mobile Menu Start -->
-	<div class="xl:border-0 sticky-header bg-[#6697a1]">
+	<div class="xl:border-0 sticky-header header-mobile">
 		<div class="sm:px-0 px-3 pb-4 pt-3 block xl:hidden">
 			<div class="container">
 				<div class="flex justify-between items-center">
 					<div>
-						<button class="btn btn-default border-1 border-[#fff] inline-flex items-center justify-center size-12 rounded-[50px]" id="sidebar-menu-btn">
+						<button class="btn btn-default border-1 border-[#000] inline-flex items-center justify-center size-12 rounded-[50px]" id="sidebar-menu-btn">
 						    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-						        <path d="M20 12L10 12" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-						        <path d="M20 5L4 5" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
-						        <path d="M20 19L4 19" stroke="#fff" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+						        <path d="M20 12L10 12" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+						        <path d="M20 5L4 5" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
+						        <path d="M20 19L4 19" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"></path>
 						    </svg>
 						</button>
 					</div>
-					<div>
-						<a href="{{ home_url('/') }}">
-					        <img src="{{ asset('images/logo.png') }}" alt="Logo" class="w-[120px] md:w-[150px]">
-					    </a>
+					<div class="flex justify-center items-center overflow-hidden header-logo">
+						<a title="Logo" href="{{ home_url('/') }}" class="logo-link">
+						    <img id="logo-img" alt="Logo" src="{{ asset('images/logo.png') }}" loading="lazy" class="img-fluid">
+						</a>
+						<div class="flex flex-col" style="margin-top:-3px">
+						    <a class="logo" href="{{ home_url('/') }}">
+						        <strong class="brand-name relative">
+						            <span class="br-1">Vì</span>
+						            <span class="br-2">Gia đình</span>
+						            <span class="br-3 absolute">.vn</span>
+						        </strong>
+						    </a>
+						</div>					
 					</div>
 					<div class="search-bar-wrapper relative inline-flex items-center h-full px-2" x-data="{ open: false }">
 					    <!-- Search Icon Link -->
 					    <a href="#!" @click.prevent="open = true">
-					        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" class="text-white lucide lucide-search w-5 h-5 stroke-2 transition-colors duration-300">
+					        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="search" class="lucide lucide-search w-5 h-5 stroke-2 transition-colors duration-300">
 					            <circle cx="11" cy="11" r="8"></circle>
 					            <path d="m21 21-4.3-4.3"></path>
 					        </svg>
