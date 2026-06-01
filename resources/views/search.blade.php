@@ -23,7 +23,7 @@
                 <div class="pst-srch">
                     <h2>
                         {!! sage_post_link_open(get_post(), 'no-underline!', 'search-type') !!}
-                            {!! get_the_title(get_post()) !!}
+                            {{ get_the_title(get_post()) }}
                         {!! sage_post_link_close() !!}
                     </h2>
                     @php

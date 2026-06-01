@@ -64,6 +64,8 @@
                         <div class="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all group">
                             <img
                                 src="{{ $item['image'] }}"
+                                width="800"
+                                height="450"
                                 class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
                                 alt="{{ $item['title'] }}"
                                 loading="lazy"

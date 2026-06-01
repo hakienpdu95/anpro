@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(php -l *)",
+      "Bash(php -m)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git show *)",
+      "Bash(git status *)",
+      "Bash(git stash list)",
+      "Bash(npm list *)",
+      "Bash(npm run build)"
+    ],
+    "deny": []
+  }
+}

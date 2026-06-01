@@ -82,6 +82,10 @@ class WatermarkHandler
 
     private function applyWithImagick($image_path, $width, $height)
     {
+        $ext = strtolower(pathinfo($image_path, PATHINFO_EXTENSION));
+        if (!in_array($ext, ['jpg', 'jpeg', 'png'], true)) {
+            return;
+        }
         try {
             $image = new \Imagick($image_path);
             $watermark = new \Imagick($this->watermark_path);
@@ -106,6 +110,9 @@ class WatermarkHandler
     private function applyWithGD($image_path, $width, $height)
     {
         $ext = strtolower(pathinfo($image_path, PATHINFO_EXTENSION));
+        if (!in_array($ext, ['jpg', 'jpeg', 'png'], true)) {
+            return;
+        }
         $image = ($ext === 'png') ? imagecreatefrompng($image_path) : imagecreatefromjpeg($image_path);
         $watermark = imagecreatefrompng($this->watermark_path);
 

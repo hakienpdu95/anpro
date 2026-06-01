@@ -22,7 +22,7 @@
             <div class="flex items-start gap-3 pb-4 border-b border-gray-200 justify-between cursor-pointer">
                 <div class="flex-1">
                     {!! sage_post_link_open(get_post(), 'font-medium text-[14px] md:text-heading-6 line-clamp-2 mb-[2px] no-underline!', 'listing') !!}
-                            {!! get_the_title() !!}
+                            {{ get_the_title() }}
                     {!! sage_post_link_close() !!}
                     <ul class="flex space-x-2.5 items-center mb-5 info">
                         <li>{!! sage_post_author_link(get_post(), 'no-underline!') !!}</li>

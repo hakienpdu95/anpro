@@ -24,8 +24,8 @@ class CacheHelper
             self::$cache = new Repository(new FileStore(new Filesystem(), $path));
         }
 
-        add_action('save_post', [self::class, 'flushOnPostSave'], 20, 2);
-        add_action('deleted_post', [self::class, 'flushOnPostSave']);
+        add_action('save_post', [self::class, 'flushOnPostSave'], 5, 2);
+        add_action('deleted_post', [self::class, 'flushOnPostSave'], 5);
 
         if (self::$debug) {
             $driver = wp_using_ext_object_cache() ? 'Redis' : 'File';
@@ -71,7 +71,7 @@ class CacheHelper
         $current = self::getDataVersion($post_type);
         $newVersion = $current + 1;
 
-        self::$cache->forever($key, $newVersion);   // forever = không expire
+        self::$cache->put($key, $newVersion, YEAR_IN_SECONDS);
         self::$memory = [];                         // xóa memory layer
 
         if (self::$debug) {

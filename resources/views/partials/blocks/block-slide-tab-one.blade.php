@@ -32,7 +32,7 @@
                             <div class="w-full relative z-10">
                                 {!! sage_post_link_open($post, 'no-underline!', 'featured') !!}
                                     <p class="font-medium mb-1">
-                                        {!! get_the_title($post) !!}
+                                        {{ get_the_title($post) }}
                                     </p>
                                 {!! sage_post_link_close() !!}
 

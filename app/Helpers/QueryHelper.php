@@ -62,7 +62,8 @@ class QueryHelper
     {
         $terms = wp_get_post_terms($post_id, 'event-categories', ['fields' => 'ids']);
 
-        return self::cquery([
+        // Lấy pool lớn hơn rồi shuffle trong PHP — tránh ORDER BY RAND() chậm trên DB lớn
+        $pool = self::cquery([
             'post__not_in'   => [$post_id],
             'tax_query'      => $terms ? [
                 [
@@ -71,9 +72,15 @@ class QueryHelper
                     'terms'    => $terms,
                 ]
             ] : [],
-            'posts_per_page' => $limit,
-            'orderby'        => 'rand', // hoặc date
+            'posts_per_page' => max($limit * 3, 18),
+            'orderby'        => 'date',
+            'order'          => 'DESC',
         ]);
+
+        $posts = $pool->posts ?? [];
+        shuffle($posts);
+        $pool->posts = array_slice($posts, 0, $limit);
+        return $pool;
     }
 
     /**

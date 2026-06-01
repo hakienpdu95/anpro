@@ -13,7 +13,7 @@
 
                 {!! sage_post_link_open(get_post(), 'no-underline!', 'listing') !!}
                     <h5 class="text-light-primary-text hover:text-primary blog-single-item-title">
-                        {!! get_the_title() !!}
+                        {{ get_the_title() }}
                     </h5>
                 {!! sage_post_link_close() !!}
 

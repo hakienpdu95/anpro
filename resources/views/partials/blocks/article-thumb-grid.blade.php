@@ -32,7 +32,7 @@
                     <!-- Title -->
                     {!! sage_post_link_open($post, 'no-underline!', $link_type) !!}
                         <h2 class="font-medium">
-                            {!! get_the_title($post) !!}
+                            {{ get_the_title($post) }}
                         </h2>
                     {!! sage_post_link_close() !!}
                 </div>

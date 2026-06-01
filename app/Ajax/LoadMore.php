@@ -2,12 +2,16 @@
 namespace App\Ajax;
 
 class LoadMore {
-    public static function init() {
-        add_action('wp_ajax_load_more_posts', [self::class, 'handle']);
+
+    private const INITIAL_OFFSET  = 3;
+    private const POSTS_PER_CHUNK = 3;
+
+    public static function init(): void {
+        add_action('wp_ajax_load_more_posts',        [self::class, 'handle']);
         add_action('wp_ajax_nopriv_load_more_posts', [self::class, 'handle']);
     }
 
-    public static function handle() {
+    public static function handle(): void {
         check_ajax_referer('load_more_nonce', 'nonce');
 
         while (ob_get_level() > 0) {
@@ -19,12 +23,11 @@ class LoadMore {
         header('Pragma: no-cache');
         header('Expires: 0');
 
-        $offset = max(3, (int) ($_POST['offset'] ?? 3));
-
-        $chunk = \App\Helpers\QueryCache::getLoadMoreChunk($offset, 3);
+        $offset = max(self::INITIAL_OFFSET, (int) ($_POST['offset'] ?? self::INITIAL_OFFSET));
+        $chunk  = \App\Helpers\QueryCache::getLoadMoreChunk($offset, self::POSTS_PER_CHUNK);
 
         header('X-Has-More: ' . ($chunk['has_more'] ? '1' : '0'));
-        echo $chunk['html'] ?? '';
+        echo wp_kses_post($chunk['html'] ?? '');
         exit;
     }
 }

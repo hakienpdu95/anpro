@@ -28,7 +28,11 @@ class SearchManager {
     public static function optimizeSearchQuery(\WP_Query $query): void {
         if (!$query->is_search() || !$query->is_main_query() || is_admin()) return;
 
-        $query->set('post_type', ['post', 'event', 'happy-family', 'family-values', 'violence-prevention']);
+        $searchable = array_values(array_filter(
+            CustomTableManager::$registered ?? ['post'],
+            fn($pt) => $pt !== 'revision'
+        ));
+        $query->set('post_type', $searchable ?: ['post']);
         $query->set('posts_per_page', 12);
         $query->set('no_found_rows', false);
         $query->set('update_post_meta_cache', false);

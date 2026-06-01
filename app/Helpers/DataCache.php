@@ -23,7 +23,7 @@ class DataCache
         $time = round((microtime(true) - $start) * 1000, 2);
 
         if (self::$debug) {
-            error_log("[DataCache] miss: {$key} ({$time}ms, ttl:{$ttl}s)");
+            error_log("[DataCache] cache: {$key} ({$time}ms, ttl:{$ttl}s)");
         }
 
         return $result;

@@ -110,7 +110,6 @@ class QueryCache
         $html = '';
         if (!empty($posts)) {
             global $post;
-            ob_start();
             foreach ($posts as $post) {
                 setup_postdata($post);
                 $html .= view('partials.content-loadmore')->render();

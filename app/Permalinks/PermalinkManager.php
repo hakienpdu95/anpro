@@ -122,7 +122,7 @@ class PermalinkManager
             return;
         }
 
-        $current_url = $_SERVER['REQUEST_URI'] ?? '';
+        $current_url = esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
         $correct_slug = $post->post_name;
 
         if (strpos($current_url, $correct_slug) === false) {

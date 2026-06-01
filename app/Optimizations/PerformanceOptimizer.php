@@ -22,7 +22,7 @@ class PerformanceOptimizer
 
     public static function init(): void
     {
-        add_action('init', [self::class, 'applyOptimizations'], 9999);
+        add_action('init', [self::class, 'applyOptimizations'], 1);
         add_filter('heartbeat_settings', [self::class, 'optimizeHeartbeat'], 999);
 
         if (self::config('remove_query_string')) {

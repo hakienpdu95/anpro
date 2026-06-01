@@ -201,6 +201,7 @@ class CustomTableManager {
     }
 
     public static function preloadCurrentPostMeta(): void {
+        if (!is_admin() || !current_user_can('edit_posts')) return;
         $post_id = (int) ($_GET['post'] ?? 0);
         if ($post_id > 0) self::loadAllMeta($post_id);
     }
@@ -361,14 +362,17 @@ class CustomTableManager {
         if (is_array($post_type)) $post_type = $post_type[0] ?? '';
         if (!$post_type || !in_array($post_type, self::$registered)) return $orderby;
 
-        $meta_key = $query->get('meta_key');
+        $meta_key = sanitize_key($query->get('meta_key'));
         if (!$meta_key) return $orderby;
 
         global $wpdb;
         $table = self::getTableName($post_type);
         $order = strtoupper($query->get('order')) === 'ASC' ? 'ASC' : 'DESC';
 
-        return "MAX(CASE WHEN {$table}.meta_key = '{$meta_key}' THEN {$table}.meta_value END) {$order}";
+        return $wpdb->prepare(
+            "MAX(CASE WHEN {$table}.meta_key = %s THEN {$table}.meta_value END) {$order}",
+            $meta_key
+        );
     }
 
     // ==================== TẠO BẢNG + INDEX TỐI ƯU ====================
@@ -459,7 +463,7 @@ class CustomTableManager {
      */
     public static function createMissingTablesOnActivation(): void {
         self::createMissingTables();
-        update_option('sage_custom_tables_created', true, true); // autoload = true
+        update_option('sage_custom_tables_created', true, false);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
             error_log('✅ [CustomTableManager] Bảng custom meta đã được tạo khi activate theme');

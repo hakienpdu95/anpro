@@ -12,7 +12,7 @@ class HtmlMinifier
     public static function init(): void
     {
         $isDebug = defined('WP_DEBUG') && WP_DEBUG;
-        self::$enabled = !$isDebug;
+        self::$enabled = true; // bật cả trong debug để local == production
 
         // FORCE BẬT để test ngay (rất tiện)
         if (isset($_GET['force_minify']) || defined('FORCE_HTML_MINIFY') && FORCE_HTML_MINIFY) {
