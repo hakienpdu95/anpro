@@ -10,7 +10,7 @@
         <a class="pp-btn-icon-category flex items-center mt-3" href="#">
             <div>
                 <div class="badge-icon">
-                    <img class="img-fluid" src="{{ Vite::asset('resources/images/icon-pregnancy.png') }}">
+                    <img class="img-fluid" src="{{ get_theme_file_uri('resources/images/icon-pregnancy.png') }}" loading="lazy" decoding="async">
                 </div>
             </div>
             <div class="category-title"> Kế Hoạch Hóa Gia Đình & Mang Thai </div>
@@ -18,7 +18,7 @@
         <a class="pp-btn-icon-category flex items-center mt-3" href="#">
             <div>
                 <div class="badge-icon">
-                    <img class="img-fluid" src="{{ Vite::asset('resources/images/icon-family.png') }}">
+                    <img class="img-fluid" src="{{ get_theme_file_uri('resources/images/icon-family.png') }}" loading="lazy" decoding="async">
                 </div>
             </div>
             <div class="category-title"> Sức Khỏe Gia Đình </div>
@@ -26,7 +26,7 @@
         <a class="pp-btn-icon-category flex items-center mt-3" href="#">
             <div>
                 <div class="badge-icon">
-                    <img class="img-fluid" src="{{ Vite::asset('resources/images/icon-nutrition.png') }}">
+                    <img class="img-fluid" src="{{ get_theme_file_uri('resources/images/icon-nutrition.png') }}" loading="lazy" decoding="async">
                 </div>
             </div>
             <div class="category-title"> Dinh Dưỡng & Lối Sống Lành Mạnh </div>
@@ -34,7 +34,7 @@
         <a class="pp-btn-icon-category flex items-center mt-3" href="#">
             <div>
                 <div class="badge-icon">
-                    <img class="img-fluid" src="{{ Vite::asset('resources/images/icon-development.png') }}">
+                    <img class="img-fluid" src="{{ get_theme_file_uri('resources/images/icon-development.png') }}" loading="lazy" decoding="async">
                 </div>
             </div>
             <div class="category-title"> Phát Triển Trẻ Em </div>
@@ -42,7 +42,7 @@
         <a class="pp-btn-icon-category flex items-center mt-3" href="#">
             <div>
                 <div class="badge-icon">
-                    <img class="img-fluid" src="{{ Vite::asset('resources/images/icon-health.png') }}">
+                    <img class="img-fluid" src="{{ get_theme_file_uri('resources/images/icon-health.png') }}" loading="lazy" decoding="async">
                 </div>
             </div>
             <div class="category-title"> Sức Khỏe Trẻ Em </div>
@@ -50,7 +50,7 @@
         <a class="pp-btn-icon-category flex items-center mt-3" href="#">
             <div>
                 <div class="badge-icon">
-                    <img class="img-fluid" src="{{ Vite::asset('resources/images/icon-teen.png') }}">
+                    <img class="img-fluid" src="{{ get_theme_file_uri('resources/images/icon-teen.png') }}" loading="lazy" decoding="async">
                 </div>
             </div>
             <div class="category-title"> Thiếu Niên Tích Cực </div>

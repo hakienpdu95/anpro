@@ -2,7 +2,7 @@
 
 > **Áp dụng cho:** Tất cả website nhân bản từ theme AnPro (Sage WordPress)  
 > **Ngày thực hiện:** 2026-06-02  
-> **Số file thay đổi:** 30 files PHP/Blade + 3 files CSS/JS config + 3 files Boot mới  
+> **Số file thay đổi:** 31 files PHP/Blade + 3 files CSS/JS config + 3 files Boot mới  
 > **Tất cả 54 PHP files:** syntax OK sau khi fix
 
 ---
@@ -21,11 +21,12 @@
 10. [Bug #10 — AssetOptimizer: defer + async cùng script](#bug-10)
 11. [Bug #11 — 22 `require_once` thừa cho PSR-4 classes](#bug-11)
 12. [Bug #12 — LoadMore AJAX query sai post types](#bug-12)
-13. [Opt #1 — Double WP_Query trong LoadMore](#opt-1)
-14. [Opt #2 — Native lazy loading thiếu trên images](#opt-2)
-15. [Opt #3 — ViewCounter + Redis: transient writes và cách tối ưu](#opt-3)
-16. [Cleanup — Dev comments "12/10", "ULTIMATE"...](#cleanup-comments)
-17. [Architecture — Tách `setup.php` thành Boot modules](#architecture)
+13. [Bug #13 — `Vite::asset()` gọi file không có trong manifest → PHP Fatal Error](#bug-13)
+14. [Opt #1 — Double WP_Query trong LoadMore](#opt-1)
+15. [Opt #2 — Native lazy loading thiếu trên images](#opt-2)
+16. [Opt #3 — ViewCounter + Redis: transient writes và cách tối ưu](#opt-3)
+17. [Cleanup — Dev comments "12/10", "ULTIMATE"...](#cleanup-comments)
+18. [Architecture — Tách `setup.php` thành Boot modules](#architecture)
 
 ---
 
@@ -477,6 +478,71 @@ $post_types = ['post', 'event', 'guide', 'review', 'recipe', 'happy-family', 'vi
 
 ---
 
+## Bug #13 — `Vite::asset()` gọi file không có trong manifest → PHP Fatal Error {#bug-13}
+
+**File:** `resources/views/sections/sidebar.blade.php`  
+**Mức độ:** 🔴 Critical — toàn bộ trang crash với `Illuminate\Foundation\ViteException`
+
+### Nguyên nhân
+
+`sidebar.blade.php` dùng `Vite::asset()` để lấy URL của 6 file icon PNG trong sidebar:
+
+```php
+// TRƯỚC — 6 lần gọi Vite::asset() cho file không có trong manifest
+<img src="{{ Vite::asset('resources/images/icon-pregnancy.png') }}">
+<img src="{{ Vite::asset('resources/images/icon-family.png') }}">
+<img src="{{ Vite::asset('resources/images/icon-nutrition.png') }}">
+<img src="{{ Vite::asset('resources/images/icon-development.png') }}">
+<img src="{{ Vite::asset('resources/images/icon-health.png') }}">
+<img src="{{ Vite::asset('resources/images/icon-teen.png') }}">
+```
+
+`Vite::asset()` hoạt động bằng cách **tra cứu file trong `manifest.json`**. File chỉ vào manifest khi được khai báo là entry point trong `vite.config.js` hoặc được `import` từ một entry point.
+
+6 icon này được copy vào `public/build/images/` bởi **`viteStaticCopy`** — một cơ chế copy tĩnh hoàn toàn tách biệt, **không ghi vào manifest**. Kết quả: `Vite::asset()` không tìm thấy key → throw `ViteException` → PHP fatal error, toàn trang trắng.
+
+### Sơ đồ vì sao manifest không có icon
+
+```
+vite.config.js
+├── laravel() input entries    → được hash + ghi vào manifest.json  ✅
+├── viteStaticCopy targets     → copy file thô, KHÔNG ghi manifest  ❌
+│   └── resources/images/*  →  public/build/images/icon-*.png
+│                               (file tồn tại, manifest không biết)
+└── Vite::asset('resources/images/icon-*.png')
+        → tra manifest → không thấy → ViteException 💥
+```
+
+### Fix
+
+Thay `Vite::asset()` bằng `get_theme_file_uri()` trỏ thẳng vào thư mục `resources/images/` của theme. Toàn bộ thư mục theme là public-accessible trong WordPress, không cần build pipeline:
+
+```php
+// SAU — get_theme_file_uri() serve trực tiếp, không qua manifest
+<img src="{{ get_theme_file_uri('resources/images/icon-pregnancy.png') }}" loading="lazy" decoding="async">
+<img src="{{ get_theme_file_uri('resources/images/icon-family.png') }}" loading="lazy" decoding="async">
+<img src="{{ get_theme_file_uri('resources/images/icon-nutrition.png') }}" loading="lazy" decoding="async">
+<img src="{{ get_theme_file_uri('resources/images/icon-development.png') }}" loading="lazy" decoding="async">
+<img src="{{ get_theme_file_uri('resources/images/icon-health.png') }}" loading="lazy" decoding="async">
+<img src="{{ get_theme_file_uri('resources/images/icon-teen.png') }}" loading="lazy" decoding="async">
+```
+
+### Khi nào dùng `Vite::asset()` vs `get_theme_file_uri()`
+
+| Trường hợp | Dùng gì |
+|---|---|
+| File được khai báo trong `input[]` của `vite.config.js` | `Vite::asset()` ✅ |
+| File được `import` từ JS/CSS entry point | `Vite::asset()` ✅ |
+| File copy bởi `viteStaticCopy` (ảnh tĩnh, font thô) | `get_theme_file_uri()` ✅ |
+| Ảnh/icon tĩnh không cần content hash | `get_theme_file_uri()` ✅ |
+
+### Lưu ý khi clone site
+Khi thêm ảnh mới dùng trong Blade template, chọn một trong hai:
+- **Cần cache-busting (hash URL):** import ảnh từ SCSS với `@/images/file.png` → Vite sẽ thêm vào manifest → dùng `Vite::asset()` được
+- **Ảnh tĩnh đơn giản:** đặt vào `resources/images/` → dùng `get_theme_file_uri('resources/images/file.png')`, không cần rebuild
+
+---
+
 ## Opt #1 — Double WP_Query trong LoadMore {#opt-1}
 
 **File:** `app/Helpers/QueryCache.php` (`getLoadMoreChunk`)  
@@ -723,6 +789,7 @@ require_once get_theme_file_path('app/Boot/Services.php');
 - [ ] `resources/views/single.blade.php` — thêm `loading="eager" fetchpriority="high"` cho hero image
 - [ ] `resources/views/single-event.blade.php` — thêm `loading="eager" fetchpriority="high"` cho hero image
 - [ ] `resources/views/page.blade.php` — thêm `loading="eager" fetchpriority="high"` cho hero image
+- [ ] `resources/views/sections/sidebar.blade.php` — thay `Vite::asset()` → `get_theme_file_uri()` cho 6 icon PNG
 - [ ] Cấu hình Redis Object Cache (xem Opt #3 trong CHANGELOG)
 - [ ] Xóa dev comments "12/10", "ULTIMATE"... trong 16 class files (optional, cosmetic)
 
@@ -741,7 +808,7 @@ require_once get_theme_file_path('app/Boot/Services.php');
 
 | Loại | Số lượng |
 |---|---|
-| Bugs functional | 6 |
+| Bugs functional | 7 |
 | Bugs frontend (404) | 3 |
 | Dead code removed | 2 |
 | Performance optimizations | 3 (double query, lazy loading, Redis guide) |
