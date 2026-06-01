@@ -154,21 +154,34 @@ if (!function_exists('sage_social_icons')) {
         $output = '<ul class="' . esc_attr($wrapper_class) . '">';
 
         foreach ($items as $item) {
+            $url   = $item->url ?? '';
+            $title = $item->title ?? '';
+            $icon  = '';
 
+            // Match URL hoặc title với icon_map key (facebook, youtube, tiktok...)
+            $url_lower   = strtolower($url);
+            $title_lower = strtolower($title);
+            foreach ($icon_map as $network => $svg) {
+                if (str_contains($url_lower, $network) || str_contains($title_lower, $network)) {
+                    $icon = $svg;
+                    break;
+                }
+            }
+
+            $output .= sprintf(
+                '<li><a href="%s" target="_blank" rel="noopener noreferrer" aria-label="%s">%s</a></li>',
+                esc_url($url),
+                esc_attr($title),
+                $icon ?: esc_html($title)
+            );
         }
 
         $output .= '</ul>';
         return $output;
     }
+}
 
-    /** 
-     * =============================================== 
-     * SAGE REDIRECT LINK SYSTEM – 10/10 ULTIMATE PERFORMANCE
-     * Bulk prefetch + WP_Post object + native meta + max speed
-     * =============================================== 
-     */
-
-    if (!function_exists('sage_prefetch_link_posts')) {
+if (!function_exists('sage_prefetch_link_posts')) {
         /**
          * Gọi TRƯỚC loop để prefetch meta + permalink + title một lần duy nhất
          * → Giảm 70–90% queries khi hiển thị nhiều card
@@ -184,7 +197,7 @@ if (!function_exists('sage_social_icons')) {
 
             if (empty($ids)) return;
 
-            // Bulk meta prefetch (siêu mạnh!)
+            // Bulk-prime meta and post caches
             update_postmeta_cache($ids);
 
             // Prime post cache (permalink + title)
@@ -336,7 +349,7 @@ if (!function_exists('sage_social_icons')) {
     }
 
     /**
-     * LẤY FLAG ƯU TIÊN NHẤT (chỉ 1 flag) – SIÊU NHANH
+     * Return the single highest-priority flag for a post
      */
     if (!function_exists('sage_get_primary_flag')) {
         function sage_get_primary_flag($post): string
@@ -544,19 +557,15 @@ if (!function_exists('sage_social_icons')) {
                 ? get_the_modified_date($format, $post)
                 : get_the_date($format, $post);
 
-            $prefix = $use_modified ? '' : '';
-
             if ($raw) {
-                // Trả về chỉ text (dùng cho content.blade.php)
-                return $prefix . $date;
+                return $date;
             }
 
             // Trả về <span> đầy đủ (dùng cho slide & grid)
             $class = $extra_class ? ' ' . trim($extra_class) : '';
             return sprintf(
-                '<span class="sm:text-base sm:leading-[27px] text-sm text-primary-100%s">%s%s</span>',
+                '<span class="sm:text-base sm:leading-[27px] text-sm text-primary-100%s">%s</span>',
                 esc_attr($class),
-                $prefix,
                 esc_html($date)
             );
         }
@@ -683,4 +692,3 @@ if (!function_exists('sage_social_icons')) {
             return '';
         }
     }
-}

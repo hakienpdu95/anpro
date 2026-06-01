@@ -9,7 +9,7 @@ class QueryCache
     public static function init(): void
     {
         self::$debug = defined('WP_DEBUG') && WP_DEBUG;
-        if (self::$debug) error_log('🚀 [QueryCache 11/10] Initialized');
+        if (self::$debug) error_log('[QueryCache] Initialized');
     }
 
     public static function getPostsWithAllFlags(string $post_type, array $flags, int $posts_per_page = 8, int $ttl = 300)
@@ -21,7 +21,6 @@ class QueryCache
         ksort($flags);
         $flagsHash = md5(json_encode($flags) . $posts_per_page . $context);
 
-        // === TỰ ĐỘNG LẤY VERSION - KHÔNG HARD CODE ===
         $version = CacheHelper::getDataVersion($post_type);
 
         $key = "getPostsWithAllFlags_{$post_type}_v{$version}_{$flagsHash}";
@@ -32,7 +31,7 @@ class QueryCache
 
         $time = round((microtime(true) - $start) * 1000, 2);
         if (self::$debug) {
-            error_log("🔍 [QUERY CACHE] getPostsWithAllFlags | {$time}ms | v{$version} | PT:{$post_type}");
+            error_log("[QueryCache] getPostsWithAllFlags: {$post_type} ({$time}ms, v{$version})");
         }
         return $result;
     }
@@ -54,21 +53,22 @@ class QueryCache
 
         $time = round((microtime(true) - $start) * 1000, 2);
         if (self::$debug) {
-            error_log("[QUERY CACHE] getCachedAdvancedPosts | {$time}ms | v{$version} | {$cache_suffix}");
+            error_log("[QueryCache] getCachedAdvancedPosts: {$cache_suffix} ({$time}ms, v{$version})");
         }
         return $result;
-    }    
+    }
 
     public static function getLoadMoreChunk(int $offset, int $posts_per_page = 3): array
     {
         $total_start = microtime(true);
 
-        $post_types = ['post', 'event', 'viet-heritage', 'viet-product', 'viet-travel'];
+        $post_types = ['post', 'event', 'guide', 'review', 'recipe', 'happy-family', 'violence-prevention', 'family-values'];
 
+        // Fetch one extra post to determine has_more without a second query.
         $query_start = microtime(true);
         $query = new \WP_Query([
             'post_type'              => $post_types,
-            'posts_per_page'         => $posts_per_page + 1,  
+            'posts_per_page'         => $posts_per_page + 1,
             'offset'                 => $offset,
             'orderby'                => 'date',
             'order'                  => 'DESC',
@@ -81,15 +81,12 @@ class QueryCache
             'ignore_sticky_posts'    => true,
             'lazy_load_term_meta'    => false,
         ]);
-
         $all_posts = $query->posts;
         $has_more  = count($all_posts) > $posts_per_page;
-
-        // Chỉ render đúng 3 bài (bỏ bài thừa nếu có)
-        $posts = $has_more ? array_slice($all_posts, 0, $posts_per_page) : $all_posts;
+        $posts     = $has_more ? array_slice($all_posts, 0, $posts_per_page) : $all_posts;
         $query_time = round((microtime(true) - $query_start) * 1000, 2);
 
-        // === 2. PREFETCH (giữ nguyên) ===
+        // Bulk meta prefetch
         $prefetch_start = microtime(true);
         if (!empty($posts)) {
             $ids = wp_list_pluck($posts, 'ID');
@@ -108,7 +105,7 @@ class QueryCache
         }
         $prefetch_time = round((microtime(true) - $prefetch_start) * 1000, 2);
 
-        // === 3. RENDER BLADE ===
+        // Render Blade
         $render_start = microtime(true);
         $html = '';
         if (!empty($posts)) {
@@ -124,8 +121,8 @@ class QueryCache
 
         $total_time = round((microtime(true) - $total_start) * 1000, 2);
 
-        if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("[LOADMORE FINAL 10/10] offset={$offset} | Rendered " . count($posts) . " posts | has_more=" . ($has_more ? 'true' : 'false') . " | Tổng {$total_time}ms");
+        if (self::$debug) {
+            error_log("[QueryCache] loadMore: offset={$offset} query={$query_time}ms prefetch={$prefetch_time}ms render={$render_time}ms total={$total_time}ms has_more=" . ($has_more ? 'true' : 'false'));
         }
 
         return [

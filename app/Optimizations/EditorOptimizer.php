@@ -5,12 +5,12 @@ namespace App\Optimizations;
 use Illuminate\Support\Arr;
 
 /**
- * EDITOR OPTIMIZER 12/10
+ * EditorOptimizer
  *
  * - Force Classic Editor + Disable Gutenberg hoàn toàn
  * - Tắt tất cả block styles, block templates, widgets block
  * - Configurable theo post type (rất linh hoạt cho dự án tin tức lớn)
- * - Early return + debug log + không ảnh hưởng performance
+ * - Early return, no performance overhead
  */
 class EditorOptimizer
 {
@@ -57,7 +57,7 @@ class EditorOptimizer
         }
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('🚀 [EditorOptimizer 12/10] Initialized - Classic Editor Forced');
+            error_log('[EditorOptimizer] Initialized');
         }
     }
 

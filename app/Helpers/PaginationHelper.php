@@ -3,7 +3,7 @@
 class PaginationHelper {
 
     /**
-     * SMART PAGINATION 10/10 – Tối ưu cho 5 đến 5000+ trang
+     * Smart pagination helper
      * - ≤ 7 trang   → Hiển thị hết (1 2 3 4 5 6 7)
      * - ≥ 8 trang   → Thu gọn thông minh: 1 2 3 ... 8 9 10
      */

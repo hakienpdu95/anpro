@@ -14,7 +14,7 @@ class ViewCache
         });
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('🚀 [ViewCache 11/10] @includeCached registered');
+            error_log('[ViewCache] Initialized');
         }
     }
 

@@ -1,7 +1,7 @@
 <article class="bg-white rounded-3xl overflow-hidden shadow-sm hover:shadow-xl transition-all">
     @if (has_post_thumbnail())
         <a href="{{ the_permalink() }}">
-            {!! get_the_post_thumbnail(null, 'medium_large', ['class' => 'w-full h-56 object-cover']) !!}
+            {!! get_the_post_thumbnail(null, 'medium_large', ['class' => 'w-full h-56 object-cover', 'loading' => 'lazy', 'decoding' => 'async']) !!}
         </a>
     @endif
     <div class="p-6">

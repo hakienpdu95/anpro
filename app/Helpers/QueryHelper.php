@@ -192,7 +192,7 @@ class QueryHelper
     }
 
     /**
-     * QUERY 11/10 – HỖ TRỢ TAX_QUERY LINH HOẠT + PINNED_FIRST + FLAGS (tối ưu tốc độ)
+     * Build advanced WP_Query with tax_query, pinned_first, and flag filters
      */
     public static function getAdvancedPosts(array $config = [], int $ttl = 300): array
     {
@@ -256,7 +256,7 @@ class QueryHelper
     }
 
     /**
-     * PINNED + FLAGS 10/10 – Raw SQL cực nhanh (không đi qua WP_Query)
+     * Raw SQL query for pinned + flag filtering (bypasses WP_Query overhead)
      */
     private static function getPinnedPostsWithFlags(
         string $post_type,

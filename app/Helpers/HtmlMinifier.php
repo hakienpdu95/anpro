@@ -28,13 +28,12 @@ class HtmlMinifier
 
         self::$minifier = new HtmlMin();
 
-        // ==================== CẤU HÌNH GIỐNG CODE GỐC CỦA BẠN – 10/10 ====================
-        self::safeSetOption('doOptimizeViaHtmlDomParser', true);  // Giữ true như code gốc bạn cung cấp
+        self::safeSetOption('doOptimizeViaHtmlDomParser', true);
         self::safeSetOption('doRemoveComments', true);
         self::safeSetOption('doSumUpWhitespace', true);
         self::safeSetOption('doRemoveWhitespaceAroundTags', true);
 
-        // TẮT hoàn toàn các option nguy hiểm với AlpineJS + SplideJS
+        // Disable options unsafe for AlpineJS / SplideJS
         self::safeSetOption('doOptimizeAttributes', false);
         self::safeSetOption('doSortHtmlAttributes', false);
         self::safeSetOption('doSortCssClassNames', false);
@@ -42,7 +41,6 @@ class HtmlMinifier
         self::safeSetOption('doRemoveEmptyAttributes', false);
         self::safeSetOption('doRemoveValueFromEmptyInput', false);
 
-        error_log('🚀 [HtmlMinifier 10/10] ĐÃ BẬT THÀNH CÔNG – Giữ nguyên logic code gốc + Safe mode Alpine/Splide');
     }
 
     /**
@@ -75,7 +73,7 @@ class HtmlMinifier
         $saved = round(($originalSize - strlen($minified)) / 1024, 2);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("📦 [HTML MINIFY 10/10] {$time}ms | Tiết kiệm {$saved} KB");
+            error_log("[HtmlMinifier] minified in {$time}ms, saved {$saved} KB");
         }
 
         return $minified;

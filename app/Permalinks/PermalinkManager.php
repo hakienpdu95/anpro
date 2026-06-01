@@ -31,7 +31,7 @@ class PermalinkManager
     }
 
     /**
-     * FORCE SLUG 10/10 – Luôn chỉ có đúng 1 lần -post{ID} ở cuối
+     * Ensure exactly one -post{ID} suffix at the end of the slug
      */
     public static function forcePostSlugWithID(array $data, array $postarr): array
     {

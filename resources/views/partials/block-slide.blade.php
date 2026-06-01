@@ -62,10 +62,12 @@
                 @foreach ($demoItems as $item)
                     <li class="splide__slide">
                         <div class="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all group">
-                            <img 
-                                src="{{ $item['image'] }}" 
-                                class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500" 
+                            <img
+                                src="{{ $item['image'] }}"
+                                class="w-full h-64 object-cover group-hover:scale-105 transition-transform duration-500"
                                 alt="{{ $item['title'] }}"
+                                loading="lazy"
+                                decoding="async"
                             >
                             <div class="p-6">
                                 <h4 class="font-semibold text-xl leading-tight mb-3 line-clamp-2">

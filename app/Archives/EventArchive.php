@@ -5,7 +5,7 @@ use WP_Query;
 
 /**
  * EventArchive – Quản lý toàn bộ archive + filter cho CPT 'event'
- * Modular 10/10 – Dễ scale khi site có 20+ CPT
+ * Event archive query filters
  */
 class EventArchive {
 

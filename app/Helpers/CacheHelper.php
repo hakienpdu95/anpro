@@ -29,7 +29,7 @@ class CacheHelper
 
         if (self::$debug) {
             $driver = wp_using_ext_object_cache() ? 'Redis' : 'File';
-            error_log("🚀 [CacheHelper 10/10] Initialized - Driver: {$driver}");
+            error_log("[CacheHelper] Initialized - Driver: {$driver}");
         }
     }
 
@@ -40,7 +40,7 @@ class CacheHelper
 
         if (isset(self::$memory[$fullKey])) {
             $time = round((microtime(true) - $start) * 1000, 2);
-            if (self::$debug) error_log("⚡ MEMORY HIT → {$key} | {$time}ms");
+            if (self::$debug) error_log("[CacheHelper] memory hit: {$key} ({$time}ms)");
             return self::$memory[$fullKey];
         }
 
@@ -48,13 +48,13 @@ class CacheHelper
         self::$memory[$fullKey] = $result;
 
         $time = round((microtime(true) - $start) * 1000, 2);
-        if (self::$debug) error_log("📦 REDIS HIT → {$key} | {$time}ms | TTL {$seconds}s");
+        if (self::$debug) error_log("[CacheHelper] redis hit: {$key} ({$time}ms, ttl:{$seconds}s)");
 
         return $result;
     }
 
     /**
-     * DATA VERSIONING PER POST TYPE - TỰ ĐỘNG HOÀN TOÀN (10/10 scalable)
+     * Data versioning per post type
      */
     public static function getDataVersion(string $post_type): int
     {
@@ -75,7 +75,7 @@ class CacheHelper
         self::$memory = [];                         // xóa memory layer
 
         if (self::$debug) {
-            error_log("🔄 [CACHE VERSION] BUMP → {$post_type} | v{$newVersion}");
+            error_log("[CacheHelper] version bump: {$post_type} → v{$newVersion}");
         }
     }
 
@@ -95,7 +95,7 @@ class CacheHelper
         }
         
         if (self::$debug) {
-            error_log("🗑️ [CacheHelper] FLUSH → Post #{$post_id} ({$post_type})");
+            error_log("[CacheHelper] flush: post #{$post_id} ({$post_type})");
         }
     }
 }

@@ -30,7 +30,7 @@ class PerformanceOptimizer
         }
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('🚀 [PerformanceOptimizer 12/10] Initialized');
+            error_log('[PerformanceOptimizer] Initialized');
         }
     }
 

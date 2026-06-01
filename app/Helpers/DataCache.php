@@ -10,7 +10,7 @@ class DataCache
     {
         self::$debug = defined('WP_DEBUG') && WP_DEBUG;
         if (self::$debug) {
-            error_log('🚀 [DataCache 11/10] Initialized - Global Data Cache (độc lập)');
+            error_log('[DataCache] Initialized');
         }
     }
 
@@ -23,7 +23,7 @@ class DataCache
         $time = round((microtime(true) - $start) * 1000, 2);
 
         if (self::$debug) {
-            error_log("🔍 [DATA CACHE] {$key} | {$time}ms | TTL {$ttl}s");
+            error_log("[DataCache] miss: {$key} ({$time}ms, ttl:{$ttl}s)");
         }
 
         return $result;

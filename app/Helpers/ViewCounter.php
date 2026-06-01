@@ -12,7 +12,7 @@ class ViewCounter {
         add_action('wp', [self::class, 'incrementView'], 10);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('🚀 [ViewCounter Real-time 12/10] Direct DB Update - No Cron Delay');
+            error_log('[ViewCounter] Initialized');
         }
     }
 
@@ -50,7 +50,7 @@ class ViewCounter {
         wp_cache_set(self::$cache_group . ':' . $post_id, $new_total, self::$cache_group, 0);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log("[ViewCounter] +1 view → Post #{$post_id} | Tổng: {$new_total}");
+            error_log("[ViewCounter] post #{$post_id}: {$new_total} views");
         }
     }
 

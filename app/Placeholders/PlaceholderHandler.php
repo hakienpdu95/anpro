@@ -23,7 +23,7 @@ class PlaceholderHandler
         'violence-prevention' => 'placeholder.png',
     ];
 
-    /** Cache siêu mạnh (per post & per file) */
+    /** Per-post, per-file placeholder cache */
     private static array $urlCache = [];
     private static array $viteCache = [];
 
@@ -133,7 +133,7 @@ class PlaceholderHandler
         return self::getUrl($post_id);
     }
 
-    // ====================== API SIÊU MẠNH ======================
+    // Public API
     public static function useMediaImage(int $attachment_id): void
     {
         self::$config['media_id'] = $attachment_id;

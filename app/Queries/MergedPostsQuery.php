@@ -252,7 +252,7 @@ class MergedPostsQuery
     }
 
     /**
-     * HÀM CORE TỐI ƯU 12/10 – Hỗ trợ pinned_first cho NHIỀU CPT (post + event + ...)
+     * Core query builder with pinned_first support for multiple CPTs
      */
     private static function getByFlags(array $flags, int $limit = 5, array $post_types = ['post', 'event'], bool $pinned_first = false): WP_Query
     {

@@ -5,7 +5,7 @@ namespace App\Optimizations;
 use Illuminate\Support\Facades\Vite;
 
 /**
- * PRELOAD OPTIMIZER 12/10 – ĐÃ FIX HOÀN TOÀN FAVICON 404
+ * PreloadOptimizer — fix Vite preload warnings and favicon 404
  */
 class PreloadOptimizer
 {
@@ -41,7 +41,7 @@ class PreloadOptimizer
         add_action('template_redirect', [self::class, 'serveFaviconRedirect']);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('🚀 [PreloadOptimizer 12/10] Initialized + Favicon fixed');
+            error_log('[PreloadOptimizer] Initialized');
         }
     }
 

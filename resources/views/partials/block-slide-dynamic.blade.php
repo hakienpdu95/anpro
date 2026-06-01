@@ -24,7 +24,7 @@
                         <li class="splide__slide">
                             <div class="bg-white rounded-3xl overflow-hidden shadow-lg hover:shadow-2xl transition-all group">
                                 <a href="{{ get_permalink($post) }}">
-                                    {!! get_the_post_thumbnail($post->ID, 'medium_large', ['class' => 'w-full h-64 object-cover group-hover:scale-105 transition-transform']) !!}
+                                    {!! get_the_post_thumbnail($post->ID, 'medium_large', ['class' => 'w-full h-64 object-cover group-hover:scale-105 transition-transform', 'loading' => 'lazy', 'decoding' => 'async']) !!}
                                 </a>
                                 <div class="p-6">
                                     <h4 class="font-semibold text-xl leading-tight mb-3 line-clamp-2">

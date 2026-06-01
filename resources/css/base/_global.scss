@@ -302,7 +302,7 @@ body {
     background-color: var(--bg-primary);
 
     @include mq(md) {
-        background-image: url('./../../images/body-background.png');
+        background-image: url('@/images/body-background.png');
     }
 
     @include mq-max(xl) {

@@ -20,7 +20,7 @@ class AssetOptimizer
         add_filter('script_loader_tag', [self::class, 'optimizeScriptTag'], 9999, 3);
 
         if (defined('WP_DEBUG') && WP_DEBUG) {
-            error_log('🚀 [AssetOptimizer 12/10] Initialized');
+            error_log('[AssetOptimizer] Initialized');
         }
     }
 
