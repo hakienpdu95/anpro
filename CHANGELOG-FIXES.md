@@ -2,8 +2,8 @@
 
 > **Áp dụng cho:** Tất cả website nhân bản từ theme AnPro (Sage WordPress)  
 > **Ngày thực hiện:** 2026-06-02  
-> **Số file thay đổi:** 31 files PHP/Blade + 3 files CSS/JS config + 3 files Boot mới  
-> **Tất cả 54 PHP files:** syntax OK sau khi fix
+> **Số file thay đổi:** 45 files PHP/Blade + 3 files CSS/JS config + 3 files Boot mới  
+> **Tất cả PHP files:** syntax OK sau khi fix — 0 lỗi
 
 ---
 
@@ -27,6 +27,10 @@
 16. [Opt #3 — ViewCounter + Redis: transient writes và cách tối ưu](#opt-3)
 17. [Cleanup — Dev comments "12/10", "ULTIMATE"...](#cleanup-comments)
 18. [Architecture — Tách `setup.php` thành Boot modules](#architecture)
+19. [Review Round 2 — Bảo mật (4 bugs)](#review-security)
+20. [Review Round 2 — Hiệu suất (7 optimizations)](#review-perf)
+21. [Review Round 2 — Scale & code quality (4 fixes)](#review-scale)
+22. [Review Round 2 — Blade templates (5 fixes)](#review-blade)
 
 ---
 
@@ -790,6 +794,29 @@ require_once get_theme_file_path('app/Boot/Services.php');
 - [ ] `resources/views/single-event.blade.php` — thêm `loading="eager" fetchpriority="high"` cho hero image
 - [ ] `resources/views/page.blade.php` — thêm `loading="eager" fetchpriority="high"` cho hero image
 - [ ] `resources/views/sections/sidebar.blade.php` — thay `Vite::asset()` → `get_theme_file_uri()` cho 6 icon PNG
+- [ ] **Review Round 2 — Bảo mật:**
+  - [ ] `app/Database/CustomTableManager.php:371` — SQL Injection `filterOrderByMeta` → `sanitize_key()` + `$wpdb->prepare()`
+  - [ ] `app/Database/CustomTableManager.php:204` — thêm `current_user_can('edit_posts')` trước preload meta
+  - [ ] `app/Database/CustomTableManager.php:462` — autoload option `true` → `false`
+  - [ ] 6 blade templates — `{!! get_the_title() !!}` → `{{ get_the_title() }}`
+  - [ ] `app/Permalinks/PermalinkManager.php:125` — `esc_url_raw(wp_unslash(...))` cho REQUEST_URI
+  - [ ] `sections/sidebar.blade.php` — dead links `href="#"` → `get_post_type_archive_link()`
+- [ ] **Review Round 2 — Hiệu suất:**
+  - [ ] `app/Helpers/ViewCounter.php` — IP thật qua proxy headers + defer DB write ra `shutdown`
+  - [ ] `app/Helpers/CacheHelper.php` — `save_post` priority 20→5, `forever()` → `put(..., YEAR_IN_SECONDS)`
+  - [ ] `app/Helpers/QueryHelper.php:75` — `orderby=rand` → PHP shuffle trên pool nhỏ
+  - [ ] `app/Helpers/QueryCache.php` — xóa `ob_start()` thừa
+  - [ ] `app/Optimizations/PerformanceOptimizer.php:25` — `init` priority 9999→1
+  - [ ] `app/Helpers/HtmlMinifier.php:15` — bật minify cả trong WP_DEBUG
+- [ ] **Review Round 2 — Scale & quality:**
+  - [ ] `app/Ajax/LoadMore.php` — named constants + `wp_kses_post()` output
+  - [ ] `app/Search/SearchManager.php:31` — post types dynamic từ `CustomTableManager::$registered`
+  - [ ] `app/Watermark/WatermarkHandler.php` — whitelist extension `['jpg','jpeg','png']`
+  - [ ] `app/Helpers/DataCache.php:26` — log label "miss" → "cache"
+- [ ] **Review Round 2 — Blade/Frontend:**
+  - [ ] `sections/header.blade.php` — `<div href>` → `<p>`, `aria-label` search buttons, logo `width`/`height`
+  - [ ] `sections/sidebar.blade.php` — `aria-label` + `alt` cho icons, `width`/`height`
+  - [ ] `partials/block-slide.blade.php` — thêm `width="800" height="450"`
 - [ ] Cấu hình Redis Object Cache (xem Opt #3 trong CHANGELOG)
 - [ ] Xóa dev comments "12/10", "ULTIMATE"... trong 16 class files (optional, cosmetic)
 
@@ -804,17 +831,356 @@ require_once get_theme_file_path('app/Boot/Services.php');
 
 ---
 
+---
+
+## Review Round 2 — Bảo mật {#review-security}
+
+> Phát hiện qua code review toàn diện 4 chiều (security / performance / quality / template).
+
+### Bug #14 — SQL Injection trong `filterOrderByMeta`
+
+**File:** `app/Database/CustomTableManager.php:371`  
+**Mức độ:** 🔴 Critical
+
+`$meta_key` từ `WP_Query->get('meta_key')` được nối thẳng vào SQL string:
+
+```php
+// TRƯỚC — injection vector
+return "MAX(CASE WHEN {$table}.meta_key = '{$meta_key}' THEN {$table}.meta_value END) {$order}";
+
+// SAU — sanitize_key() + $wpdb->prepare()
+$meta_key = sanitize_key($query->get('meta_key'));
+return $wpdb->prepare(
+    "MAX(CASE WHEN {$table}.meta_key = %s THEN {$table}.meta_value END) {$order}",
+    $meta_key
+);
+```
+
+---
+
+### Bug #15 — XSS: `{!! get_the_title() !!}` trong 6 Blade templates
+
+**Files:** `partials/content.blade.php`, `partials/content-loadmore.blade.php`, `partials/blocks/breaking-posts.blade.php`, `partials/blocks/block-slide-tab-one.blade.php`, `partials/blocks/article-thumb-grid.blade.php`, `views/search.blade.php`  
+**Mức độ:** 🔴 Critical
+
+`{!! !!}` bỏ qua Blade auto-escaping. `get_the_title()` không tự escape HTML — nếu title chứa `<script>` hoặc ký tự đặc biệt sẽ render thô trên trang.
+
+```php
+// TRƯỚC — unescaped output
+{!! get_the_title() !!}
+
+// SAU — Blade htmlspecialchars()
+{{ get_the_title() }}
+```
+
+---
+
+### Bug #16 — Dead links `href="#"` trong sidebar
+
+**File:** `resources/views/sections/sidebar.blade.php`  
+**Mức độ:** 🟠 High
+
+6 category links đều trỏ `href="#"` — broken link với SEO và UX.
+
+```php
+// TRƯỚC
+<a href="#">
+
+// SAU — trỏ đúng CPT archive, fallback home
+<a href="{{ esc_url(get_post_type_archive_link('happy-family') ?: home_url('/')) }}"
+   aria-label="Kế Hoạch Hóa Gia Đình & Mang Thai">
+```
+
+---
+
+### Bug #17 — Thiếu capability check trong `preloadCurrentPostMeta`
+
+**File:** `app/Database/CustomTableManager.php:204`  
+**Mức độ:** 🟠 High
+
+`$_GET['post']` được đọc không có kiểm tra quyền hạn — bất kỳ user nào biết ID post đều có thể trigger load meta.
+
+```php
+// TRƯỚC
+$post_id = (int) ($_GET['post'] ?? 0);
+if ($post_id > 0) self::loadAllMeta($post_id);
+
+// SAU
+if (!is_admin() || !current_user_can('edit_posts')) return;
+$post_id = (int) ($_GET['post'] ?? 0);
+if ($post_id > 0) self::loadAllMeta($post_id);
+```
+
+---
+
+## Review Round 2 — Hiệu suất {#review-perf}
+
+### Opt #4 — ViewCounter: IP spoofing + defer DB write
+
+**File:** `app/Helpers/ViewCounter.php`
+
+**IP spoofing:** `$_SERVER['REMOTE_ADDR']` trả về IP của proxy khi site đứng sau Cloudflare/nginx — toàn bộ user chung 1 IP, rate limit vô hiệu.
+
+**DB write blocking:** `update_post_meta()` chạy đồng bộ, block page render.
+
+```php
+// TRƯỚC
+$ip = $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+update_post_meta($post_id, 'post_views', $new_total); // block render
+
+// SAU — IP thật qua proxy headers + defer ra shutdown
+private static function getClientIp(): string {
+    foreach (['HTTP_CF_CONNECTING_IP', 'HTTP_X_REAL_IP', 'HTTP_X_FORWARDED_FOR'] as $h) {
+        $ip = trim(explode(',', $_SERVER[$h] ?? '')[0]);
+        if (filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return $ip;
+        }
+    }
+    return $_SERVER['REMOTE_ADDR'] ?? 'unknown';
+}
+
+// DB write không block page render
+add_action('shutdown', function () use ($post_id, $new_total) {
+    update_post_meta($post_id, 'post_views', $new_total);
+}, 999);
+```
+
+---
+
+### Opt #5 — CacheHelper: hook priority + `forever()` → có expiry
+
+**File:** `app/Helpers/CacheHelper.php`
+
+| Vấn đề | Trước | Sau |
+|---|---|---|
+| `save_post` priority quá muộn | `20` (sau plugin khác) | `5` (trước) |
+| Version key không expire | `$cache->forever($key, $v)` | `$cache->put($key, $v, YEAR_IN_SECONDS)` |
+
+---
+
+### Opt #6 — QueryHelper: `ORDER BY RAND()` → PHP shuffle
+
+**File:** `app/Helpers/QueryHelper.php:75`
+
+`ORDER BY RAND()` yêu cầu MySQL tính random value cho toàn bộ result set → O(n) với n là số bài trong bảng.
+
+```php
+// TRƯỚC — chậm theo tỉ lệ DB size
+'orderby' => 'rand'
+
+// SAU — fetch pool nhỏ theo date, shuffle trong PHP
+$pool = self::cquery(['posts_per_page' => max($limit * 3, 18), 'orderby' => 'date', ...]);
+$posts = $pool->posts ?? [];
+shuffle($posts);
+$pool->posts = array_slice($posts, 0, $limit);
+return $pool;
+```
+
+---
+
+### Opt #7 — QueryCache: bỏ `ob_start()` thừa trong render loop
+
+**File:** `app/Helpers/QueryCache.php`
+
+`ob_start()` được gọi nhưng không capture gì — Blade `->render()` trả về string, không echo. Xóa `ob_start()` vô nghĩa.
+
+---
+
+### Opt #8 — CustomTableManager: autoload option `true` → `false`
+
+**File:** `app/Database/CustomTableManager.php:462`
+
+Flag `sage_custom_tables_created` được load vào RAM mọi request (autoload = true) dù chỉ cần đọc khi activate theme.
+
+```php
+// TRƯỚC
+update_option('sage_custom_tables_created', true, true);
+
+// SAU
+update_option('sage_custom_tables_created', true, false);
+```
+
+---
+
+### Opt #9 — PerformanceOptimizer: `init` priority `9999` → `1`
+
+**File:** `app/Optimizations/PerformanceOptimizer.php:25`
+
+Priority 9999 chạy sau tất cả plugin → plugin có thể đã đăng ký emoji/oembed/xmlrpc trước khi theme kịp disable. Đổi sang `1` để disable trước.
+
+```php
+// TRƯỚC
+add_action('init', [self::class, 'applyOptimizations'], 9999);
+
+// SAU
+add_action('init', [self::class, 'applyOptimizations'], 1);
+```
+
+---
+
+### Opt #10 — HtmlMinifier: bật cả trong `WP_DEBUG`
+
+**File:** `app/Helpers/HtmlMinifier.php:15`
+
+Khi `WP_DEBUG = true`, minifier bị tắt — local và production chạy HTML khác nhau, bug minify chỉ xuất hiện trên production.
+
+```php
+// TRƯỚC — tắt khi debug
+self::$enabled = !$isDebug;
+
+// SAU — luôn bật, local == production
+self::$enabled = true;
+```
+
+---
+
+## Review Round 2 — Scale & code quality {#review-scale}
+
+### Opt #11 — LoadMore: magic numbers → named constants + `wp_kses_post` output
+
+**File:** `app/Ajax/LoadMore.php`
+
+```php
+// TRƯỚC
+$offset = max(3, (int) ($_POST['offset'] ?? 3));
+$chunk  = QueryCache::getLoadMoreChunk($offset, 3);
+echo $chunk['html'] ?? '';
+
+// SAU
+private const INITIAL_OFFSET  = 3;
+private const POSTS_PER_CHUNK = 3;
+
+$offset = max(self::INITIAL_OFFSET, (int) ($_POST['offset'] ?? self::INITIAL_OFFSET));
+$chunk  = QueryCache::getLoadMoreChunk($offset, self::POSTS_PER_CHUNK);
+echo wp_kses_post($chunk['html'] ?? '');
+```
+
+---
+
+### Opt #12 — SearchManager: hardcode post types → dynamic từ `CustomTableManager`
+
+**File:** `app/Search/SearchManager.php:31`
+
+Post types hardcode phải sync tay với `MetaData.php`. Đổi sang đọc trực tiếp từ registry:
+
+```php
+// TRƯỚC
+$query->set('post_type', ['post', 'event', 'happy-family', 'family-values', 'violence-prevention']);
+
+// SAU — tự động sync với CPTs đăng ký
+$searchable = array_values(array_filter(
+    CustomTableManager::$registered ?? ['post'],
+    fn($pt) => $pt !== 'revision'
+));
+$query->set('post_type', $searchable ?: ['post']);
+```
+
+---
+
+### Opt #13 — WatermarkHandler: whitelist extension file
+
+**File:** `app/Watermark/WatermarkHandler.php`
+
+GD và Imagick có thể xử lý file không phải ảnh nếu không validate extension — nguy cơ crash hoặc ghi đè file lạ.
+
+```php
+// SAU — cả GD lẫn Imagick đều guard trước
+$ext = strtolower(pathinfo($image_path, PATHINFO_EXTENSION));
+if (!in_array($ext, ['jpg', 'jpeg', 'png'], true)) {
+    return;
+}
+```
+
+---
+
+### Opt #14 — DataCache: log label "miss" → "cache"
+
+**File:** `app/Helpers/DataCache.php:26`
+
+Log luôn in `"miss"` kể cả khi cache hit — misleading khi debug.
+
+```php
+// TRƯỚC
+error_log("[DataCache] miss: {$key} ...");
+
+// SAU
+error_log("[DataCache] cache: {$key} ...");
+```
+
+---
+
+## Review Round 2 — Blade templates {#review-blade}
+
+### Opt #15 — Images: `width`/`height` + LCP priority
+
+**Files:** `sections/header.blade.php`, `partials/block-slide.blade.php`
+
+Thiếu `width`/`height` khiến browser không reserve space → layout shift (CLS). Logo là LCP candidate cần load sớm.
+
+```html
+<!-- TRƯỚC -->
+<img src="..." loading="lazy" class="img-fluid">
+
+<!-- SAU — logo: eager + high priority + intrinsic size -->
+<img src="..." width="100" height="40" loading="eager" fetchpriority="high" class="img-fluid">
+
+<!-- SAU — slider demo: intrinsic size + lazy -->
+<img src="..." width="800" height="450" loading="lazy" decoding="async">
+```
+
+---
+
+### Opt #16 — Sidebar: `aria-label`, `alt` text, archive links
+
+**File:** `resources/views/sections/sidebar.blade.php`
+
+| Vấn đề | Fix |
+|---|---|
+| 6 links `href="#"` | Trỏ đúng CPT archive (`get_post_type_archive_link()`), fallback `home_url('/')` |
+| Icon img không có `alt` | Thêm `alt="Icon [tên chuyên mục]"` mô tả |
+| Link thiếu `aria-label` | Thêm `aria-label` cho screen reader |
+| Icon img thiếu `width`/`height` | Thêm `width="40" height="40"` — fix CLS |
+
+---
+
+### Opt #17 — Header: `aria-label` cho search button, sanitize `REQUEST_URI`
+
+**Files:** `sections/header.blade.php`, `app/Permalinks/PermalinkManager.php`
+
+```html
+<!-- TRƯỚC — icon-only button không có label -->
+<a href="#!" @click.prevent="open = true">
+
+<!-- SAU -->
+<a href="#!" aria-label="Mở tìm kiếm" @click.prevent="open = true">
+```
+
+```php
+// TRƯỚC — REQUEST_URI không sanitize
+$current_url = $_SERVER['REQUEST_URI'] ?? '';
+
+// SAU
+$current_url = esc_url_raw(wp_unslash($_SERVER['REQUEST_URI'] ?? ''));
+```
+
+---
+
 ## Tóm tắt impact
 
 | Loại | Số lượng |
 |---|---|
-| Bugs functional | 7 |
+| **Bugs functional** | **11** (7 cũ + 4 round 2) |
 | Bugs frontend (404) | 3 |
 | Dead code removed | 2 |
-| Performance optimizations | 3 (double query, lazy loading, Redis guide) |
+| **Performance optimizations** | **11** (3 cũ + 8 round 2) |
+| Security fixes | 4 (SQL injection, XSS ×6 templates, capability check, REQUEST_URI) |
 | Dev comments cleaned | 16 files |
 | require_once thừa xóa | 22 |
 | Files refactored | 1 → 4 |
 | WP_Query giảm / LoadMore click | 2 → 1 (−50%) |
-| Blade templates thêm lazy loading | 6 files |
+| Blade templates fixed | 12 files |
+| DB write ViewCounter | blocking → deferred (shutdown hook) |
+| IP detection | REMOTE_ADDR → proxy-aware (CF/nginx/X-Forwarded-For) |
+| ORDER BY RAND() | eliminated → PHP shuffle |
 | PHP syntax errors sau fix | 0 / 54 files |
+| **Tổng findings đã fix** | **40 / 40** |
